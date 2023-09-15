@@ -21,3 +21,15 @@ class Address:
 @dataclass
 class Home:
     address: Address
+    url: str
+
+    beds: int | None = None
+    baths: int | None = None
+    stories: int | None = None
+    agent_name: str | None = None
+    description: str | None = None
+    year_built: int | None = None
+    square_feet: int | None = None
+    price_per_square_foot: int | None = None
+    price: int | None = None
+    mls_id: str | None = None
