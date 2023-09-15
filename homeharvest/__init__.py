@@ -14,7 +14,7 @@ def scrape_property(
         listing_type: str = "for_sale",  #: for_sale, for_rent, sold
         site_name: str = "redfin",
 ) -> list[Home]:  #: eventually, return pandas dataframe
-    if site_name not in _scrapers:
+    if site_name.lower() not in _scrapers:
         raise InvalidSite(f"Provided site, '{site_name}', does not exist.")
 
     if listing_type.upper() not in ListingType.__members__:
@@ -25,6 +25,6 @@ def scrape_property(
         listing_type=ListingType[listing_type.upper()],
     )
 
-    site = _scrapers[site_name](scraper_input)
+    site = _scrapers[site_name.lower()](scraper_input)
 
     return site.search()
