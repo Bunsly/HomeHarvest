@@ -21,5 +21,7 @@ class Scraper:
                 "https": scraper_input.proxy_url,
             }
 
-    def search(self) -> list[Home]:
-        ...
+    def search(self) -> list[Home]: ...
+
+    @staticmethod
+    def parse_home(home) -> Home: ...
