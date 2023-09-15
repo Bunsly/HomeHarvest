@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "homeharvest"
+version = "0.1.0"
+description = "Real estate scraping library for Zillow & Redfin"
+authors = ["Zachary Hampton <zachary@zacharysproducts.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
