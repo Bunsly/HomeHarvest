@@ -1,5 +1,5 @@
 import json
-from ..types import Home, Address
+from ..types import Property, Address
 from .. import Scraper
 from typing import Any
 

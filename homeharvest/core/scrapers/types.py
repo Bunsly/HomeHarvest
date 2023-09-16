@@ -19,7 +19,7 @@ class Address:
 
 
 @dataclass
-class Home:
+class Property:
     address: Address
     url: str
 

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import requests
-from .types import Home, ListingType
+from .types import Property, ListingType
 
 
 @dataclass
@@ -21,9 +21,9 @@ class Scraper:
                 "https": scraper_input.proxy_url,
             }
 
-    def search(self) -> list[Home]: ...
+    def search(self) -> list[Property]: ...
 
     @staticmethod
-    def parse_home(home) -> Home: ...
+    def parse_home(home) -> Property: ...
 
     def handle_location(self): ...

@@ -1,5 +1,5 @@
 import json
-from ..types import Home, Address
+from ..types import Property, Address
 from .. import Scraper
 from typing import Any
 
@@ -20,7 +20,7 @@ class RedfinScraper(Scraper):
             return response_json['payload']['sections'][0]['rows'][0].split('_')[1]
 
     @staticmethod
-    def parse_home(home: dict) -> Home:
+    def parse_home(home: dict) -> Property:
         address = Address(
             address_one=home['streetLine']['value'],
             city=home['city'],
@@ -34,7 +34,7 @@ class RedfinScraper(Scraper):
             if key in home and 'value' in home[key]:
                 return home[key]['value']
 
-        return Home(
+        return Property(
             address=address,
             url=url,
             beds=home['beds'] if 'beds' in home else None,
