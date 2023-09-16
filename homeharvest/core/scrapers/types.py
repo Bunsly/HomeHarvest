@@ -33,3 +33,5 @@ class Property:
     price_per_square_foot: int | None = None
     price: int | None = None
     mls_id: str | None = None
+
+    property_type: str | None = None

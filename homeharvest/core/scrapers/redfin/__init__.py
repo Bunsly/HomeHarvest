@@ -14,10 +14,18 @@ class RedfinScraper(Scraper):
         response = self.session.get(url)
         response_json = json.loads(response.text.replace('{}&&', ''))
 
+        def get_region_type(match_type: str):
+            if match_type == "4":
+                return "2"
+            elif match_type == "2":
+                return "6"
+
         if response_json['payload']['exactMatch'] is not None:
-            return response_json['payload']['exactMatch']['id'].split('_')[1]
+            target = response_json['payload']['exactMatch']
         else:
-            return response_json['payload']['sections'][0]['rows'][0].split('_')[1]
+            target = response_json['payload']['sections'][0]['rows'][0]
+
+        return target['id'].split('_')[1], get_region_type(target['type'])
 
     @staticmethod
     def parse_home(home: dict) -> Property:
@@ -50,9 +58,9 @@ class RedfinScraper(Scraper):
         )
 
     def search(self):
-        region_id = self.handle_location()
+        region_id, region_type = self.handle_location()
 
-        url = 'https://www.redfin.com/stingray/api/gis?al=1&region_id={}&region_type=2'.format(region_id)
+        url = 'https://www.redfin.com/stingray/api/gis?al=1&region_id={}&region_type={}'.format(region_id, region_type)
 
         response = self.session.get(url)
         response_json = json.loads(response.text.replace('{}&&', ''))

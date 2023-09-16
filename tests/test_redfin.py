@@ -2,9 +2,19 @@ from homeharvest import scrape_property
 
 
 def test_redfin():
-    result = scrape_property(
-        site_name="redfin",
-        location="85281"
-    )
+    results = [
+        scrape_property(
+            location="Phoenix, AZ, USA",
+            site_name="redfin"
+        ),
+        scrape_property(
+            location="Dallas, TX, USA",
+            site_name="redfin"
+        ),
+        scrape_property(
+            location="85281",
+            site_name="redfin"
+        ),
+    ]
 
-    assert result is not None
+    assert all([result is not None for result in results])

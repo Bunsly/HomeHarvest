@@ -36,7 +36,13 @@ class RealtorScraper(Scraper):
 
         return response_json['autocomplete'][0]
 
+
     def search(self):
         location_info = self.handle_location()
         location_type = location_info['area_type']
+
+        """
+        property types:
+        apartment + building + commercial + condo_townhome + condo_townhome_rowhome_coop + condos + coop + duplex_triplex + farm + investment + land + mobile + multi_family + rental + single_family + townhomes
+        """
         print('a')
