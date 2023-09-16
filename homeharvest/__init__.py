@@ -1,4 +1,5 @@
 from .core.scrapers.redfin import RedfinScraper
+from .core.scrapers.realtor import RealtorScraper
 from .core.scrapers.types import ListingType, Home
 from .core.scrapers import ScraperInput
 from .exceptions import InvalidSite, InvalidListingType
@@ -6,13 +7,14 @@ from .exceptions import InvalidSite, InvalidListingType
 
 _scrapers = {
     "redfin": RedfinScraper,
+    "realtor.com": RealtorScraper
 }
 
 
 def scrape_property(
         location: str,
+        site_name: str,
         listing_type: str = "for_sale",  #: for_sale, for_rent, sold
-        site_name: str = "redfin",
 ) -> list[Home]:  #: eventually, return pandas dataframe
     if site_name.lower() not in _scrapers:
         raise InvalidSite(f"Provided site, '{site_name}', does not exist.")

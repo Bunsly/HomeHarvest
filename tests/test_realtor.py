@@ -1,10 +1,10 @@
 from homeharvest import scrape_property
 
 
-def test_redfin():
+def test_realtor():
     result = scrape_property(
-        site_name="redfin",
-        location="85281"
+        location="85281",
+        site_name="realtor.com"
     )
 
     assert result is not None
