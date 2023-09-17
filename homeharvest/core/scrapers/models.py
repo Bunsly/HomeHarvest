@@ -17,9 +17,11 @@ class ListingType(Enum):
 class PropertyType(Enum):
     HOUSE = "HOUSE"
     CONDO = "CONDO"
-    TOWNHOUSE = "townhousE"
+    TOWNHOUSE = "TOWNHOUSE"
     SINGLE_FAMILY = "SINGLE_FAMILY"
     MULTI_FAMILY = "MULTI_FAMILY"
+    MANUFACTURED = "MANUFACTURED"
+    APARTMENT = "APARTMENT"
     LAND = "LAND"
     OTHER = "OTHER"
 

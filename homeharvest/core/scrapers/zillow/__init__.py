@@ -97,7 +97,9 @@ class ZillowScraper(Scraper):
             else property_data["hdpUrl"]
         )
         address_data = property_data["address"]
-        address_one, address_two = cls._parse_address_two(address_data["streetAddress"])
+        address_one, address_two = self._parse_address_two(
+            address_data["streetAddress"]
+        )
         address = Address(
             address_one=address_one,
             address_two=address_two,
@@ -106,7 +108,6 @@ class ZillowScraper(Scraper):
             zip_code=address_data["zipcode"],
         )
         property_type = property_data.get("homeType", None)
-        print(property_type)
 
         return Property(
             site_name=self.site_name,

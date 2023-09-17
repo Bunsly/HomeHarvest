@@ -55,6 +55,15 @@ class RedfinScraper(Scraper):
             )
         url = "https://www.redfin.com{}".format(home["url"])
         property_type = home["propertyType"] if "propertyType" in home else None
+        lot_size_data = home.get("lotSize")
+        if not isinstance(lot_size_data, int):
+            lot_size = (
+                lot_size_data.get("value", None)
+                if isinstance(lot_size_data, dict)
+                else None
+            )
+        else:
+            lot_size = lot_size_data
 
         return Property(
             site_name=self.site_name,
@@ -70,7 +79,7 @@ class RedfinScraper(Scraper):
             if not single_search
             else home["yearBuilt"],
             square_feet=get_value("sqFt"),
-            lot_size=home.get("lotSize", {}).get("value", None),
+            lot_size=lot_size,
             property_type=PropertyType.from_int_code(home.get("propertyType")),
             price_per_square_foot=get_value("pricePerSqFt"),
             price=get_value("price"),

@@ -15,11 +15,7 @@ _scrapers = {
 }
 
 
-def scrape_property(
-    location: str,
-    site_name: str,
-    listing_type: str = "for_sale",  #: for_sale, for_rent, sold
-) -> Union[list[Building], list[Property]]:
+def validate_input(site_name: str, listing_type: str) -> None:
     if site_name.lower() not in _scrapers:
         raise InvalidSite(f"Provided site, '{site_name}', does not exist.")
 
@@ -27,6 +23,75 @@ def scrape_property(
         raise InvalidListingType(
             f"Provided listing type, '{listing_type}', does not exist."
         )
+
+
+def get_ordered_properties(result: Union[Building, Property]) -> list[str]:
+    if isinstance(result, Property):
+        return [
+            "listing_type",
+            "address_one",
+            "city",
+            "state",
+            "zip_code",
+            "address_two",
+            "url",
+            "property_type",
+            "price",
+            "beds",
+            "baths",
+            "square_feet",
+            "price_per_square_foot",
+            "lot_size",
+            "stories",
+            "year_built",
+            "agent_name",
+            "mls_id",
+            "description",
+        ]
+    elif isinstance(result, Building):
+        return [
+            "address_one",
+            "city",
+            "state",
+            "zip_code",
+            "address_two",
+            "url",
+            "num_units",
+            "min_unit_price",
+            "max_unit_price",
+            "avg_unit_price",
+            "listing_type",
+        ]
+    return []
+
+
+def process_result(result: Union[Building, Property]) -> pd.DataFrame:
+    prop_data = result.__dict__
+
+    address_data = prop_data["address"]
+    prop_data["site_name"] = prop_data["site_name"].value
+    prop_data["listing_type"] = prop_data["listing_type"].value
+    prop_data["property_type"] = prop_data["property_type"].value.lower()
+    prop_data["address_one"] = address_data.address_one
+    prop_data["city"] = address_data.city
+    prop_data["state"] = address_data.state
+    prop_data["zip_code"] = address_data.zip_code
+    prop_data["address_two"] = address_data.address_two
+
+    del prop_data["address"]
+
+    properties_df = pd.DataFrame([prop_data])
+    properties_df = properties_df[get_ordered_properties(result)]
+
+    return properties_df
+
+
+def scrape_property(
+    location: str,
+    site_name: str,
+    listing_type: str = "for_sale",  #: for_sale, for_rent, sold
+) -> Union[list[Building], list[Property]]:
+    validate_input(site_name, listing_type)
 
     scraper_input = ScraperInput(
         location=location,
@@ -37,63 +102,6 @@ def scrape_property(
     site = _scrapers[site_name.lower()](scraper_input)
     results = site.search()
 
-    properties_dfs = []
-
-    for result in results:
-        prop_data = result.__dict__
-
-        address_data = prop_data["address"]
-        prop_data["site_name"] = prop_data["site_name"].value
-        prop_data["listing_type"] = prop_data["listing_type"].value
-        prop_data["property_type"] = prop_data["property_type"].value.lower()
-        prop_data["address_one"] = address_data.address_one
-        prop_data["city"] = address_data.city
-        prop_data["state"] = address_data.state
-        prop_data["zip_code"] = address_data.zip_code
-        prop_data["address_two"] = address_data.address_two
-
-        del prop_data["address"]
-
-        if isinstance(result, Property):
-            desired_order = [
-                "listing_type",
-                "address_one",
-                "city",
-                "state",
-                "zip_code",
-                "address_two",
-                "url",
-                "property_type",
-                "price",
-                "beds",
-                "baths",
-                "square_feet",
-                "price_per_square_foot",
-                "lot_size",
-                "stories",
-                "year_built",
-                "agent_name",
-                "mls_id",
-                "description",
-            ]
-
-        elif isinstance(result, Building):
-            desired_order = [
-                "address_one",
-                "city",
-                "state",
-                "zip_code",
-                "address_two",
-                "url",
-                "num_units",
-                "min_unit_price",
-                "max_unit_price",
-                "avg_unit_price",
-                "listing_type",
-            ]
-
-        properties_df = pd.DataFrame([prop_data])
-        properties_df = properties_df[desired_order]
-        properties_dfs.append(properties_df)
+    properties_dfs = [process_result(result) for result in results]
 
     return pd.concat(properties_dfs, ignore_index=True)
