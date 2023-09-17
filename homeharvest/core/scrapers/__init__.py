@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import requests
-from .types import Property, ListingType
+from .models import Property, ListingType
 
 
 @dataclass
@@ -11,9 +11,12 @@ class ScraperInput:
 
 
 class Scraper:
+    listing_type = ListingType.FOR_SALE
+
     def __init__(self, scraper_input: ScraperInput):
         self.location = scraper_input.location
         self.session = requests.Session()
+        Scraper.listing_type = scraper_input.listing_type
 
         if scraper_input.proxy_url:
             self.session.proxies = {
@@ -21,9 +24,12 @@ class Scraper:
                 "https": scraper_input.proxy_url,
             }
 
-    def search(self) -> list[Property]: ...
+    def search(self) -> list[Property]:
+        ...
 
     @staticmethod
-    def parse_home(home) -> Property: ...
+    def _parse_home(home) -> Property:
+        ...
 
-    def handle_location(self): ...
+    def handle_location(self):
+        ...

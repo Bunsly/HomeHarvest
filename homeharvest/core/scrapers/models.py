@@ -24,14 +24,29 @@ class Property:
     url: str
 
     beds: int | None = None
-    baths: int | None = None
+    baths: float | None = None
     stories: int | None = None
     agent_name: str | None = None
-    description: str | None = None
     year_built: int | None = None
     square_feet: int | None = None
     price_per_square_foot: int | None = None
+    year_built: int | None = None
     price: int | None = None
     mls_id: str | None = None
 
-    property_type: str | None = None
+    listing_type: ListingType | None = None
+    lot_size: int | None = None
+    description: str | None = None
+
+
+@dataclass
+class Building:
+    address: Address
+    url: str
+
+    num_units: int | None = None
+    min_unit_price: int | None = None
+    max_unit_price: int | None = None
+    avg_unit_price: int | None = None
+
+    listing_type: str | None = None
