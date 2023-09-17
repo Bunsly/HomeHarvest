@@ -1,13 +1,11 @@
 import re
 import json
-from ..models import Property, Address, Building, ListingType
+from ..models import Property, Address, Building, ListingType, PropertyType
 from ....exceptions import NoResultsFound, PropertyNotFound
 from .. import Scraper
 
 
 class ZillowScraper(Scraper):
-    listing_type: ListingType.FOR_SALE
-
     def __init__(self, scraper_input):
         super().__init__(scraper_input)
         self.listing_type = scraper_input.listing_type
@@ -65,15 +63,17 @@ class ZillowScraper(Scraper):
             agent_name = self._extract_agent_name(home)
             beds = home["hdpData"]["homeInfo"]["bedrooms"]
             baths = home["hdpData"]["homeInfo"]["bathrooms"]
-            listing_type = home["hdpData"]["homeInfo"].get("homeType")
+            property_type = home["hdpData"]["homeInfo"].get("homeType")
 
             return Property(
+                site_name=self.site_name,
                 address=address,
                 agent_name=agent_name,
                 url=url,
                 beds=beds,
                 baths=baths,
-                listing_type=listing_type,
+                listing_type=self.listing_type,
+                property_type=PropertyType(property_type),
                 **price_data,
             )
         else:
@@ -83,10 +83,11 @@ class ZillowScraper(Scraper):
             address = Address(address_one, city, state, zip_code, address_two)
 
             building_info = self._extract_building_info(home)
-            return Building(address=address, url=url, **building_info)
+            return Building(
+                site_name=self.site_name, address=address, url=url, **building_info
+            )
 
-    @classmethod
-    def _get_single_property_page(cls, property_data: dict):
+    def _get_single_property_page(self, property_data: dict):
         """
         This method is used when a user enters the exact location & zillow returns just one property
         """
@@ -104,8 +105,11 @@ class ZillowScraper(Scraper):
             state=address_data["state"],
             zip_code=address_data["zipcode"],
         )
+        property_type = property_data.get("homeType", None)
+        print(property_type)
 
         return Property(
+            site_name=self.site_name,
             address=address,
             url=url,
             beds=property_data.get("bedrooms", None),
@@ -121,7 +125,8 @@ class ZillowScraper(Scraper):
                 "pricePerSquareFoot", None
             ),
             square_feet=property_data.get("livingArea", None),
-            listing_type=property_data.get("homeType", None),
+            property_type=PropertyType(property_type),
+            listing_type=self.listing_type,
         )
 
     def _extract_building_info(self, home: dict) -> dict:
