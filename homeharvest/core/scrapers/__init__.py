@@ -11,12 +11,9 @@ class ScraperInput:
 
 
 class Scraper:
-    listing_type = ListingType.FOR_SALE
-
     def __init__(self, scraper_input: ScraperInput):
         self.location = scraper_input.location
         self.session = requests.Session()
-        Scraper.listing_type = scraper_input.listing_type
 
         if scraper_input.proxy_url:
             self.session.proxies = {

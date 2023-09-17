@@ -10,6 +10,7 @@ class ZillowScraper(Scraper):
 
     def __init__(self, scraper_input):
         super().__init__(scraper_input)
+        self.listing_type = scraper_input.listing_type
         if self.listing_type == ListingType.FOR_SALE:
             self.url = f"https://www.zillow.com/homes/for_sale/{self.location}_rb/"
         elif self.listing_type == ListingType.FOR_RENT:
@@ -48,8 +49,7 @@ class ZillowScraper(Scraper):
             return [property]
         raise PropertyNotFound("Specific property data not found in the response.")
 
-    @classmethod
-    def _parse_home(cls, home: dict):
+    def _parse_home(self, home: dict):
         """
         This method is used when a user enters a generic location & zillow returns more than one property
         """
@@ -60,9 +60,9 @@ class ZillowScraper(Scraper):
         )
 
         if "hdpData" in home and "homeInfo" in home["hdpData"]:
-            price_data = cls._extract_price(home)
-            address = cls._extract_address(home)
-            agent_name = cls._extract_agent_name(home)
+            price_data = self._extract_price(home)
+            address = self._extract_address(home)
+            agent_name = self._extract_agent_name(home)
             beds = home["hdpData"]["homeInfo"]["bedrooms"]
             baths = home["hdpData"]["homeInfo"]["bathrooms"]
             listing_type = home["hdpData"]["homeInfo"].get("homeType")
@@ -79,10 +79,10 @@ class ZillowScraper(Scraper):
         else:
             keys = ("addressStreet", "addressCity", "addressState", "addressZipcode")
             address_one, city, state, zip_code = (home[key] for key in keys)
-            address_one, address_two = cls._parse_address_two(address_one)
+            address_one, address_two = self._parse_address_two(address_one)
             address = Address(address_one, city, state, zip_code, address_two)
 
-            building_info = cls._extract_building_info(home)
+            building_info = self._extract_building_info(home)
             return Building(address=address, url=url, **building_info)
 
     @classmethod
@@ -124,15 +124,14 @@ class ZillowScraper(Scraper):
             listing_type=property_data.get("homeType", None),
         )
 
-    @classmethod
-    def _extract_building_info(cls, home: dict) -> dict:
+    def _extract_building_info(self, home: dict) -> dict:
         num_units = len(home["units"])
         prices = [
             int(unit["price"].replace("$", "").replace(",", "").split("+")[0])
             for unit in home["units"]
         ]
         return {
-            "listing_type": cls.listing_type,
+            "listing_type": self.listing_type,
             "num_units": len(home["units"]),
             "min_unit_price": min(
                 (
