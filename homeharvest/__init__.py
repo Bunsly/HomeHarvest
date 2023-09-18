@@ -71,7 +71,7 @@ def process_result(result: Union[Building, Property]) -> pd.DataFrame:
     address_data = prop_data["address"]
     prop_data["site_name"] = prop_data["site_name"]
     prop_data["listing_type"] = prop_data["listing_type"].value
-    prop_data["property_type"] = prop_data["property_type"].value.lower() if prop_data["property_type"] else None
+    prop_data["property_type"] = prop_data["property_type"].value.lower() if prop_data.get("property_type") else None
     prop_data["address_one"] = address_data.address_one
     prop_data["city"] = address_data.city
     prop_data["state"] = address_data.state

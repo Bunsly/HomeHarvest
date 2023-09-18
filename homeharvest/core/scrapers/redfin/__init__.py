@@ -1,5 +1,5 @@
 import json
-from ..models import Property, Address, PropertyType
+from ..models import Property, Address, PropertyType, Building
 from .. import Scraper
 from typing import Any
 
@@ -86,6 +86,34 @@ class RedfinScraper(Scraper):
             mls_id=get_value("mlsId"),
         )
 
+    def _parse_building(self, building: dict) -> Building:
+        return Building(
+            address=Address(
+                address_one=" ".join(
+                    [
+                        building['address']['streetNumber'],
+                        building['address']['directionalPrefix'],
+                        building['address']['streetName'],
+                        building['address']['streetType'],
+                    ]
+                ),
+                city=building['address']['city'],
+                state=building['address']['stateOrProvinceCode'],
+                zip_code=building['address']['postalCode'],
+                address_two=" ".join(
+                    [
+                        building['address']['unitType'],
+                        building['address']['unitValue'],
+                    ]
+                )
+            ),
+            site_name=self.site_name,
+            url="https://www.redfin.com{}".format(building["url"]),
+            listing_type=self.listing_type,
+            num_units=building["numUnitsForSale"],
+        )
+
+
     def handle_address(self, home_id: str):
         """
         EPs:
@@ -123,5 +151,8 @@ class RedfinScraper(Scraper):
 
         homes = [
             self._parse_home(home) for home in response_json["payload"]["homes"]
-        ]  #: support buildings
+        ] + [
+            self._parse_building(building) for building in response_json["payload"]["buildings"].values()
+        ]
+
         return homes
