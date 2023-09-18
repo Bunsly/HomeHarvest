@@ -3,7 +3,7 @@ from ..models import Property, Address
 from .. import Scraper
 from typing import Any, Generator
 from ....exceptions import NoResultsFound
-from ....utils import parse_address_two
+from ....utils import parse_address_two, parse_unit
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
@@ -108,8 +108,7 @@ class RealtorScraper(Scraper):
         response_json = response.json()
 
         property_info = response_json["data"]["property"]
-        street_address = property_info["address"]["line"]
-        unit = parse_address_two(street_address)
+        street_address, unit = parse_address_two(property_info["address"]["line"])
 
         return [
             Property(
@@ -234,13 +233,16 @@ class RealtorScraper(Scraper):
             return []
 
         for result in response_json["data"]["home_search"]["results"]:
+            street_address, unit = parse_address_two(
+                result["location"]["address"]["line"]
+            )
             realty_property = Property(
                 address=Address(
-                    street_address=result["location"]["address"]["line"],
+                    street_address=street_address,
                     city=result["location"]["address"]["city"],
                     state=result["location"]["address"]["state_code"],
                     zip_code=result["location"]["address"]["postal_code"],
-                    unit=parse_address_two(result["location"]["address"]["unit"]),
+                    unit=parse_unit(result["location"]["address"]["unit"]),
                     country="USA",
                 ),
                 site_name=self.site_name,

@@ -158,5 +158,5 @@ def scrape_property(
         return pd.DataFrame()
 
     final_df = pd.concat(results, ignore_index=True)
-    final_df = final_df.drop_duplicates(subset="street_address", keep="first")
+    final_df = final_df.drop_duplicates(subset=["street_address", "city", "unit"], keep="first")
     return final_df

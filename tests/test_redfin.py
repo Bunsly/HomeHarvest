@@ -7,7 +7,7 @@ def test_redfin():
             location="2530 Al Lipscomb Way", site_name="redfin", listing_type="for_sale"
         ),
         scrape_property(
-            location="Phoenix, AZ, USA", site_name="redfin", listing_type="for_rent"
+            location="Phoenix, AZ, USA", site_name=["redfin"], listing_type="for_rent"
         ),
         scrape_property(
             location="Dallas, TX, USA", site_name="redfin", listing_type="sold"
