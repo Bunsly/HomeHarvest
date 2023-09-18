@@ -1,11 +1,14 @@
+import pandas as pd
+from typing import Union
+import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor
+
+from .core.scrapers import ScraperInput
 from .core.scrapers.redfin import RedfinScraper
 from .core.scrapers.realtor import RealtorScraper
 from .core.scrapers.zillow import ZillowScraper
 from .core.scrapers.models import ListingType, Property, SiteName
-from .core.scrapers import ScraperInput
 from .exceptions import InvalidSite, InvalidListingType
-from typing import Union
-import pandas as pd
 
 
 _scrapers = {
@@ -91,21 +94,12 @@ def process_result(result: Property) -> pd.DataFrame:
     return properties_df
 
 
-def scrape_property(
-    location: str,
-    site_name: str,
-    listing_type: str = "for_sale",  #: for_sale, for_rent, sold
+def _scrape_single_site(
+    location: str, site_name: str, listing_type: str
 ) -> pd.DataFrame:
     """
-    Scrape property from various sites from a given location and listing type.
-
-    :returns: pd.DataFrame
-    :param location: US Location (e.g. 'San Francisco, CA', 'Cook County, IL', '85281', '2530 Al Lipscomb Way')
-    :param site_name: Site name (e.g. 'realtor.com', 'zillow', 'redfin')
-    :param listing_type: Listing type (e.g. 'for_sale', 'for_rent', 'sold')
-    :return: pd.DataFrame containing properties
+    Helper function to scrape a single site.
     """
-
     validate_input(site_name, listing_type)
 
     scraper_input = ScraperInput(
@@ -122,3 +116,44 @@ def scrape_property(
         return pd.DataFrame()
 
     return pd.concat(properties_dfs, ignore_index=True)
+
+
+def scrape_property(
+    location: str,
+    site_name: Union[str, list[str]],
+    listing_type: str = "for_sale",
+) -> pd.DataFrame:
+    """
+    Scrape property from various sites from a given location and listing type.
+
+    :returns: pd.DataFrame
+    :param location: US Location (e.g. 'San Francisco, CA', 'Cook County, IL', '85281', '2530 Al Lipscomb Way')
+    :param site_name: Site name or list of site names (e.g. ['realtor.com', 'zillow'], 'redfin')
+    :param listing_type: Listing type (e.g. 'for_sale', 'for_rent', 'sold')
+    :return: pd.DataFrame containing properties
+    """
+    if site_name is None:
+        site_name = list(_scrapers.keys())
+
+    if not isinstance(site_name, list):
+        site_name = [site_name]
+
+    if len(site_name) == 1:
+        return _scrape_single_site(location, site_name[0], listing_type)
+
+    results = []
+    with ThreadPoolExecutor() as executor:
+        futures = {
+            executor.submit(_scrape_single_site, location, s_name, listing_type): s_name
+            for s_name in site_name
+        }
+
+        for future in concurrent.futures.as_completed(futures):
+            result = future.result()
+            results.append(result)
+
+    if not results:
+        return pd.DataFrame()
+    final_df = pd.concat(results, ignore_index=True)
+    final_df = final_df.drop_duplicates(subset="street_address", keep="first")
+    return final_df
