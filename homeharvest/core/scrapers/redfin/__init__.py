@@ -1,7 +1,8 @@
 import json
-from ..models import Property, Address, PropertyType
-from .. import Scraper
 from typing import Any
+from .. import Scraper
+from ....utils import parse_address_two
+from ..models import Property, Address, PropertyType
 
 
 class RedfinScraper(Scraper):
@@ -38,20 +39,26 @@ class RedfinScraper(Scraper):
                 return home[key]["value"]
 
         if not single_search:
+            unit = parse_address_two(get_value("streetLine"))
             address = Address(
-                address_one=get_value("streetLine"),
+                street_address=get_value("streetLine"),
                 city=home["city"],
                 state=home["state"],
                 zip_code=home["zip"],
+                unit=unit,
+                country="USA",
             )
         else:
             address_info = home["streetAddress"]
+            unit = parse_address_two(address_info["assembledAddress"])
 
             address = Address(
-                address_one=address_info["assembledAddress"],
+                street_address=address_info["assembledAddress"],
                 city=home["city"],
                 state=home["state"],
                 zip_code=home["zip"],
+                unit=unit,
+                country="USA",
             )
         url = "https://www.redfin.com{}".format(home["url"])
         property_type = home["propertyType"] if "propertyType" in home else None
@@ -69,7 +76,7 @@ class RedfinScraper(Scraper):
             site_name=self.site_name,
             listing_type=self.listing_type,
             address=address,
-            url=url,
+            property_url=url,
             beds=home["beds"] if "beds" in home else None,
             baths=home["baths"] if "baths" in home else None,
             stories=home["stories"] if "stories" in home else None,
@@ -79,9 +86,9 @@ class RedfinScraper(Scraper):
             if not single_search
             else home["yearBuilt"],
             square_feet=get_value("sqFt"),
-            lot_size=lot_size,
+            lot_area_value=lot_size,
             property_type=PropertyType.from_int_code(home.get("propertyType")),
-            price_per_square_foot=get_value("pricePerSqFt"),
+            price_per_sqft=get_value("pricePerSqFt"),
             price=get_value("price"),
             mls_id=get_value("mlsId"),
         )

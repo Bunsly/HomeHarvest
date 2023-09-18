@@ -53,7 +53,7 @@ class Address:
     city: str
     state: str
     zip_code: str
-    unit: str
+    unit: str | None = None
     country: str | None = None
 
 

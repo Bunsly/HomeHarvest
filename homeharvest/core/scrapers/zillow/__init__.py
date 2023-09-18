@@ -1,8 +1,9 @@
 import re
 import json
-from ..models import Property, Address, ListingType, PropertyType, SiteName
-from ....exceptions import NoResultsFound, PropertyNotFound
 from .. import Scraper
+from ....utils import parse_address_two
+from ....exceptions import NoResultsFound, PropertyNotFound
+from ..models import Property, Address, ListingType, PropertyType, SiteName
 
 
 class ZillowScraper(Scraper):
@@ -120,7 +121,7 @@ class ZillowScraper(Scraper):
         resp = self.session.put(url, headers=self._get_headers(), data=payload)
         resp.raise_for_status()
         a = resp.json()
-        return self._parse_properties(resp.json())
+        return parse_properties(resp.json())
 
     def _parse_properties(self, property_data: dict):
         mapresults = property_data["cat1"]["searchResults"]["mapResults"]
@@ -249,7 +250,7 @@ class ZillowScraper(Scraper):
             else property_data["hdpUrl"]
         )
         address_data = property_data["address"]
-        unit = self._parse_address_two(address_data["streetAddress"])
+        unit = parse_address_two(address_data["streetAddress"])
         address = Address(
             street_address=address_data["streetAddress"],
             unit=unit,
@@ -288,11 +289,6 @@ class ZillowScraper(Scraper):
             listing_type=self.listing_type,
         )
 
-    @staticmethod
-    def _parse_address_two(address_one: str):
-        apt_match = re.search(r"(APT\s*.+|#[\s\S]+)$", address_one, re.I)
-        return apt_match.group().strip() if apt_match else None
-
     def _extract_address(self, address_str):
         """
         Extract address components from a string formatted like '555 Wedglea Dr, Dallas, TX',
@@ -309,14 +305,14 @@ class ZillowScraper(Scraper):
 
         if len(state_zip) == 1:
             state = state_zip[0].strip()
-            zip_code = None  
+            zip_code = None
         elif len(state_zip) == 2:
             state = state_zip[0].strip()
             zip_code = state_zip[1].strip()
         else:
             raise ValueError(f"Unexpected state/zip format in address: {address_str}")
 
-        unit = self._parse_address_two(street_address)
+        unit = parse_address_two(street_address)
         return Address(
             street_address=street_address,
             city=city,
@@ -335,7 +331,7 @@ class ZillowScraper(Scraper):
             "content-type": "application/json",
             "cookie": 'zjs_user_id=null; zg_anonymous_id=%220976ab81-2950-4013-98f0-108b15a554d2%22; zguid=24|%246b1bc625-3955-4d1e-a723-e59602e4ed08; g_state={"i_p":1693611172520,"i_l":1}; zgsession=1|d48820e2-1659-4d2f-b7d2-99a8127dd4f3; zjs_anonymous_id=%226b1bc625-3955-4d1e-a723-e59602e4ed08%22; JSESSIONID=82E8274D3DC8AF3AB9C8E613B38CF861; search=6|1697585860120%7Crb%3DDallas%252C-TX%26rect%3D33.016646%252C-96.555516%252C32.618763%252C-96.999347%26disp%3Dmap%26mdm%3Dauto%26sort%3Ddays%26listPriceActive%3D1%26fs%3D1%26fr%3D0%26mmm%3D0%26rs%3D0%26ah%3D0%26singlestory%3D0%26abo%3D0%26garage%3D0%26pool%3D0%26ac%3D0%26waterfront%3D0%26finished%3D0%26unfinished%3D0%26cityview%3D0%26mountainview%3D0%26parkview%3D0%26waterview%3D0%26hoadata%3D1%263dhome%3D0%26commuteMode%3Ddriving%26commuteTimeOfDay%3Dnow%09%0938128%09%7B%22isList%22%3Atrue%2C%22isMap%22%3Atrue%7D%09%09%09%09%09; AWSALB=gAlFj5Ngnd4bWP8k7CME/+YlTtX9bHK4yEkdPHa3VhL6K523oGyysFxBEpE1HNuuyL+GaRPvt2i/CSseAb+zEPpO4SNjnbLAJzJOOO01ipnWN3ZgPaa5qdv+fAki; AWSALBCORS=gAlFj5Ngnd4bWP8k7CME/+YlTtX9bHK4yEkdPHa3VhL6K523oGyysFxBEpE1HNuuyL+GaRPvt2i/CSseAb+zEPpO4SNjnbLAJzJOOO01ipnWN3ZgPaa5qdv+fAki; search=6|1697587741808%7Crect%3D33.37188814545521%2C-96.34484483007813%2C32.260490641365685%2C-97.21001816992188%26disp%3Dmap%26mdm%3Dauto%26p%3D1%26sort%3Ddays%26z%3D1%26listPriceActive%3D1%26fs%3D1%26fr%3D0%26mmm%3D0%26rs%3D0%26ah%3D0%26singlestory%3D0%26housing-connector%3D0%26abo%3D0%26garage%3D0%26pool%3D0%26ac%3D0%26waterfront%3D0%26finished%3D0%26unfinished%3D0%26cityview%3D0%26mountainview%3D0%26parkview%3D0%26waterview%3D0%26hoadata%3D1%26zillow-owned%3D0%263dhome%3D0%26featuredMultiFamilyBuilding%3D0%26commuteMode%3Ddriving%26commuteTimeOfDay%3Dnow%09%09%09%7B%22isList%22%3Atrue%2C%22isMap%22%3Atrue%7D%09%09%09%09%09',
             "origin": "https://www.zillow.com",
-            "referer": "https://www.zillow.com/homes/Dallas,-TX_rb/",
+            "referer": "https://www.zillow.com",
             "sec-ch-ua": '"Chromium";v="116", "Not)A;Brand";v="24", "Google Chrome";v="116"',
             "sec-ch-ua-mobile": "?0",
             "sec-ch-ua-platform": '"Windows"',
