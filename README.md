@@ -11,13 +11,20 @@ pip install --upgrade homeharvest
 ```
 
 ## Example Usage
-```
-from homeharvest import scrape_property
+```py
+>>> from homeharvest import scrape_property
+... properties = scrape_property(
+...     location="85281", site_name="zillow", listing_type="for_rent"
+... )
 
-properties = scrape_property(
-    location="85281", site_name="zillow", listing_type="for_rent"
-)
-print(properties)
+>>> properties.head()
+                           address_one   city  ... mls_id description
+0                 420 N  Scottsdale Rd  Tempe  ...    NaN         NaN
+1                1255 E  University Dr  Tempe  ...    NaN         NaN
+2              1979 E  Rio Salado Pkwy  Tempe  ...    NaN         NaN
+3                      548 S Wilson St  Tempe  ...   None        None
+4  945 E  Playa Del Norte Dr Unit 4027  Tempe  ...    NaN         NaN
+[5 rows x 23 columns]
 ```
 
 ### Site Name Options
