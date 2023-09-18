@@ -9,7 +9,7 @@ def test_realtor():
             listing_type="for_sale",
         ),
         scrape_property(
-            location="Phoenix, AZ", site_name="realtor.com", listing_type="for_rent"
+            location="Phoenix, AZ", site_name=["realtor.com"], listing_type="for_rent"
         ),  #: does not support "city, state, USA" format
         scrape_property(
             location="Dallas, TX", site_name="realtor.com", listing_type="sold"

@@ -1,7 +1,7 @@
 import json
 from typing import Any
 from .. import Scraper
-from ....utils import parse_address_two
+from ....utils import parse_address_two, parse_unit
 from ..models import Property, Address, PropertyType
 
 
@@ -39,9 +39,10 @@ class RedfinScraper(Scraper):
                 return home[key]["value"]
 
         if not single_search:
-            unit = parse_address_two(get_value("streetLine"))
+            street_address, unit = parse_address_two(get_value("streetLine"))
+            unit = parse_unit(get_value("streetLine"))
             address = Address(
-                street_address=get_value("streetLine"),
+                street_address=street_address,
                 city=home["city"],
                 state=home["state"],
                 zip_code=home["zip"],
@@ -50,10 +51,11 @@ class RedfinScraper(Scraper):
             )
         else:
             address_info = home["streetAddress"]
+            street_address, unit = parse_address_two(address_info["assembledAddress"])
             unit = parse_address_two(address_info["assembledAddress"])
 
             address = Address(
-                street_address=address_info["assembledAddress"],
+                street_address=street_address,
                 city=home["city"],
                 state=home["state"],
                 zip_code=home["zip"],
@@ -94,26 +96,30 @@ class RedfinScraper(Scraper):
         )
 
     def _parse_building(self, building: dict) -> Property:
+        street_address = " ".join(
+            [
+                building["address"]["streetNumber"],
+                building["address"]["directionalPrefix"],
+                building["address"]["streetName"],
+                building["address"]["streetType"],
+            ]
+        )
+        street_address, unit = parse_address_two(street_address)
         return Property(
             site_name=self.site_name,
             property_type=PropertyType("BUILDING"),
             address=Address(
-                street_address=" ".join(
-                    [
-                        building["address"]["streetNumber"],
-                        building["address"]["directionalPrefix"],
-                        building["address"]["streetName"],
-                        building["address"]["streetType"],
-                    ]
-                ),
+                street_address=street_address,
                 city=building["address"]["city"],
                 state=building["address"]["stateOrProvinceCode"],
                 zip_code=building["address"]["postalCode"],
-                unit=" ".join(
-                    [
-                        building["address"]["unitType"],
-                        building["address"]["unitValue"],
-                    ]
+                unit=parse_unit(
+                    " ".join(
+                        [
+                            building["address"]["unitType"],
+                            building["address"]["unitValue"],
+                        ]
+                    )
                 ),
             ),
             property_url="https://www.redfin.com{}".format(building["url"]),

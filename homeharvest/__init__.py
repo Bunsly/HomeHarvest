@@ -140,7 +140,9 @@ def scrape_property(
 
     if len(site_name) == 1:
         final_df = _scrape_single_site(location, site_name[0], listing_type)
-        final_df = final_df.drop_duplicates(subset="street_address", keep="first")
+        final_df = final_df.drop_duplicates(
+            subset=["street_address", "city", "unit"], keep="first"
+        )
         return final_df
 
     results = []
@@ -157,5 +159,7 @@ def scrape_property(
     if not results:
         return pd.DataFrame()
     final_df = pd.concat(results, ignore_index=True)
-    final_df = final_df.drop_duplicates(subset="street_address", keep="first")
+    final_df = final_df.drop_duplicates(
+        subset=["street_address", "city", "unit"], keep="first"
+    )
     return final_df

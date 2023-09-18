@@ -1,7 +1,7 @@
 import re
 import json
 from .. import Scraper
-from ....utils import parse_address_two
+from ....utils import parse_address_two, parse_unit
 from ....exceptions import NoResultsFound, PropertyNotFound
 from ..models import Property, Address, ListingType, PropertyType, SiteName
 
@@ -129,8 +129,8 @@ class ZillowScraper(Scraper):
             if "hdpData" in result:
                 home_info = result["hdpData"]["homeInfo"]
                 address_data = {
-                    "street_address": home_info["streetAddress"],
-                    "unit": parse_address_two(home_info["unit"])
+                    "street_address": parse_address_two(home_info["streetAddress"])[0],
+                    "unit": parse_unit(home_info["unit"])
                     if "unit" in home_info
                     else None,
                     "city": home_info["city"],
@@ -225,9 +225,10 @@ class ZillowScraper(Scraper):
             else property_data["hdpUrl"]
         )
         address_data = property_data["address"]
+        street_address, unit = parse_address_two(address_data["streetAddress"])
         address = Address(
-            street_address=address_data["streetAddress"],
-            unit=parse_address_two(address_data["streetAddress"]),
+            street_address=street_address,
+            unit=unit,
             city=address_data["city"],
             state=address_data["state"],
             zip_code=address_data["zipcode"],
@@ -286,10 +287,11 @@ class ZillowScraper(Scraper):
         else:
             raise ValueError(f"Unexpected state/zip format in address: {address_str}")
 
+        street_address, unit = parse_address_two(street_address)
         return Address(
             street_address=street_address,
             city=city,
-            unit=parse_address_two(street_address),
+            unit=unit,
             state=state,
             zip_code=zip_code,
             country="USA",
