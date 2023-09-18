@@ -240,7 +240,7 @@ class RealtorScraper(Scraper):
                     city=result["location"]["address"]["city"],
                     state=result["location"]["address"]["state_code"],
                     zip_code=result["location"]["address"]["postal_code"],
-                    unit=result["location"]["address"]["unit"],
+                    unit=parse_address_two(result["location"]["address"]["unit"]),
                     country="USA",
                 ),
                 site_name=self.site_name,

@@ -120,7 +120,7 @@ def _scrape_single_site(
 
 def scrape_property(
     location: str,
-    site_name: Union[str, list[str]],
+    site_name: Union[str, list[str]] = list(_scrapers.keys()),
     listing_type: str = "for_sale",
 ) -> pd.DataFrame:
     """
@@ -139,7 +139,9 @@ def scrape_property(
         site_name = [site_name]
 
     if len(site_name) == 1:
-        return _scrape_single_site(location, site_name[0], listing_type)
+        final_df = _scrape_single_site(location, site_name[0], listing_type)
+        final_df = final_df.drop_duplicates(subset="street_address", keep="first")
+        return final_df
 
     results = []
     with ThreadPoolExecutor() as executor:
