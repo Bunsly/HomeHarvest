@@ -57,6 +57,7 @@ class Address:
     country: str | None = None
 
 
+
 @dataclass
 class Property:
     property_url: str

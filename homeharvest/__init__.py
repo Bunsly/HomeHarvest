@@ -92,7 +92,17 @@ def scrape_property(
     location: str,
     site_name: str,
     listing_type: str = "for_sale",  #: for_sale, for_rent, sold
-) -> list[Property]:
+) -> pd.DataFrame:
+    """
+    Scrape property from various sites from a given location and listing type.
+
+    :returns: pd.DataFrame
+    :param location: US Location (e.g. 'San Francisco, CA', 'Cook County, IL', '85281', '2530 Al Lipscomb Way')
+    :param site_name: Site name (e.g. 'realtor.com', 'zillow', 'redfin')
+    :param listing_type: Listing type (e.g. 'for_sale', 'for_rent', 'sold')
+    :return: pd.DataFrame containing properties
+    """
+
     validate_input(site_name, listing_type)
 
     scraper_input = ScraperInput(

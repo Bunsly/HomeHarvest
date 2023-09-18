@@ -14,6 +14,8 @@ class ScraperInput:
 class Scraper:
     def __init__(self, scraper_input: ScraperInput):
         self.location = scraper_input.location
+        self.listing_type = scraper_input.listing_type
+
         self.session = requests.Session()
         self.listing_type = scraper_input.listing_type
         self.site_name = scraper_input.site_name

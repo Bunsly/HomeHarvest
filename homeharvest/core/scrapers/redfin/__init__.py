@@ -93,6 +93,35 @@ class RedfinScraper(Scraper):
             mls_id=get_value("mlsId"),
         )
 
+    def _parse_building(self, building: dict) -> Property:
+        return Property(
+            site_name=self.site_name,
+            property_type=PropertyType("BUILDING"),
+            address=Address(
+                street_address=" ".join(
+                    [
+                        building['address']['streetNumber'],
+                        building['address']['directionalPrefix'],
+                        building['address']['streetName'],
+                        building['address']['streetType'],
+                    ]
+                ),
+                city=building['address']['city'],
+                state=building['address']['stateOrProvinceCode'],
+                zip_code=building['address']['postalCode'],
+                unit=" ".join(
+                    [
+                        building['address']['unitType'],
+                        building['address']['unitValue'],
+                    ]
+                )
+            ),
+            property_url="https://www.redfin.com{}".format(building["url"]),
+            listing_type=self.listing_type,
+            bldg_unit_count=building["numUnitsForSale"],
+        )
+
+
     def handle_address(self, home_id: str):
         """
         EPs:
@@ -130,5 +159,8 @@ class RedfinScraper(Scraper):
 
         homes = [
             self._parse_home(home) for home in response_json["payload"]["homes"]
-        ]  #: support buildings
+        ] + [
+            self._parse_building(building) for building in response_json["payload"]["buildings"].values()
+        ]
+
         return homes
