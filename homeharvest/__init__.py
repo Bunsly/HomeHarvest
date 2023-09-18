@@ -69,9 +69,9 @@ def process_result(result: Union[Building, Property]) -> pd.DataFrame:
     prop_data = result.__dict__
 
     address_data = prop_data["address"]
-    prop_data["site_name"] = prop_data["site_name"].value
+    prop_data["site_name"] = prop_data["site_name"]
     prop_data["listing_type"] = prop_data["listing_type"].value
-    prop_data["property_type"] = prop_data["property_type"].value.lower()
+    prop_data["property_type"] = prop_data["property_type"].value.lower() if prop_data["property_type"] else None
     prop_data["address_one"] = address_data.address_one
     prop_data["city"] = address_data.city
     prop_data["state"] = address_data.state
@@ -90,13 +90,13 @@ def scrape_property(
     location: str,
     site_name: str,
     listing_type: str = "for_sale",  #: for_sale, for_rent, sold
-) -> Union[list[Building], list[Property]]:
+) -> pd.DataFrame:
     validate_input(site_name, listing_type)
 
     scraper_input = ScraperInput(
         location=location,
         listing_type=ListingType[listing_type.upper()],
-        site_name=SiteName[site_name.upper()],
+        site_name=site_name.lower(),
     )
 
     site = _scrapers[site_name.lower()](scraper_input)

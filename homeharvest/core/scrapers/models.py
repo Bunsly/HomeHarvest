@@ -53,7 +53,7 @@ class Address:
 
 @dataclass()
 class Realty:
-    site_name: SiteName
+    site_name: str
     address: Address
     url: str
     listing_type: ListingType | None = None
@@ -68,7 +68,6 @@ class Property(Realty):
     year_built: int | None = None
     square_feet: int | None = None
     price_per_square_foot: int | None = None
-    year_built: int | None = None
     mls_id: str | None = None
 
     agent_name: str | None = None

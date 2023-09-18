@@ -7,13 +7,15 @@ from .models import Property, ListingType, SiteName
 class ScraperInput:
     location: str
     listing_type: ListingType
-    site_name: SiteName
+    site_name: str
     proxy_url: str | None = None
 
 
 class Scraper:
     def __init__(self, scraper_input: ScraperInput):
         self.location = scraper_input.location
+        self.listing_type = scraper_input.listing_type
+
         self.session = requests.Session()
         self.listing_type = scraper_input.listing_type
         self.site_name = scraper_input.site_name
