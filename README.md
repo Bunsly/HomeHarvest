@@ -4,6 +4,8 @@
 
 _**Under Consideration**: We're looking into the possibility of an Excel plugin to cater to a broader audience._
 
+[![Try with Replit](https://replit.com/badge?caption=Try%20with%20Replit)](https://replit.com/@ZacharyHampton/HomeHarvestDemo)
+
 ## Installation
 
 ```bash
