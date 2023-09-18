@@ -7,6 +7,13 @@ class SiteName(Enum):
     REDFIN = "redfin"
     REALTOR = "realtor.com"
 
+    @classmethod
+    def get_by_value(cls, value):
+        for item in cls:
+            if item.value == value:
+                return item
+        raise ValueError(f"{value} not found in {cls}")
+
 
 class ListingType(Enum):
     FOR_SALE = "FOR_SALE"
@@ -57,14 +64,13 @@ class Address:
     country: str | None = None
 
 
-
 @dataclass
 class Property:
     property_url: str
     site_name: SiteName
     listing_type: ListingType
-    property_type: PropertyType
     address: Address
+    property_type: PropertyType | None = None
 
     # house for sale
     price: int | None = None
@@ -78,7 +84,6 @@ class Property:
     stories: int | None = None
     year_built: int | None = None
     price_per_sqft: int | None = None
-    year_built: int | None = None
     mls_id: str | None = None
 
     agent_name: str | None = None

@@ -3,6 +3,7 @@ from ..models import Property, Address
 from .. import Scraper
 from typing import Any, Generator
 from ....exceptions import NoResultsFound
+from ....utils import parse_address_two
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
@@ -29,7 +30,7 @@ class RealtorScraper(Scraper):
 
         params = {
             "input": self.location,
-            "client_id": self.listing_type.value.replace('_', '-'),
+            "client_id": self.listing_type.value.lower().replace("_", "-"),
             "limit": "1",
             "area_types": "city,state,county,postal_code,address,street,neighborhood,school,school_district,university,park",
         }
@@ -96,46 +97,57 @@ class RealtorScraper(Scraper):
                     }
                 }"""
 
-        variables = {
-            'property_id': property_id
-        }
+        variables = {"property_id": property_id}
 
         payload = {
-            'query': query,
-            'variables': variables,
+            "query": query,
+            "variables": variables,
         }
 
         response = self.session.post(self.search_url, json=payload)
         response_json = response.json()
 
-        property_info = response_json['data']['property']
+        property_info = response_json["data"]["property"]
+        street_address = property_info["address"]["line"]
+        unit = parse_address_two(street_address)
 
-        return [Property(
-            site_name=self.site_name,
-            address=Address(
-                address_one=property_info['address']['line'],
-                city=property_info['address']['city'],
-                state=property_info['address']['state_code'],
-                zip_code=property_info['address']['postal_code'],
-            ),
-            url="https://www.realtor.com/realestateandhomes-detail/" + property_info['details']['permalink'],
-            beds=property_info['basic']['beds'],
-            baths=property_info['basic']['baths'],
-            stories=property_info['details']['stories'],
-            year_built=property_info['details']['year_built'],
-            square_feet=property_info['basic']['sqft'],
-            price_per_square_foot=property_info['basic']['price'] / property_info['basic']['sqft']
-            if property_info['basic']['sqft'] is not None and
-            property_info['basic']['price'] is not None
-            else None,
-            price=property_info['basic']['price'],
-            mls_id=property_id,
-            listing_type=self.listing_type,
-            lot_size=property_info['public_record']['lot_size'] if property_info['public_record'] is not None else None,
-        )]
+        return [
+            Property(
+                site_name=self.site_name,
+                address=Address(
+                    street_address=street_address,
+                    city=property_info["address"]["city"],
+                    state=property_info["address"]["state_code"],
+                    zip_code=property_info["address"]["postal_code"],
+                    unit=unit,
+                    country="USA",
+                ),
+                property_url="https://www.realtor.com/realestateandhomes-detail/"
+                + property_info["details"]["permalink"],
+                beds=property_info["basic"]["beds"],
+                baths=property_info["basic"]["baths"],
+                stories=property_info["details"]["stories"],
+                year_built=property_info["details"]["year_built"],
+                square_feet=property_info["basic"]["sqft"],
+                price_per_sqft=property_info["basic"]["price"]
+                // property_info["basic"]["sqft"]
+                if property_info["basic"]["sqft"] is not None
+                and property_info["basic"]["price"] is not None
+                else None,
+                price=property_info["basic"]["price"],
+                mls_id=property_id,
+                listing_type=self.listing_type,
+                lot_area_value=property_info["public_record"]["lot_size"]
+                if property_info["public_record"] is not None
+                else None,
+            )
+        ]
 
-    def handle_area(self, variables: dict, return_total: bool = False) -> list[Property] | int:
-        query = """query Home_search(
+    def handle_area(
+        self, variables: dict, return_total: bool = False
+    ) -> list[Property] | int:
+        query = (
+            """query Home_search(
                             $city: String,
                             $county: [String],
                             $state_code: String,
@@ -193,42 +205,57 @@ class RealtorScraper(Scraper):
                                     }
                                 }
                             }
-                        }""" % self.listing_type.value
+                        }"""
+            % self.listing_type.value.lower()
+        )
 
         payload = {
-            'query': query,
-            'variables': variables,
+            "query": query,
+            "variables": variables,
         }
 
         response = self.session.post(self.search_url, json=payload)
+        response.raise_for_status()
         response_json = response.json()
 
         if return_total:
-            return response_json['data']['home_search']['total']
+            return response_json["data"]["home_search"]["total"]
 
         properties: list[Property] = []
 
-        for result in response_json['data']['home_search']['results']:
+        if (
+            response_json is None
+            or "data" not in response_json
+            or response_json["data"] is None
+            or "home_search" not in response_json["data"]
+            or response_json["data"]["home_search"] is None
+            or "results" not in response_json["data"]["home_search"]
+        ):
+            return []
+
+        for result in response_json["data"]["home_search"]["results"]:
             realty_property = Property(
                 address=Address(
-                    address_one=result['location']['address']['line'],
-                    city=result['location']['address']['city'],
-                    state=result['location']['address']['state_code'],
-                    zip_code=result['location']['address']['postal_code'],
-                    address_two=result['location']['address']['unit'],
+                    street_address=result["location"]["address"]["line"],
+                    city=result["location"]["address"]["city"],
+                    state=result["location"]["address"]["state_code"],
+                    zip_code=result["location"]["address"]["postal_code"],
+                    unit=result["location"]["address"]["unit"],
+                    country="USA",
                 ),
                 site_name=self.site_name,
-                url="https://www.realtor.com/realestateandhomes-detail/" + result['property_id'],
-                beds=result['description']['beds'],
-                baths=result['description']['baths'],
-                stories=result['description']['stories'],
-                year_built=result['description']['year_built'],
-                square_feet=result['description']['sqft'],
-                price_per_square_foot=result['price_per_sqft'],
-                price=result['list_price'],
-                mls_id=result['property_id'],
+                property_url="https://www.realtor.com/realestateandhomes-detail/"
+                + result["property_id"],
+                beds=result["description"]["beds"],
+                baths=result["description"]["baths"],
+                stories=result["description"]["stories"],
+                year_built=result["description"]["year_built"],
+                square_feet=result["description"]["sqft"],
+                price_per_sqft=result["price_per_sqft"],
+                price=result["list_price"],
+                mls_id=result["property_id"],
                 listing_type=self.listing_type,
-                lot_size=result['description']['lot_sqft'],
+                lot_area_value=result["description"]["lot_sqft"],
             )
 
             properties.append(realty_property)
@@ -239,17 +266,17 @@ class RealtorScraper(Scraper):
         location_info = self.handle_location()
         location_type = location_info["area_type"]
 
-        if location_type == 'address':
-            property_id = location_info['mpr_id']
+        if location_type == "address":
+            property_id = location_info["mpr_id"]
             return self.handle_address(property_id)
 
         offset = 0
         search_variables = {
-            'city': location_info.get('city'),
-            'county': location_info.get('county'),
-            'state_code': location_info.get('state_code'),
-            'postal_code': location_info.get('postal_code'),
-            'offset': offset,
+            "city": location_info.get("city"),
+            "county": location_info.get("county"),
+            "state_code": location_info.get("state_code"),
+            "postal_code": location_info.get("postal_code"),
+            "offset": offset,
         }
 
         total = self.handle_area(search_variables, return_total=True)
@@ -258,8 +285,11 @@ class RealtorScraper(Scraper):
         with ThreadPoolExecutor(max_workers=10) as executor:
             futures = [
                 executor.submit(
-                    self.handle_area, variables=search_variables | {'offset': i}, return_total=False
-                ) for i in range(0, total, 200)
+                    self.handle_area,
+                    variables=search_variables | {"offset": i},
+                    return_total=False,
+                )
+                for i in range(0, total, 200)
             ]
 
             for future in as_completed(futures):

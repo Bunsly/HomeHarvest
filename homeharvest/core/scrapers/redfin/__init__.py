@@ -100,27 +100,26 @@ class RedfinScraper(Scraper):
             address=Address(
                 street_address=" ".join(
                     [
-                        building['address']['streetNumber'],
-                        building['address']['directionalPrefix'],
-                        building['address']['streetName'],
-                        building['address']['streetType'],
+                        building["address"]["streetNumber"],
+                        building["address"]["directionalPrefix"],
+                        building["address"]["streetName"],
+                        building["address"]["streetType"],
                     ]
                 ),
-                city=building['address']['city'],
-                state=building['address']['stateOrProvinceCode'],
-                zip_code=building['address']['postalCode'],
+                city=building["address"]["city"],
+                state=building["address"]["stateOrProvinceCode"],
+                zip_code=building["address"]["postalCode"],
                 unit=" ".join(
                     [
-                        building['address']['unitType'],
-                        building['address']['unitValue'],
+                        building["address"]["unitType"],
+                        building["address"]["unitValue"],
                     ]
-                )
+                ),
             ),
             property_url="https://www.redfin.com{}".format(building["url"]),
             listing_type=self.listing_type,
             bldg_unit_count=building["numUnitsForSale"],
         )
-
 
     def handle_address(self, home_id: str):
         """
@@ -160,7 +159,8 @@ class RedfinScraper(Scraper):
         homes = [
             self._parse_home(home) for home in response_json["payload"]["homes"]
         ] + [
-            self._parse_building(building) for building in response_json["payload"]["buildings"].values()
+            self._parse_building(building)
+            for building in response_json["payload"]["buildings"].values()
         ]
 
         return homes

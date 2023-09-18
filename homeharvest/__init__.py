@@ -70,7 +70,10 @@ def process_result(result: Property) -> pd.DataFrame:
 
     prop_data["site_name"] = prop_data["site_name"].value
     prop_data["listing_type"] = prop_data["listing_type"].value.lower()
-    prop_data["property_type"] = prop_data["property_type"].value.lower()
+    if "property_type" in prop_data and prop_data["property_type"] is not None:
+        prop_data["property_type"] = prop_data["property_type"].value.lower()
+    else:
+        prop_data["property_type"] = None
     if "address" in prop_data:
         address_data = prop_data["address"]
         prop_data["street_address"] = address_data.street_address
@@ -108,7 +111,7 @@ def scrape_property(
     scraper_input = ScraperInput(
         location=location,
         listing_type=ListingType[listing_type.upper()],
-        site_name=SiteName[site_name.upper()],
+        site_name=SiteName.get_by_value(site_name.lower()),
     )
 
     site = _scrapers[site_name.lower()](scraper_input)

@@ -98,26 +98,24 @@ class ZillowScraper(Scraper):
             else filter_state_sold
         )
 
-        payload = json.dumps(
-            {
-                "searchQueryState": {
-                    "pagination": {},
-                    "isMapVisible": True,
-                    "mapBounds": {
-                        "west": coords[0],
-                        "east": coords[1],
-                        "south": coords[2],
-                        "north": coords[3],
-                    },
-                    "filterState": selected_filter,
-                    "isListVisible": True,
-                    "mapZoom": 11,
+        payload = {
+            "searchQueryState": {
+                "pagination": {},
+                "isMapVisible": True,
+                "mapBounds": {
+                    "west": coords[0],
+                    "east": coords[1],
+                    "south": coords[2],
+                    "north": coords[3],
                 },
-                "wants": {"cat1": ["mapResults"]},
-                "isDebugRequest": False,
-            }
-        )
-        resp = self.session.put(url, headers=self._get_headers(), data=payload)
+                "filterState": selected_filter,
+                "isListVisible": True,
+                "mapZoom": 11,
+            },
+            "wants": {"cat1": ["mapResults"]},
+            "isDebugRequest": False,
+        }
+        resp = self.session.put(url, headers=self._get_headers(), json=payload)
         resp.raise_for_status()
         a = resp.json()
         return self._parse_properties(resp.json())
@@ -176,9 +174,7 @@ class ZillowScraper(Scraper):
                     and result["variableData"]["type"] == "TIME_ON_INFO"
                     else None,
                     "img_src": result.get("imgSrc"),
-                    "price_per_sqft": int(
-                        home_info["price"] // home_info["livingArea"]
-                    )
+                    "price_per_sqft": int(home_info["price"] // home_info["livingArea"])
                     if "livingArea" in home_info and "price" in home_info
                     else None,
                 }
