@@ -12,11 +12,13 @@
 
 - `zillow`
 - `redfin`
+- `realtor.com`
 
 ## Listing Types
 
 - `for_rent`
 - `for_sale`
+- `sold`
 
 ### Installation
 
