@@ -130,7 +130,9 @@ class ZillowScraper(Scraper):
                 home_info = result["hdpData"]["homeInfo"]
                 address_data = {
                     "street_address": home_info["streetAddress"],
-                    "unit": parse_address_two(home_info['unit']) if 'unit' in home_info else None,
+                    "unit": parse_address_two(home_info["unit"])
+                    if "unit" in home_info
+                    else None,
                     "city": home_info["city"],
                     "state": home_info["state"],
                     "zip_code": home_info["zipcode"],
