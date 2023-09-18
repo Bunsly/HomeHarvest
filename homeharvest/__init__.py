@@ -120,7 +120,7 @@ def _scrape_single_site(
 
 def scrape_property(
     location: str,
-    site_name: Union[str, list[str]] = list(_scrapers.keys()),
+    site_name: Union[str, list[str]] = None,
     listing_type: str = "for_sale",
 ) -> pd.DataFrame:
     """
@@ -138,28 +138,25 @@ def scrape_property(
     if not isinstance(site_name, list):
         site_name = [site_name]
 
+    results = []
+
     if len(site_name) == 1:
         final_df = _scrape_single_site(location, site_name[0], listing_type)
-        final_df = final_df.drop_duplicates(
-            subset=["street_address", "city", "unit"], keep="first"
-        )
-        return final_df
+        results.append(final_df)
+    else:
+        with ThreadPoolExecutor() as executor:
+            futures = {
+                executor.submit(_scrape_single_site, location, s_name, listing_type): s_name
+                for s_name in site_name
+            }
 
-    results = []
-    with ThreadPoolExecutor() as executor:
-        futures = {
-            executor.submit(_scrape_single_site, location, s_name, listing_type): s_name
-            for s_name in site_name
-        }
-
-        for future in concurrent.futures.as_completed(futures):
-            result = future.result()
-            results.append(result)
+            for future in concurrent.futures.as_completed(futures):
+                result = future.result()
+                results.append(result)
 
     if not results:
         return pd.DataFrame()
+
     final_df = pd.concat(results, ignore_index=True)
-    final_df = final_df.drop_duplicates(
-        subset=["street_address", "city", "unit"], keep="first"
-    )
+    final_df = final_df.drop_duplicates(subset=["street_address", "city", "unit"], keep="first")
     return final_df
