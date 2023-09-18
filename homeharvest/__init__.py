@@ -1,7 +1,7 @@
 from .core.scrapers.redfin import RedfinScraper
 from .core.scrapers.realtor import RealtorScraper
 from .core.scrapers.zillow import ZillowScraper
-from .core.scrapers.models import ListingType, Property, Building, SiteName
+from .core.scrapers.models import ListingType, Property, SiteName
 from .core.scrapers import ScraperInput
 from .exceptions import InvalidSite, InvalidListingType
 from typing import Union
@@ -25,60 +25,62 @@ def validate_input(site_name: str, listing_type: str) -> None:
         )
 
 
-def get_ordered_properties(result: Union[Building, Property]) -> list[str]:
-    if isinstance(result, Property):
-        return [
-            "listing_type",
-            "address_one",
-            "city",
-            "state",
-            "zip_code",
-            "address_two",
-            "url",
-            "property_type",
-            "price",
-            "beds",
-            "baths",
-            "square_feet",
-            "price_per_square_foot",
-            "lot_size",
-            "stories",
-            "year_built",
-            "agent_name",
-            "mls_id",
-            "description",
-        ]
-    elif isinstance(result, Building):
-        return [
-            "address_one",
-            "city",
-            "state",
-            "zip_code",
-            "address_two",
-            "url",
-            "num_units",
-            "min_unit_price",
-            "max_unit_price",
-            "avg_unit_price",
-            "listing_type",
-        ]
-    return []
+def get_ordered_properties(result: Property) -> list[str]:
+    return [
+        "property_url",
+        "site_name",
+        "listing_type",
+        "property_type",
+        "status_text",
+        "currency",
+        "price",
+        "apt_min_price",
+        "tax_assessed_value",
+        "square_feet",
+        "price_per_sqft",
+        "beds",
+        "baths",
+        "lot_area_value",
+        "lot_area_unit",
+        "street_address",
+        "unit",
+        "city",
+        "state",
+        "zip_code",
+        "country",
+        "posted_time",
+        "bldg_min_beds",
+        "bldg_min_baths",
+        "bldg_min_area",
+        "bldg_unit_count",
+        "bldg_name",
+        "stories",
+        "year_built",
+        "agent_name",
+        "mls_id",
+        "description",
+        "img_src",
+        "latitude",
+        "longitude",
+    ]
 
 
-def process_result(result: Union[Building, Property]) -> pd.DataFrame:
+def process_result(result: Property) -> pd.DataFrame:
     prop_data = result.__dict__
 
-    address_data = prop_data["address"]
     prop_data["site_name"] = prop_data["site_name"].value
-    prop_data["listing_type"] = prop_data["listing_type"].value
+    prop_data["listing_type"] = prop_data["listing_type"].value.lower()
     prop_data["property_type"] = prop_data["property_type"].value.lower()
-    prop_data["address_one"] = address_data.address_one
-    prop_data["city"] = address_data.city
-    prop_data["state"] = address_data.state
-    prop_data["zip_code"] = address_data.zip_code
-    prop_data["address_two"] = address_data.address_two
+    if "address" in prop_data:
+        address_data = prop_data["address"]
+        prop_data["street_address"] = address_data.street_address
+        prop_data["unit"] = address_data.unit
+        prop_data["city"] = address_data.city
+        prop_data["state"] = address_data.state
+        prop_data["zip_code"] = address_data.zip_code
+        prop_data["country"] = address_data.country
 
-    del prop_data["address"]
+        del prop_data["address"]
 
     properties_df = pd.DataFrame([prop_data])
     properties_df = properties_df[get_ordered_properties(result)]
@@ -90,7 +92,7 @@ def scrape_property(
     location: str,
     site_name: str,
     listing_type: str = "for_sale",  #: for_sale, for_rent, sold
-) -> Union[list[Building], list[Property]]:
+) -> list[Property]:
     validate_input(site_name, listing_type)
 
     scraper_input = ScraperInput(
@@ -103,5 +105,7 @@ def scrape_property(
     results = site.search()
 
     properties_dfs = [process_result(result) for result in results]
+    if not properties_dfs:
+        return pd.DataFrame()
 
     return pd.concat(properties_dfs, ignore_index=True)
