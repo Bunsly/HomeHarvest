@@ -7,7 +7,7 @@ from .models import Property, ListingType, SiteName
 class ScraperInput:
     location: str
     listing_type: ListingType
-    site_name: str
+    site_name: SiteName
     proxy_url: str | None = None
 
 

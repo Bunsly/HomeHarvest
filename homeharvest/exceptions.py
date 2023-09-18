@@ -12,3 +12,7 @@ class NoResultsFound(Exception):
 
 class PropertyNotFound(Exception):
     """Raised when no property is found for the given address"""
+
+
+class BoxBoundsNotFound(Exception):
+    """Raised when no property is found for the given address"""
