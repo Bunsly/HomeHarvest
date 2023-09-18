@@ -52,7 +52,6 @@ class RedfinScraper(Scraper):
         else:
             address_info = home["streetAddress"]
             street_address, unit = parse_address_two(address_info["assembledAddress"])
-            unit = parse_address_two(address_info["assembledAddress"])
 
             address = Address(
                 street_address=street_address,
@@ -62,9 +61,11 @@ class RedfinScraper(Scraper):
                 unit=unit,
                 country="USA",
             )
+
         url = "https://www.redfin.com{}".format(home["url"])
-        property_type = home["propertyType"] if "propertyType" in home else None
+        #: property_type = home["propertyType"] if "propertyType" in home else None
         lot_size_data = home.get("lotSize")
+
         if not isinstance(lot_size_data, int):
             lot_size = (
                 lot_size_data.get("value", None)
@@ -93,6 +94,8 @@ class RedfinScraper(Scraper):
             price_per_sqft=get_value("pricePerSqFt"),
             price=get_value("price"),
             mls_id=get_value("mlsId"),
+            latitude=home["latLong"]["latitude"] if "latLong" in home else None,
+            longitude=home["latLong"]["longitude"] if "latLong" in home else None,
         )
 
     def _parse_building(self, building: dict) -> Property:

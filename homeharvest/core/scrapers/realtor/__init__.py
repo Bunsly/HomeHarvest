@@ -195,6 +195,10 @@ class RealtorScraper(Scraper):
                                             street_post_direction
                                             street_suffix
                                             unit
+                                            coordinate {
+                                                lon
+                                                lat
+                                            }
                                         }
                                     }
                                     list_price
@@ -245,6 +249,8 @@ class RealtorScraper(Scraper):
                     unit=parse_unit(result["location"]["address"]["unit"]),
                     country="USA",
                 ),
+                latitude=result["location"]["address"]["coordinate"]["lat"],
+                longitude=result["location"]["address"]["coordinate"]["lon"],
                 site_name=self.site_name,
                 property_url="https://www.realtor.com/realestateandhomes-detail/"
                 + result["property_id"],
