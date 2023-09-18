@@ -130,7 +130,9 @@ class ZillowScraper(Scraper):
                 home_info = result["hdpData"]["homeInfo"]
                 address_data = {
                     "street_address": home_info["streetAddress"],
-                    "unit": home_info.get("unit"),
+                    "unit": parse_address_two(home_info["unit"])
+                    if "unit" in home_info
+                    else None,
                     "city": home_info["city"],
                     "state": home_info["state"],
                     "zip_code": home_info["zipcode"],
@@ -213,22 +215,6 @@ class ZillowScraper(Scraper):
 
         return properties_list
 
-    def _extract_units(self, result: dict):
-        units = {}
-        if "units" in result:
-            num_units = result.get("availabilityCount", len(result["units"]))
-            prices = [
-                int(unit["price"].replace("$", "").replace(",", "").split("+")[0])
-                for unit in result["units"]
-            ]
-            units["apt_availability_count"] = num_units
-            units["apt_min_unit_price"] = min(prices)
-            units["apt_max_unit_price"] = max(prices)
-            units["apt_avg_unit_price"] = (
-                sum(prices) // num_units if num_units else None
-            )
-        return units
-
     def _get_single_property_page(self, property_data: dict):
         """
         This method is used when a user enters the exact location & zillow returns just one property
@@ -239,10 +225,9 @@ class ZillowScraper(Scraper):
             else property_data["hdpUrl"]
         )
         address_data = property_data["address"]
-        unit = parse_address_two(address_data["streetAddress"])
         address = Address(
             street_address=address_data["streetAddress"],
-            unit=unit,
+            unit=parse_address_two(address_data["streetAddress"]),
             city=address_data["city"],
             state=address_data["state"],
             zip_code=address_data["zipcode"],
@@ -301,11 +286,10 @@ class ZillowScraper(Scraper):
         else:
             raise ValueError(f"Unexpected state/zip format in address: {address_str}")
 
-        unit = parse_address_two(street_address)
         return Address(
             street_address=street_address,
             city=city,
-            unit=unit,
+            unit=parse_address_two(street_address),
             state=state,
             zip_code=zip_code,
             country="USA",
