@@ -37,8 +37,8 @@ print(properties)
 ```
 ## Output
 ```py
->>> properties.head()
-                           street        city  ... mls_id description
+>> properties.head()
+                                street   city  ... mls_id description
 0                 420 N  Scottsdale Rd  Tempe  ...    NaN         NaN
 1                1255 E  University Dr  Tempe  ...    NaN         NaN
 2              1979 E  Rio Salado Pkwy  Tempe  ...    NaN         NaN
@@ -118,7 +118,7 @@ The following exceptions may be raised when using HomeHarvest:
 - `InvalidSite` - valid options: `zillow`, `redfin`, `realtor.com`
 - `InvalidListingType` - valid options: `for_sale`, `for_rent`, `sold`
 - `NoResultsFound` - no properties found from your input
-- `GeoCoordsNotFound` - if Zillow scraper is not able to create geo-coordinates from the location you input
+- `GeoCoordsNotFound` - if Zillow scraper is not able to find the geo-coordinates from the `location`
 
 ## Frequently Asked Questions
 
