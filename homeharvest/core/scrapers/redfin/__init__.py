@@ -49,21 +49,21 @@ class RedfinScraper(Scraper):
             unit = parse_unit(get_value("streetLine"))
             address = Address(
                 street_address=street_address,
-                city=home["city"],
-                state=home["state"],
-                zip_code=home["zip"],
+                city=home.get("city"),
+                state=home.get("state"),
+                zip_code=home.get("zip"),
                 unit=unit,
                 country="USA",
             )
         else:
-            address_info = home["streetAddress"]
-            street_address, unit = parse_address_two(address_info["assembledAddress"])
+            address_info = home.get("streetAddress")
+            street_address, unit = parse_address_two(address_info.get("assembledAddress"))
 
             address = Address(
                 street_address=street_address,
-                city=home["city"],
-                state=home["state"],
-                zip_code=home["zip"],
+                city=home.get("city"),
+                state=home.get("state"),
+                zip_code=home.get("zip"),
                 unit=unit,
                 country="USA",
             )
