@@ -11,8 +11,6 @@
 
 - Scrapes properties from **Zillow**, **Realtor.com** & **Redfin** simultaneously
 - Aggregates the properties in a Pandas DataFrame
-- Proxy support (HTTP/S, SOCKS)
-
 
 ## Installation
 
@@ -30,11 +28,6 @@ properties: pd.DataFrame = scrape_property(
     site_name=["zillow", "realtor.com", "redfin"],
     location="85281",
     listing_type="for_rent" # for_sale / sold
-
-    # use if you want to use a proxy (3 types)
-    # proxy="socks5://homeharvest:5a4vpWtj8EeJ2hoYzk@us.smartproxy.com:20001",
-    # proxy="http://homeharvest:5a4vpWtj8EeJ2hoYzk@us.smartproxy.com:20001",
-    # proxy="https://homeharvest:5a4vpWtj8EeJ2hoYzk@us.smartproxy.com:20001",
 )
 
 #1 output to .csv (simplest, then use Excel)
@@ -73,7 +66,6 @@ Required
 └── listing_type (enum): for_rent, for_sale, sold
 Optional
 ├── site_name (List[enum], default=all three sites): zillow, realtor.com, redfin
-├── proxy (str): in format 'http://user:pass@host:port' or [https, socks]
 ```
 
 ### Property Schema
@@ -140,8 +132,6 @@ The following exceptions may be raised when using HomeHarvest:
 - `NoResultsFound` - no properties found from your input
 - `GeoCoordsNotFound` - if Zillow scraper is not able to create geo-coordinates from the locaion you input
 
-
-
 ## Frequently Asked Questions
 
 ---
@@ -155,7 +145,7 @@ The following exceptions may be raised when using HomeHarvest:
 **A:** This indicates that you have been blocked by the real estate site for sending too many requests. Currently, **Zillow** is particularly aggressive with blocking. We recommend:
 
 - Waiting a few seconds between requests.
-- Trying a VPN or proxy to change your IP address.
+- Trying a VPN to change your IP address.
 
 ---
 
