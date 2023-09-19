@@ -44,7 +44,7 @@ class RealtorScraper(Scraper):
 
         result = response_json["autocomplete"]
 
-        if result is None:
+        if not result:
             raise NoResultsFound("No results found for location: " + self.location)
 
         return result[0]

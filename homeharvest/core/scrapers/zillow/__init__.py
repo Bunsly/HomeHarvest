@@ -2,7 +2,7 @@ import re
 import json
 from .. import Scraper
 from ....utils import parse_address_two, parse_unit
-from ....exceptions import GeoCoordsNotFound
+from ....exceptions import GeoCoordsNotFound, NoResultsFound
 from ..models import Property, Address, ListingType, PropertyType, SiteName
 
 
@@ -151,9 +151,6 @@ class ZillowScraper(Scraper):
                     else None,
                     "currency": home_info["currency"],
                     "price": home_info.get("price"),
-                    "square_feet": int(home_info["livingArea"])
-                    if "livingArea" in home_info
-                    else None,
                     "tax_assessed_value": int(home_info["taxAssessedValue"])
                     if "taxAssessedValue" in home_info
                     else None,

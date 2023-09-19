@@ -3,6 +3,7 @@ from typing import Any
 from .. import Scraper
 from ....utils import parse_address_two, parse_unit
 from ..models import Property, Address, PropertyType
+from ....exceptions import NoResultsFound
 
 
 class RedfinScraper(Scraper):
@@ -25,6 +26,9 @@ class RedfinScraper(Scraper):
                 return "6"  #: city
             elif match_type == "1":
                 return "address"  #: address, needs to be handled differently
+
+        if "exactMatch" not in response_json['payload']:
+            raise NoResultsFound("No results found for location: {}".format(self.location))
 
         if response_json["payload"]["exactMatch"] is not None:
             target = response_json["payload"]["exactMatch"]

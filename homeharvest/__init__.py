@@ -17,6 +17,7 @@ _scrapers = {
     "zillow": ZillowScraper,
 }
 
+
 def validate_input(site_name: str, listing_type: str) -> None:
     if site_name.lower() not in _scrapers:
         raise InvalidSite(f"Provided site, '{site_name}', does not exist.")
@@ -25,6 +26,7 @@ def validate_input(site_name: str, listing_type: str) -> None:
         raise InvalidListingType(
             f"Provided listing type, '{listing_type}', does not exist."
         )
+
 
 def get_ordered_properties(result: Property) -> list[str]:
     return [
@@ -65,6 +67,7 @@ def get_ordered_properties(result: Property) -> list[str]:
         "longitude",
     ]
 
+
 def process_result(result: Property) -> pd.DataFrame:
     prop_data = result.__dict__
 
@@ -89,6 +92,7 @@ def process_result(result: Property) -> pd.DataFrame:
     properties_df = properties_df[get_ordered_properties(result)]
 
     return properties_df
+
 
 def _scrape_single_site(
     location: str, site_name: str, listing_type: str
@@ -157,5 +161,13 @@ def scrape_property(
         return pd.DataFrame()
 
     final_df = pd.concat(results, ignore_index=True)
+
+    columns_to_track = ["street_address", "city", "unit"]
+
+    #: validate they exist, otherwise create them
+    for col in columns_to_track:
+        if col not in final_df.columns:
+            final_df[col] = None
+
     final_df = final_df.drop_duplicates(subset=["street_address", "city", "unit"], keep="first")
     return final_df
