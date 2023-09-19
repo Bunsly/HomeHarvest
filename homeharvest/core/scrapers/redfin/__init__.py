@@ -109,7 +109,7 @@ class RedfinScraper(Scraper):
         )
 
     def _handle_rentals(self, region_id, region_type):
-        url = f"https://www.redfin.com/stingray/api/v1/search/rentals?al=1&isRentals=true&region_id={region_id}&region_type={region_type}"
+        url = f"https://www.redfin.com/stingray/api/v1/search/rentals?al=1&isRentals=true&region_id={region_id}&region_type={region_type}&num_homes=100000"
 
         response = self.session.get(url)
         response.raise_for_status()
@@ -230,9 +230,9 @@ class RedfinScraper(Scraper):
             return self._handle_rentals(region_id, region_type)
         else:
             if self.listing_type == ListingType.FOR_SALE:
-                url = f"https://www.redfin.com/stingray/api/gis?al=1&region_id={region_id}&region_type={region_type}"
+                url = f"https://www.redfin.com/stingray/api/gis?al=1&region_id={region_id}&region_type={region_type}&num_homes=100000"
             else:
-                url = f"https://www.redfin.com/stingray/api/gis?al=1&region_id={region_id}&region_type={region_type}&sold_within_days=30"
+                url = f"https://www.redfin.com/stingray/api/gis?al=1&region_id={region_id}&region_type={region_type}&sold_within_days=30&num_homes=100000"
             response = self.session.get(url)
             response_json = json.loads(response.text.replace("{}&&", ""))
             homes = [
