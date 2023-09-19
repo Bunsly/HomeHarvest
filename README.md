@@ -15,7 +15,7 @@
 ## Installation
 
 ```bash
-pip install --upgrade homeharvest
+pip install --force-reinstall homeharvest
 ```
   _Python version >= [3.10](https://www.python.org/downloads/release/python-3100/) required_ 
   
