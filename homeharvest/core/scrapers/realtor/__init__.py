@@ -39,6 +39,7 @@ class RealtorScraper(Scraper):
             "https://parser-external.geo.moveaws.com/suggest",
             params=params,
             headers=headers,
+            proxies=self.proxy,
         )
         response_json = response.json()
 
@@ -104,7 +105,7 @@ class RealtorScraper(Scraper):
             "variables": variables,
         }
 
-        response = self.session.post(self.search_url, json=payload)
+        response = self.session.post(self.search_url, json=payload, proxies=self.proxy)
         response_json = response.json()
 
         property_info = response_json["data"]["property"]
@@ -217,7 +218,7 @@ class RealtorScraper(Scraper):
             "variables": variables,
         }
 
-        response = self.session.post(self.search_url, json=payload)
+        response = self.session.post(self.search_url, json=payload, proxies=self.proxy)
         response.raise_for_status()
         response_json = response.json()
 

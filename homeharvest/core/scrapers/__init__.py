@@ -8,7 +8,7 @@ class ScraperInput:
     location: str
     listing_type: ListingType
     site_name: SiteName
-    proxy_url: str | None = None
+    proxy: str | None = None
 
 
 class Scraper:
@@ -20,11 +20,9 @@ class Scraper:
         self.listing_type = scraper_input.listing_type
         self.site_name = scraper_input.site_name
 
-        if scraper_input.proxy_url:
-            self.session.proxies = {
-                "http": scraper_input.proxy_url,
-                "https": scraper_input.proxy_url,
-            }
+        self.proxy = (lambda p: {"http": p, "https": p} if p else None)(
+            scraper_input.proxy
+        )
 
     def search(self) -> list[Property]:
         ...
