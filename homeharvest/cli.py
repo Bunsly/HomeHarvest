@@ -8,36 +8,51 @@ def main():
     parser.add_argument(
         "location", type=str, help="Location to scrape (e.g., San Francisco, CA)"
     )
+
     parser.add_argument(
+        "-s",
         "--site_name",
         type=str,
         nargs="*",
         default=None,
-        help="Site name(s) to scrape from (e.g., realtor.com zillow)",
+        help="Site name(s) to scrape from (e.g., realtor, zillow)",
     )
+
     parser.add_argument(
+        "-l",
         "--listing_type",
         type=str,
         default="for_sale",
         choices=["for_sale", "for_rent", "sold"],
         help="Listing type to scrape",
     )
+
     parser.add_argument(
+        "-o",
         "--output",
         type=str,
         default="excel",
         choices=["excel", "csv"],
         help="Output format",
     )
+
     parser.add_argument(
+        "-f",
         "--filename",
         type=str,
         default=None,
         help="Name of the output file (without extension)",
     )
 
+    parser.add_argument(
+        "-p", "--proxy", type=str, default=None, help="Proxy to use for scraping"
+    )
+
     args = parser.parse_args()
-    result = scrape_property(args.location, args.site_name, args.listing_type)
+
+    result = scrape_property(
+        args.location, args.site_name, args.listing_type, proxy=args.proxy
+    )
 
     if not args.filename:
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")

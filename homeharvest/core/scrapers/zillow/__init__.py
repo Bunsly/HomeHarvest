@@ -1,6 +1,5 @@
 import re
 import json
-import string
 from .. import Scraper
 from ....utils import parse_address_two, parse_unit
 from ....exceptions import GeoCoordsNotFound, NoResultsFound
@@ -32,7 +31,9 @@ class ZillowScraper(Scraper):
         return response.json()["results"] != []
 
     def search(self):
-        resp = self.session.get(self.url, headers=self._get_headers())
+        resp = self.session.get(
+            self.url, headers=self._get_headers()
+        )
         resp.raise_for_status()
         content = resp.text
 
@@ -129,7 +130,9 @@ class ZillowScraper(Scraper):
             "wants": {"cat1": ["mapResults"]},
             "isDebugRequest": False,
         }
-        resp = self.session.put(url, headers=self._get_headers(), json=payload)
+        resp = self.session.put(
+            url, headers=self._get_headers(), json=payload
+        )
         resp.raise_for_status()
         a = resp.json()
         return self._parse_properties(resp.json())

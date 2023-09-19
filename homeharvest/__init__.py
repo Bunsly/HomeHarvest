@@ -18,7 +18,7 @@ _scrapers = {
 }
 
 
-def validate_input(site_name: str, listing_type: str) -> None:
+def _validate_input(site_name: str, listing_type: str) -> None:
     if site_name.lower() not in _scrapers:
         raise InvalidSite(f"Provided site, '{site_name}', does not exist.")
 
@@ -28,7 +28,7 @@ def validate_input(site_name: str, listing_type: str) -> None:
         )
 
 
-def get_ordered_properties(result: Property) -> list[str]:
+def _get_ordered_properties(result: Property) -> list[str]:
     return [
         "property_url",
         "site_name",
@@ -75,7 +75,7 @@ def get_ordered_properties(result: Property) -> list[str]:
     ]
 
 
-def process_result(result: Property) -> pd.DataFrame:
+def _process_result(result: Property) -> pd.DataFrame:
     prop_data = result.__dict__
 
     prop_data["site_name"] = prop_data["site_name"].value
@@ -96,29 +96,30 @@ def process_result(result: Property) -> pd.DataFrame:
         del prop_data["address"]
 
     properties_df = pd.DataFrame([prop_data])
-    properties_df = properties_df[get_ordered_properties(result)]
+    properties_df = properties_df[_get_ordered_properties(result)]
 
     return properties_df
 
 
 def _scrape_single_site(
-    location: str, site_name: str, listing_type: str
+    location: str, site_name: str, listing_type: str, proxy: str = None
 ) -> pd.DataFrame:
     """
     Helper function to scrape a single site.
     """
-    validate_input(site_name, listing_type)
+    _validate_input(site_name, listing_type)
 
     scraper_input = ScraperInput(
         location=location,
         listing_type=ListingType[listing_type.upper()],
         site_name=SiteName.get_by_value(site_name.lower()),
+        proxy=proxy,
     )
 
     site = _scrapers[site_name.lower()](scraper_input)
     results = site.search()
 
-    properties_dfs = [process_result(result) for result in results]
+    properties_dfs = [_process_result(result) for result in results]
     properties_dfs = [
         df.dropna(axis=1, how="all") for df in properties_dfs if not df.empty
     ]
@@ -132,6 +133,7 @@ def scrape_property(
     location: str,
     site_name: Union[str, list[str]] = None,
     listing_type: str = "for_sale",
+    proxy: str = None,
 ) -> pd.DataFrame:
     """
     Scrape property from various sites from a given location and listing type.
@@ -151,13 +153,13 @@ def scrape_property(
     results = []
 
     if len(site_name) == 1:
-        final_df = _scrape_single_site(location, site_name[0], listing_type)
+        final_df = _scrape_single_site(location, site_name[0], listing_type, proxy)
         results.append(final_df)
     else:
         with ThreadPoolExecutor() as executor:
             futures = {
                 executor.submit(
-                    _scrape_single_site, location, s_name, listing_type
+                    _scrape_single_site, location, s_name, listing_type, proxy
                 ): s_name
                 for s_name in site_name
             }

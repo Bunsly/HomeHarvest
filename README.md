@@ -26,18 +26,19 @@ pip install --force-reinstall homeharvest
 ### CLI 
 
 ```bash
-homeharvest "San Francisco, CA" --site_name zillow realtor.com redfin --listing_type for_rent --output excel --filename HomeHarvest
+homeharvest "San Francisco, CA" -s zillow realtor.com redfin -l for_rent -o excel -f HomeHarvest
 ```
 
 This will scrape properties from the specified sites for the given location and listing type, and save the results to an Excel file named `HomeHarvest.xlsx`.
 
 By default:
-- If `--site_name` is not provided, it will scrape from all available sites.
-- If `--listing_type` is left blank, the default is `for_sale`, other options are `for_rent` or `sold`.
-- The `--output` default format is `excel`, options are `csv` or `excel`.
-- If `--filename` is left blank, the default is  `HomeHarvest_<current_timestamp>`
-
+- If `-s` or `--site_name` is not provided, it will scrape from all available sites.
+- If `-l` or `--listing_type` is left blank, the default is `for_sale`. Other options are `for_rent` or `sold`.
+- The `-o` or `--output` default format is `excel`. Options are `csv` or `excel`.
+- If `-f` or `--filename` is left blank, the default is `HomeHarvest_<current_timestamp>`.
+- If `-p` or `--proxy` is not provided, the scraper uses the local IP.
 ### Python 
+
 ```py
 from homeharvest import scrape_property
 import pandas as pd
@@ -71,6 +72,7 @@ Required
 └── listing_type (enum): for_rent, for_sale, sold
 Optional
 ├── site_name (List[enum], default=all three sites): zillow, realtor.com, redfin
+├── proxy (str): in format 'http://user:pass@host:port' or [https, socks]
 ```
 
 ### Property Schema
