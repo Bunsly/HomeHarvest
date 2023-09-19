@@ -30,20 +30,8 @@ properties: pd.DataFrame = scrape_property(
     listing_type="for_rent" # for_sale / sold
 )
 
-#1 output to .csv (simplest, then use Excel)
-properties.to_csv('props.csv', index=False)
-
-#2 display in Jupyter Notebook (1. pip install jupyter 2. jupyter notebook)
-
-# formatting for pandas
-#pd.set_option('display.max_columns', None)
-#pd.set_option('display.max_rows', None)
-#pd.set_option('display.width', None)
-#pd.set_option('display.max_colwidth', 50)  # set to 0 to see full property_url / descr
-#display(properties)
-
-#3 output to console
-#print(properties)
+#: Note, to export to CSV or Excel, use properties.to_csv() or properties.to_excel().
+print(properties)
 
 
 ```
@@ -130,14 +118,14 @@ The following exceptions may be raised when using HomeHarvest:
 - `InvalidSite` - valid options: `zillow`, `redfin`, `realtor.com`
 - `InvalidListingType` - valid options: `for_sale`, `for_rent`, `sold`
 - `NoResultsFound` - no properties found from your input
-- `GeoCoordsNotFound` - if Zillow scraper is not able to create geo-coordinates from the locaion you input
+- `GeoCoordsNotFound` - if Zillow scraper is not able to create geo-coordinates from the location you input
 
 ## Frequently Asked Questions
 
 ---
 
 **Q: Encountering issues with your queries?**  
-**A:** Try a single site and/or broadening the location. If problems persist, [submit an issue](https://github.com/ZacharyHampton/HomeHarvest/issues).
+**A:** Try a single site and/or broaden the location. If problems persist, [submit an issue](https://github.com/ZacharyHampton/HomeHarvest/issues).
 
 ---
 
