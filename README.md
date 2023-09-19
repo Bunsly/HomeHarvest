@@ -1,12 +1,12 @@
-# HomeHarvest
+<img src="https://github.com/ZacharyHampton/HomeHarvest/assets/78247585/d1a2bf8b-09f5-4c57-b33a-0ada8a34f12d" width="400">
 
-**HomeHarvest** is a simple but comprehensive real estate scraping library.
+**HomeHarvest** is a simple, yet comprehensive, real estate scraping library.
 
 [![Try with Replit](https://replit.com/badge?caption=Try%20with%20Replit)](https://replit.com/@ZacharyHampton/HomeHarvestDemo)
 
-
 *Looking to build a data-focused software product?* **[Book a call](https://calendly.com/zachary-products/15min)** *to work with us.*
 ## Features
+
 
 
 - Scrapes properties from **Zillow**, **Realtor.com** & **Redfin** simultaneously
@@ -32,13 +32,11 @@ properties: pd.DataFrame = scrape_property(
 
 #: Note, to export to CSV or Excel, use properties.to_csv() or properties.to_excel().
 print(properties)
-
-
 ```
 ## Output
 ```py
->> properties.head()
-                                street   city  ... mls_id description
+>>> properties.head()
+                           street   city  ... mls_id description
 0                 420 N  Scottsdale Rd  Tempe  ...    NaN         NaN
 1                1255 E  University Dr  Tempe  ...    NaN         NaN
 2              1979 E  Rio Salado Pkwy  Tempe  ...    NaN         NaN
@@ -118,7 +116,7 @@ The following exceptions may be raised when using HomeHarvest:
 - `InvalidSite` - valid options: `zillow`, `redfin`, `realtor.com`
 - `InvalidListingType` - valid options: `for_sale`, `for_rent`, `sold`
 - `NoResultsFound` - no properties found from your input
-- `GeoCoordsNotFound` - if Zillow scraper is not able to find the geo-coordinates from the `location`
+- `GeoCoordsNotFound` - if Zillow scraper is not able to create geo-coordinates from the location you input
 
 ## Frequently Asked Questions
 
