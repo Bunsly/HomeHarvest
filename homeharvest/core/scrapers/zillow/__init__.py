@@ -2,7 +2,7 @@ import re
 import json
 from .. import Scraper
 from ....utils import parse_address_two, parse_unit
-from ....exceptions import NoResultsFound, PropertyNotFound
+from ....exceptions import GeoCoordsNotFound
 from ..models import Property, Address, ListingType, PropertyType, SiteName
 
 
@@ -45,7 +45,7 @@ class ZillowScraper(Scraper):
                 return self._fetch_properties_backend(coords)
 
             else:
-                raise BoxBoundsNotFound("Box bounds could not be located.")
+                raise GeoCoordsNotFound("Box bounds could not be located.")
 
         elif "gdpClientCache" in data["props"]["pageProps"]:
             gdp_client_cache = json.loads(data["props"]["pageProps"]["gdpClientCache"])
@@ -55,7 +55,7 @@ class ZillowScraper(Scraper):
             property = self._get_single_property_page(property_data)
 
             return [property]
-        raise PropertyNotFound("Specific property data not found in the response.")
+        raise NoResultsFound("Specific property data not found in the response.")
 
     def _fetch_properties_backend(self, coords):
         url = "https://www.zillow.com/async-create-search-page-state"
