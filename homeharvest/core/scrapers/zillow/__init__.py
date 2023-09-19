@@ -22,14 +22,14 @@ class ZillowScraper(Scraper):
             self.url = f"https://www.zillow.com/homes/recently_sold/{self.location}_rb/"
 
     def is_plausible_location(self, location: str) -> bool:
-        url = ('https://www.zillowstatic.com/autocomplete/v3/suggestions?q={'
-               '}&abKey=6666272a-4b99-474c-b857-110ec438732b&clientId=homepage-render').format(
-            location
-        )
+        url = (
+            "https://www.zillowstatic.com/autocomplete/v3/suggestions?q={"
+            "}&abKey=6666272a-4b99-474c-b857-110ec438732b&clientId=homepage-render"
+        ).format(location)
 
         response = self.session.get(url)
 
-        return response.json()['results'] != []
+        return response.json()["results"] != []
 
     def search(self):
         resp = self.session.get(self.url, headers=self._get_headers())

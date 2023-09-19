@@ -4,3 +4,4 @@
 **/.pytest_cache/
 *.pyc
 /.ipynb_checkpoints/
+*.csv
