@@ -157,5 +157,8 @@ def scrape_property(
         return pd.DataFrame()
 
     final_df = pd.concat(results, ignore_index=True)
-    final_df = final_df.drop_duplicates(subset=["street_address", "city", "unit"], keep="first")
+    dupe_check_columns = ["street_address", "city", "unit"]
+    if all(col in final_df.columns for col in dupe_check_columns):
+        final_df = final_df.drop_duplicates(subset=dupe_check_columns, keep="first")
+
     return final_df
