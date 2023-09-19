@@ -1,5 +1,10 @@
 from homeharvest import scrape_property
-from homeharvest.exceptions import InvalidSite, InvalidListingType, NoResultsFound, GeoCoordsNotFound
+from homeharvest.exceptions import (
+    InvalidSite,
+    InvalidListingType,
+    NoResultsFound,
+    GeoCoordsNotFound,
+)
 
 
 def test_redfin():

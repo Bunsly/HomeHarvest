@@ -1,21 +1,36 @@
 import re
 import json
+import string
 from .. import Scraper
 from ....utils import parse_address_two, parse_unit
 from ....exceptions import GeoCoordsNotFound, NoResultsFound
-from ..models import Property, Address, ListingType, PropertyType, SiteName
+from ..models import Property, Address, ListingType, PropertyType
 
 
 class ZillowScraper(Scraper):
     def __init__(self, scraper_input):
         super().__init__(scraper_input)
         self.listing_type = scraper_input.listing_type
+        if not self.is_plausible_location(self.location):
+            raise NoResultsFound("Invalid location input: {}".format(self.location))
         if self.listing_type == ListingType.FOR_SALE:
             self.url = f"https://www.zillow.com/homes/for_sale/{self.location}_rb/"
         elif self.listing_type == ListingType.FOR_RENT:
             self.url = f"https://www.zillow.com/homes/for_rent/{self.location}_rb/"
         else:
             self.url = f"https://www.zillow.com/homes/recently_sold/{self.location}_rb/"
+
+    @staticmethod
+    def is_plausible_location(location: str) -> bool:
+        blocks = location.split()
+        for block in blocks:
+            if (
+                any(char.isdigit() for char in block)
+                and any(char.isalpha() for char in block)
+                and len(block) > 6
+            ):
+                return False
+        return True
 
     def search(self):
         resp = self.session.get(self.url, headers=self._get_headers())

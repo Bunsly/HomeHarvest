@@ -27,8 +27,10 @@ class RedfinScraper(Scraper):
             elif match_type == "1":
                 return "address"  #: address, needs to be handled differently
 
-        if "exactMatch" not in response_json['payload']:
-            raise NoResultsFound("No results found for location: {}".format(self.location))
+        if "exactMatch" not in response_json["payload"]:
+            raise NoResultsFound(
+                "No results found for location: {}".format(self.location)
+            )
 
         if response_json["payload"]["exactMatch"] is not None:
             target = response_json["payload"]["exactMatch"]
@@ -98,8 +100,12 @@ class RedfinScraper(Scraper):
             price_per_sqft=get_value("pricePerSqFt"),
             price=get_value("price"),
             mls_id=get_value("mlsId"),
-            latitude=home["latLong"]["latitude"] if "latLong" in home and "latitude" in home["latLong"] else None,
-            longitude = home["latLong"]["longitude"] if "latLong" in home and "longitude" in home["latLong"] else None
+            latitude=home["latLong"]["latitude"]
+            if "latLong" in home and "latitude" in home["latLong"]
+            else None,
+            longitude=home["latLong"]["longitude"]
+            if "latLong" in home and "longitude" in home["latLong"]
+            else None,
         )
 
     def _parse_building(self, building: dict) -> Property:

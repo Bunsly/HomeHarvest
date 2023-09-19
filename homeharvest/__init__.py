@@ -112,7 +112,9 @@ def _scrape_single_site(
     results = site.search()
 
     properties_dfs = [process_result(result) for result in results]
-    properties_dfs = [df.dropna(axis=1, how='all') for df in properties_dfs if not df.empty]
+    properties_dfs = [
+        df.dropna(axis=1, how="all") for df in properties_dfs if not df.empty
+    ]
     if not properties_dfs:
         return pd.DataFrame()
 
@@ -147,7 +149,9 @@ def scrape_property(
     else:
         with ThreadPoolExecutor() as executor:
             futures = {
-                executor.submit(_scrape_single_site, location, s_name, listing_type): s_name
+                executor.submit(
+                    _scrape_single_site, location, s_name, listing_type
+                ): s_name
                 for s_name in site_name
             }
 
@@ -169,5 +173,7 @@ def scrape_property(
         if col not in final_df.columns:
             final_df[col] = None
 
-    final_df = final_df.drop_duplicates(subset=["street_address", "city", "unit"], keep="first")
+    final_df = final_df.drop_duplicates(
+        subset=["street_address", "city", "unit"], keep="first"
+    )
     return final_df
