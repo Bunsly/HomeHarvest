@@ -35,16 +35,17 @@ properties: pd.DataFrame = scrape_property(
 #: Note, to export to CSV or Excel, use properties.to_csv() or properties.to_excel().
 print(properties)
 ```
+
 ## Output
 ```py
 >>> properties.head()
-                           street   city  ... mls_id description
-0                 420 N  Scottsdale Rd  Tempe  ...    NaN         NaN
-1                1255 E  University Dr  Tempe  ...    NaN         NaN
-2              1979 E  Rio Salado Pkwy  Tempe  ...    NaN         NaN
-3                      548 S Wilson St  Tempe  ...   None        None
-4  945 E  Playa Del Norte Dr Unit 4027  Tempe  ...    NaN         NaN
-[5 rows x 23 columns]
+                                        property_url site_name listing_type  apt_min_price  apt_max_price   ...  
+0  https://www.redfin.com/AZ/Tempe/1003-W-Washing...    redfin     for_rent         1666.0         2750.0   ... 
+1  https://www.redfin.com/AZ/Tempe/VELA-at-Town-L...    redfin     for_rent         1665.0         3763.0   ...  
+2  https://www.redfin.com/AZ/Tempe/Camden-Tempe/a...    redfin     for_rent         1939.0         3109.0   ...  
+3  https://www.redfin.com/AZ/Tempe/Emerson-Park/a...    redfin     for_rent         1185.0         1817.0   ... 
+4  https://www.redfin.com/AZ/Tempe/Rio-Paradiso-A...    redfin     for_rent         1470.0         2235.0   ...   
+[5 rows x 41 columns]
 ```
 
 ### Parameters for `scrape_properties()`
