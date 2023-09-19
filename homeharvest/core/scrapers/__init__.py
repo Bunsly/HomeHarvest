@@ -20,10 +20,6 @@ class Scraper:
         self.listing_type = scraper_input.listing_type
         self.site_name = scraper_input.site_name
 
-        self.proxy = (lambda p: {"http": p, "https": p} if p else None)(
-            scraper_input.proxy
-        )
-
     def search(self) -> list[Property]:
         ...
 
