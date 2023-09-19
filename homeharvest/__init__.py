@@ -17,7 +17,6 @@ _scrapers = {
     "zillow": ZillowScraper,
 }
 
-
 def validate_input(site_name: str, listing_type: str) -> None:
     if site_name.lower() not in _scrapers:
         raise InvalidSite(f"Provided site, '{site_name}', does not exist.")
@@ -26,7 +25,6 @@ def validate_input(site_name: str, listing_type: str) -> None:
         raise InvalidListingType(
             f"Provided listing type, '{listing_type}', does not exist."
         )
-
 
 def get_ordered_properties(result: Property) -> list[str]:
     return [
@@ -67,7 +65,6 @@ def get_ordered_properties(result: Property) -> list[str]:
         "longitude",
     ]
 
-
 def process_result(result: Property) -> pd.DataFrame:
     prop_data = result.__dict__
 
@@ -93,7 +90,6 @@ def process_result(result: Property) -> pd.DataFrame:
 
     return properties_df
 
-
 def _scrape_single_site(
     location: str, site_name: str, listing_type: str
 ) -> pd.DataFrame:
@@ -112,6 +108,7 @@ def _scrape_single_site(
     results = site.search()
 
     properties_dfs = [process_result(result) for result in results]
+    properties_dfs = [df.dropna(axis=1, how='all') for df in properties_dfs if not df.empty]
     if not properties_dfs:
         return pd.DataFrame()
 
@@ -153,6 +150,8 @@ def scrape_property(
             for future in concurrent.futures.as_completed(futures):
                 result = future.result()
                 results.append(result)
+
+    results = [df for df in results if not df.empty and not df.isna().all().all()]
 
     if not results:
         return pd.DataFrame()

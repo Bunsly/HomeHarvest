@@ -249,8 +249,8 @@ class RealtorScraper(Scraper):
                     unit=parse_unit(result["location"]["address"]["unit"]),
                     country="USA",
                 ),
-                latitude=result["location"]["address"]["coordinate"]["lat"],
-                longitude=result["location"]["address"]["coordinate"]["lon"],
+                latitude=result["location"]["address"]["coordinate"]["lat"] if result and result.get("location") and result["location"].get("address") and result["location"]["address"].get("coordinate") and "lat" in result["location"]["address"]["coordinate"] else None,
+                longitude=result["location"]["address"]["coordinate"]["lon"] if result and result.get("location") and result["location"].get("address") and result["location"]["address"].get("coordinate") and "lon" in result["location"]["address"]["coordinate"] else None,
                 site_name=self.site_name,
                 property_url="https://www.realtor.com/realestateandhomes-detail/"
                 + result["property_id"],

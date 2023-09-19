@@ -94,8 +94,8 @@ class RedfinScraper(Scraper):
             price_per_sqft=get_value("pricePerSqFt"),
             price=get_value("price"),
             mls_id=get_value("mlsId"),
-            latitude=home["latLong"]["latitude"] if "latLong" in home else None,
-            longitude=home["latLong"]["longitude"] if "latLong" in home else None,
+            latitude=home["latLong"]["latitude"] if "latLong" in home and "latitude" in home["latLong"] else None,
+            longitude = home["latLong"]["longitude"] if "latLong" in home and "longitude" in home["latLong"] else None
         )
 
     def _parse_building(self, building: dict) -> Property:
