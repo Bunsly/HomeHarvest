@@ -68,10 +68,10 @@ def get_ordered_properties(result: Property) -> list[str]:
         "year_built",
         "agent_name",
         "mls_id",
-        "description",
         "img_src",
         "latitude",
         "longitude",
+        "description",
     ]
 
 

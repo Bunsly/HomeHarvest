@@ -20,8 +20,24 @@
 pip install --force-reinstall homeharvest
 ```
   _Python version >= [3.10](https://www.python.org/downloads/release/python-3100/) required_ 
-  
+
 ## Usage
+
+### CLI 
+
+```bash
+homeharvest "San Francisco, CA" --site_name zillow realtor.com redfin --listing_type for_rent --output excel --filename HomeHarvest
+```
+
+This will scrape properties from the specified sites for the given location and listing type, and save the results to an Excel file named `HomeHarvest.xlsx`.
+
+By default:
+- If `--site_name` is not provided, it will scrape from all available sites.
+- If `--listing_type` is left blank, the default is `for_sale`, other options are `for_rent` or `sold`.
+- The `--output` default format is `excel`, options are `csv` or `excel`.
+- If `--filename` is left blank, the default is  `HomeHarvest_<current_timestamp>`
+
+### Python 
 ```py
 from homeharvest import scrape_property
 import pandas as pd
@@ -105,7 +121,14 @@ Property
 │   └── bldg_min_area (int)
 
 └── Apartment Details (for property type: apartment):
-    └── apt_min_price (int)
+    ├── apt_min_beds: int
+    ├── apt_max_beds: int
+    ├── apt_min_baths: float
+    ├── apt_max_baths: float
+    ├── apt_min_price: int
+    ├── apt_max_price: int
+    ├── apt_min_sqft: int
+    ├── apt_max_sqft: int
 ```
 ## Supported Countries for Property Scraping
 

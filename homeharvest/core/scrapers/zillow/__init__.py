@@ -188,7 +188,9 @@ class ZillowScraper(Scraper):
                     else None,
                     "img_src": result.get("imgSrc"),
                     "price_per_sqft": int(home_info["price"] // home_info["livingArea"])
-                    if "livingArea" in home_info and "price" in home_info
+                    if "livingArea" in home_info
+                    and home_info["livingArea"] != 0
+                    and "price" in home_info
                     else None,
                 }
                 property_obj = Property(**property_data)
