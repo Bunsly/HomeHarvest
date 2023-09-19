@@ -102,6 +102,10 @@ class Property:
     bldg_min_area: int | None = None
 
     # apt
+    apt_min_beds: int | None = None
+    apt_max_beds: int | None = None
+    apt_min_baths: float | None = None
+    apt_max_baths: float | None = None
     apt_min_price: int | None = None
     apt_max_price: int | None = None
     apt_min_sqft: int | None = None
