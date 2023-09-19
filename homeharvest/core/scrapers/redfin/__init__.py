@@ -16,7 +16,7 @@ class RedfinScraper(Scraper):
             self.location
         )
 
-        response = self.session.get(url, proxies=self.proxy)
+        response = self.session.get(url)
         response_json = json.loads(response.text.replace("{}&&", ""))
 
         def get_region_type(match_type: str):
@@ -111,7 +111,7 @@ class RedfinScraper(Scraper):
     def _handle_rentals(self, region_id, region_type):
         url = f"https://www.redfin.com/stingray/api/v1/search/rentals?al=1&isRentals=true&region_id={region_id}&region_type={region_type}&num_homes=100000"
 
-        response = self.session.get(url, proxies=self.proxy)
+        response = self.session.get(url)
         response.raise_for_status()
         homes = response.json()
 
@@ -211,7 +211,7 @@ class RedfinScraper(Scraper):
             home_id
         )
 
-        response = self.session.get(url, proxies=self.proxy)
+        response = self.session.get(url)
         response_json = json.loads(response.text.replace("{}&&", ""))
 
         parsed_home = self._parse_home(
@@ -233,7 +233,7 @@ class RedfinScraper(Scraper):
                 url = f"https://www.redfin.com/stingray/api/gis?al=1&region_id={region_id}&region_type={region_type}&num_homes=100000"
             else:
                 url = f"https://www.redfin.com/stingray/api/gis?al=1&region_id={region_id}&region_type={region_type}&sold_within_days=30&num_homes=100000"
-            response = self.session.get(url, proxies=self.proxy)
+            response = self.session.get(url)
             response_json = json.loads(response.text.replace("{}&&", ""))
             homes = [
                 self._parse_home(home) for home in response_json["payload"]["homes"]

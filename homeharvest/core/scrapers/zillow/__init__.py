@@ -26,13 +26,13 @@ class ZillowScraper(Scraper):
             "}&abKey=6666272a-4b99-474c-b857-110ec438732b&clientId=homepage-render"
         ).format(location)
 
-        response = self.session.get(url, proxies=self.proxy)
+        response = self.session.get(url)
 
         return response.json()["results"] != []
 
     def search(self):
         resp = self.session.get(
-            self.url, headers=self._get_headers(), proxies=self.proxy
+            self.url, headers=self._get_headers()
         )
         resp.raise_for_status()
         content = resp.text
@@ -131,7 +131,7 @@ class ZillowScraper(Scraper):
             "isDebugRequest": False,
         }
         resp = self.session.put(
-            url, headers=self._get_headers(), json=payload, proxies=self.proxy
+            url, headers=self._get_headers(), json=payload
         )
         resp.raise_for_status()
         a = resp.json()

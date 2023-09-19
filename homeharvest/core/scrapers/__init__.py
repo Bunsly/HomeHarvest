@@ -16,7 +16,7 @@ class Scraper:
         self.location = scraper_input.location
         self.listing_type = scraper_input.listing_type
 
-        self.session = requests.Session()
+        self.session = requests.Session(proxies=scraper_input.proxy)
         self.listing_type = scraper_input.listing_type
         self.site_name = scraper_input.site_name
 
