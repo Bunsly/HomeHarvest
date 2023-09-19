@@ -106,7 +106,7 @@ Property
 │   ├── status_text (str)
 │   ├── latitude (float)
 │   ├── longitude (float)
-│   └── posted_time (str)
+│   └── posted_time (str) [Only for Zillow]
 
 ├── Building Details (for property_type: building):
 │   ├── bldg_name (str)
