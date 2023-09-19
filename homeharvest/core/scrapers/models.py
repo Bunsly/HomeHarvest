@@ -103,3 +103,6 @@ class Property:
 
     # apt
     apt_min_price: int | None = None
+    apt_max_price: int | None = None
+    apt_min_sqft: int | None = None
+    apt_max_sqft: int | None = None

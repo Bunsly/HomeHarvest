@@ -2,7 +2,7 @@ import json
 from typing import Any
 from .. import Scraper
 from ....utils import parse_address_two, parse_unit
-from ..models import Property, Address, PropertyType
+from ..models import Property, Address, PropertyType, ListingType, SiteName
 from ....exceptions import NoResultsFound
 
 
@@ -108,6 +108,64 @@ class RedfinScraper(Scraper):
             else None,
         )
 
+    def _handle_rentals(self, region_id, region_type):
+        url = f"https://www.redfin.com/stingray/api/v1/search/rentals?al=1&isRentals=true&region_id={region_id}&region_type={region_type}"
+
+        response = self.session.get(url)
+        response.raise_for_status()  # This will raise an error if the response contains an HTTP error status.
+
+        homes = response.json()
+
+        properties_list = []
+
+        for home in homes["homes"]:
+            home_data = home["homeData"]
+            rental_data = home["rentalExtension"]
+
+            property_url = f"https://www.redfin.com{home_data.get('url', '')}"
+            address_info = home_data.get("addressInfo", {})
+            centroid = address_info.get("centroid", {}).get("centroid", {})
+            address = Address(
+                street_address=address_info.get("formattedStreetLine", None),
+                city=address_info.get("city", None),
+                state=address_info.get("state", None),
+                zip_code=address_info.get("zip", None),
+                unit=None,
+                country="US" if address_info.get("countryCode", None) == 1 else None,
+            )
+
+            price_range = rental_data.get("rentPriceRange", {"min": None, "max": None})
+            bed_range = rental_data.get("bedRange", {"min": None, "max": None})
+            bath_range = rental_data.get("bathRange", {"min": None, "max": None})
+            sqft_range = rental_data.get("sqftRange", {"min": None, "max": None})
+
+            property_ = Property(
+                property_url=property_url,
+                site_name=SiteName.REDFIN,
+                listing_type=ListingType.FOR_RENT,
+                address=address,
+                square_feet=sqft_range.get("min", None),
+                beds=bed_range.get("min", None),
+                baths=bath_range.get("min", None),
+                description=rental_data.get("description", None),
+                latitude=centroid.get("latitude", None),
+                longitude=centroid.get("longitude", None),
+                apt_min_price=price_range.get("min", None),
+                apt_max_price=price_range.get("max", None),
+                apt_min_sqft=sqft_range.get("min", None),
+                apt_max_sqft=sqft_range.get("max", None),
+                img_src=home_data.get("staticMapUrl", None),
+                posted_time=rental_data.get("lastUpdated", None),
+                bldg_name=rental_data.get("propertyName", None),
+            )
+
+            properties_list.append(property_)
+
+        if not properties_list:
+            raise NoResultsFound("No rentals found for the given location.")
+
+        return properties_list
+
     def _parse_building(self, building: dict) -> Property:
         street_address = " ".join(
             [
@@ -168,18 +226,19 @@ class RedfinScraper(Scraper):
             home_id = region_id
             return self.handle_address(home_id)
 
-        url = "https://www.redfin.com/stingray/api/gis?al=1&region_id={}&region_type={}".format(
-            region_id, region_type
-        )
-
-        response = self.session.get(url)
-        response_json = json.loads(response.text.replace("{}&&", ""))
-
-        homes = [
-            self._parse_home(home) for home in response_json["payload"]["homes"]
-        ] + [
-            self._parse_building(building)
-            for building in response_json["payload"]["buildings"].values()
-        ]
-
-        return homes
+        if self.listing_type == ListingType.FOR_RENT:
+            return self._handle_rentals(region_id, region_type)
+        elif self.listing_type == ListingType.FOR_SALE:
+            url = f"https://www.redfin.com/stingray/api/gis?al=1&region_id={region_id}&region_type={region_type}"
+            response = self.session.get(url)
+            response_json = json.loads(response.text.replace("{}&&", ""))
+            homes = [
+                self._parse_home(home) for home in response_json["payload"]["homes"]
+            ] + [
+                self._parse_building(building)
+                for building in response_json["payload"]["buildings"].values()
+            ]
+            return homes
+        else:
+            # Handle other cases, maybe raise an error if the listing type is not recognized.
+            pass
