@@ -10,9 +10,10 @@ from ..models import Property, Address, ListingType, PropertyType
 class ZillowScraper(Scraper):
     def __init__(self, scraper_input):
         super().__init__(scraper_input)
-        self.listing_type = scraper_input.listing_type
+
         if not self.is_plausible_location(self.location):
             raise NoResultsFound("Invalid location input: {}".format(self.location))
+
         if self.listing_type == ListingType.FOR_SALE:
             self.url = f"https://www.zillow.com/homes/for_sale/{self.location}_rb/"
         elif self.listing_type == ListingType.FOR_RENT:
@@ -20,17 +21,15 @@ class ZillowScraper(Scraper):
         else:
             self.url = f"https://www.zillow.com/homes/recently_sold/{self.location}_rb/"
 
-    @staticmethod
-    def is_plausible_location(location: str) -> bool:
-        blocks = location.split()
-        for block in blocks:
-            if (
-                any(char.isdigit() for char in block)
-                and any(char.isalpha() for char in block)
-                and len(block) > 6
-            ):
-                return False
-        return True
+    def is_plausible_location(self, location: str) -> bool:
+        url = ('https://www.zillowstatic.com/autocomplete/v3/suggestions?q={'
+               '}&abKey=6666272a-4b99-474c-b857-110ec438732b&clientId=homepage-render').format(
+            location
+        )
+
+        response = self.session.get(url)
+
+        return response.json()['results'] != []
 
     def search(self):
         resp = self.session.get(self.url, headers=self._get_headers())
