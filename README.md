@@ -7,10 +7,10 @@
 *Looking to build a data-focused software product?* **[Book a call](https://calendly.com/zachary-products/15min)** *to work with us.*
 ## Features
 
-
-
 - Scrapes properties from **Zillow**, **Realtor.com** & **Redfin** simultaneously
 - Aggregates the properties in a Pandas DataFrame
+  
+![homeharvest](https://github.com/ZacharyHampton/HomeHarvest/assets/78247585/b3d5d727-e67b-4a9f-85d8-1e65fd18620a)
 
 ## Installation
 
