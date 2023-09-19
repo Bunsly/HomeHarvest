@@ -50,7 +50,7 @@ properties.to_csv('props.csv', index=False)
 ## Output
 ```py
 >>> properties.head()
-                           street   city  ... mls_id description
+                           street        city  ... mls_id description
 0                 420 N  Scottsdale Rd  Tempe  ...    NaN         NaN
 1                1255 E  University Dr  Tempe  ...    NaN         NaN
 2              1979 E  Rio Salado Pkwy  Tempe  ...    NaN         NaN
