@@ -9,13 +9,15 @@
 
 - Scrapes properties from **Zillow**, **Realtor.com** & **Redfin** simultaneously
 - Aggregates the properties in a Pandas DataFrame
-  
+
+[Video Guide for HomeHarvest](https://www.youtube.com/watch?v=HCoHoiJdWQY)
+
 ![homeharvest](https://github.com/ZacharyHampton/HomeHarvest/assets/78247585/b3d5d727-e67b-4a9f-85d8-1e65fd18620a)
 
 ## Installation
 
 ```bash
-pip install --upgrade homeharvest
+pip install --force-reinstall homeharvest
 ```
   _Python version >= [3.10](https://www.python.org/downloads/release/python-3100/) required_ 
   
