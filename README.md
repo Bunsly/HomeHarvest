@@ -71,7 +71,7 @@ Required
 ├── location (str): address in various formats e.g. just zip, full address, city/state, etc.
 └── listing_type (enum): for_rent, for_sale, sold
 Optional
-├── site_name (List[enum], default=all three sites): zillow, realtor.com, redfin
+├── site_name (list[enum], default=all three sites): zillow, realtor.com, redfin
 ├── proxy (str): in format 'http://user:pass@host:port' or [https, socks]
 ```
 
@@ -81,7 +81,7 @@ Property
 ├── Basic Information:
 │   ├── property_url (str)
 │   ├── site_name (enum): zillow, redfin, realtor.com
-│   ├── listing_type (enum: ListingType)
+│   ├── listing_type (enum): for_sale, for_rent, sold
 │   └── property_type (enum): house, apartment, condo, townhouse, single_family, multi_family, building
 
 ├── Address Details:
@@ -92,45 +92,38 @@ Property
 │   ├── unit (str)
 │   └── country (str)
 
-├── Property Features:
-│   ├── price (int)
+├── House for Sale Features:
 │   ├── tax_assessed_value (int)
-│   ├── currency (str)
-│   ├── square_feet (int)
-│   ├── beds (int)
-│   ├── baths (float)
 │   ├── lot_area_value (float)
 │   ├── lot_area_unit (str)
 │   ├── stories (int)
-│   └── year_built (int)
+│   ├── year_built (int)
+│   └── price_per_sqft (int)
+
+├── Building for Sale and Apartment Details:
+│   ├── bldg_name (str)
+│   ├── beds_min (int)
+│   ├── beds_max (int)
+│   ├── baths_min (float)
+│   ├── baths_max (float)
+│   ├── sqft_min (int)
+│   ├── sqft_max (int)
+│   ├── price_min (int)
+│   ├── price_max (int)
+│   ├── area_min (int)
+│   └── unit_count (int)
 
 ├── Miscellaneous Details:
-│   ├── price_per_sqft (int)
 │   ├── mls_id (str)
 │   ├── agent_name (str)
 │   ├── img_src (str)
 │   ├── description (str)
 │   ├── status_text (str)
-│   ├── latitude (float)
-│   ├── longitude (float)
-│   └── posted_time (str) [Only for Zillow]
+│   └── posted_time (str)
 
-├── Building Details (for property_type: building):
-│   ├── bldg_name (str)
-│   ├── bldg_unit_count (int)
-│   ├── bldg_min_beds (int)
-│   ├── bldg_min_baths (float)
-│   └── bldg_min_area (int)
-
-└── Apartment Details (for property type: apartment):
-    ├── apt_min_beds: int
-    ├── apt_max_beds: int
-    ├── apt_min_baths: float
-    ├── apt_max_baths: float
-    ├── apt_min_price: int
-    ├── apt_max_price: int
-    ├── apt_min_sqft: int
-    ├── apt_max_sqft: int
+└── Location Details:
+    ├── latitude (float)
+    └── longitude (float)
 ```
 ## Supported Countries for Property Scraping
 
@@ -144,7 +137,7 @@ The following exceptions may be raised when using HomeHarvest:
 - `InvalidSite` - valid options: `zillow`, `redfin`, `realtor.com`
 - `InvalidListingType` - valid options: `for_sale`, `for_rent`, `sold`
 - `NoResultsFound` - no properties found from your input
-- `GeoCoordsNotFound` - if Zillow scraper is not able to create geo-coordinates from the location you input
+- `GeoCoordsNotFound` - if Zillow scraper is not able to derive geo-coordinates from the location you input
 
 ## Frequently Asked Questions
 
