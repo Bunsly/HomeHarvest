@@ -10,7 +10,7 @@
 - Scrapes properties from **Zillow**, **Realtor.com** & **Redfin** simultaneously
 - Aggregates the properties in a Pandas DataFrame
 
-[Video Guide for HomeHarvest](https://www.youtube.com/watch?v=HCoHoiJdWQY)
+[Video Guide for HomeHarvest](https://youtu.be/JnV7eR2Ve2o) - _updated for release v0.2.7_
 
 ![homeharvest](https://github.com/ZacharyHampton/HomeHarvest/assets/78247585/b3d5d727-e67b-4a9f-85d8-1e65fd18620a)
 
