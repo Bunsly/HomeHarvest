@@ -1,16 +1,23 @@
-import json
+"""
+homeharvest.realtor.__init__
+~~~~~~~~~~~~
+
+This module implements the scraper for relator.com
+"""
 from ..models import Property, Address
 from .. import Scraper
-from typing import Any, Generator
 from ....exceptions import NoResultsFound
-from ....utils import parse_address_two, parse_unit
+from ....utils import parse_address_one, parse_address_two
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 class RealtorScraper(Scraper):
     def __init__(self, scraper_input):
+        self.counter = 1
         super().__init__(scraper_input)
-        self.search_url = "https://www.realtor.com/api/v1/rdc_search_srp?client_id=rdc-search-new-communities&schema=vesta"
+        self.search_url = (
+            "https://www.realtor.com/api/v1/rdc_search_srp?client_id=rdc-search-new-communities&schema=vesta"
+        )
 
     def handle_location(self):
         headers = {
@@ -50,6 +57,9 @@ class RealtorScraper(Scraper):
         return result[0]
 
     def handle_address(self, property_id: str) -> list[Property]:
+        """
+        Handles a specific address & returns one property
+        """
         query = """query Property($property_id: ID!) {
                     property(id: $property_id) {
                         property_id
@@ -108,43 +118,45 @@ class RealtorScraper(Scraper):
         response_json = response.json()
 
         property_info = response_json["data"]["property"]
-        street_address, unit = parse_address_two(property_info["address"]["line"])
+        address_one, address_two = parse_address_one(property_info["address"]["line"])
 
         return [
             Property(
                 site_name=self.site_name,
                 address=Address(
-                    street_address=street_address,
+                    address_one=address_one,
+                    address_two=address_two,
                     city=property_info["address"]["city"],
                     state=property_info["address"]["state_code"],
                     zip_code=property_info["address"]["postal_code"],
-                    unit=unit,
-                    country="USA",
                 ),
                 property_url="https://www.realtor.com/realestateandhomes-detail/"
                 + property_info["details"]["permalink"],
-                beds=property_info["basic"]["beds"],
-                baths=property_info["basic"]["baths"],
                 stories=property_info["details"]["stories"],
                 year_built=property_info["details"]["year_built"],
-                square_feet=property_info["basic"]["sqft"],
-                price_per_sqft=property_info["basic"]["price"]
-                // property_info["basic"]["sqft"]
-                if property_info["basic"]["sqft"] is not None
-                and property_info["basic"]["price"] is not None
+                price_per_sqft=property_info["basic"]["price"] // property_info["basic"]["sqft"]
+                if property_info["basic"]["sqft"] is not None and property_info["basic"]["price"] is not None
                 else None,
-                price=property_info["basic"]["price"],
                 mls_id=property_id,
                 listing_type=self.listing_type,
                 lot_area_value=property_info["public_record"]["lot_size"]
                 if property_info["public_record"] is not None
                 else None,
+                beds_min=property_info["basic"]["beds"],
+                beds_max=property_info["basic"]["beds"],
+                baths_min=property_info["basic"]["baths"],
+                baths_max=property_info["basic"]["baths"],
+                sqft_min=property_info["basic"]["sqft"],
+                sqft_max=property_info["basic"]["sqft"],
+                price_min=property_info["basic"]["price"],
+                price_max=property_info["basic"]["price"],
             )
         ]
 
-    def handle_area(
-        self, variables: dict, return_total: bool = False
-    ) -> list[Property] | int:
+    def handle_area(self, variables: dict, return_total: bool = False) -> list[Property] | int:
+        """
+        Handles a location area & returns a list of properties
+        """
         query = (
             """query Home_search(
                             $city: String,
@@ -237,17 +249,15 @@ class RealtorScraper(Scraper):
             return []
 
         for result in response_json["data"]["home_search"]["results"]:
-            street_address, unit = parse_address_two(
-                result["location"]["address"]["line"]
-            )
+            self.counter += 1
+            address_one, _ = parse_address_one(result["location"]["address"]["line"])
             realty_property = Property(
                 address=Address(
-                    street_address=street_address,
+                    address_one=address_one,
                     city=result["location"]["address"]["city"],
                     state=result["location"]["address"]["state_code"],
                     zip_code=result["location"]["address"]["postal_code"],
-                    unit=parse_unit(result["location"]["address"]["unit"]),
-                    country="USA",
+                    address_two=parse_address_two(result["location"]["address"]["unit"]),
                 ),
                 latitude=result["location"]["address"]["coordinate"]["lat"]
                 if result
@@ -264,20 +274,22 @@ class RealtorScraper(Scraper):
                 and "lon" in result["location"]["address"]["coordinate"]
                 else None,
                 site_name=self.site_name,
-                property_url="https://www.realtor.com/realestateandhomes-detail/"
-                + result["property_id"],
-                beds=result["description"]["beds"],
-                baths=result["description"]["baths"],
+                property_url="https://www.realtor.com/realestateandhomes-detail/" + result["property_id"],
                 stories=result["description"]["stories"],
                 year_built=result["description"]["year_built"],
-                square_feet=result["description"]["sqft"],
                 price_per_sqft=result["price_per_sqft"],
-                price=result["list_price"],
                 mls_id=result["property_id"],
                 listing_type=self.listing_type,
                 lot_area_value=result["description"]["lot_sqft"],
+                beds_min=result["description"]["beds"],
+                beds_max=result["description"]["beds"],
+                baths_min=result["description"]["baths"],
+                baths_max=result["description"]["baths"],
+                sqft_min=result["description"]["sqft"],
+                sqft_max=result["description"]["sqft"],
+                price_min=result["list_price"],
+                price_max=result["list_price"],
             )
-
             properties.append(realty_property)
 
         return properties
