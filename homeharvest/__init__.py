@@ -23,9 +23,7 @@ def _validate_input(site_name: str, listing_type: str) -> None:
         raise InvalidSite(f"Provided site, '{site_name}', does not exist.")
 
     if listing_type.upper() not in ListingType.__members__:
-        raise InvalidListingType(
-            f"Provided listing type, '{listing_type}', does not exist."
-        )
+        raise InvalidListingType(f"Provided listing type, '{listing_type}', does not exist.")
 
 
 def _get_ordered_properties(result: Property) -> list[str]:
@@ -35,34 +33,26 @@ def _get_ordered_properties(result: Property) -> list[str]:
         "listing_type",
         "property_type",
         "status_text",
-        "currency",
-        "price",
-        "apt_min_price",
-        "apt_max_price",
-        "apt_min_sqft",
-        "apt_max_sqft",
-        "apt_min_beds",
-        "apt_max_beds",
-        "apt_min_baths",
-        "apt_max_baths",
+        "baths_min",
+        "baths_max",
+        "beds_min",
+        "beds_max",
+        "sqft_min",
+        "sqft_max",
+        "price_min",
+        "price_max",
+        "unit_count",
         "tax_assessed_value",
-        "square_feet",
         "price_per_sqft",
-        "beds",
-        "baths",
         "lot_area_value",
         "lot_area_unit",
-        "street_address",
-        "unit",
+        "address_one",
+        "address_two",
         "city",
         "state",
         "zip_code",
-        "country",
         "posted_time",
-        "bldg_min_beds",
-        "bldg_min_baths",
-        "bldg_min_area",
-        "bldg_unit_count",
+        "area_min",
         "bldg_name",
         "stories",
         "year_built",
@@ -86,12 +76,11 @@ def _process_result(result: Property) -> pd.DataFrame:
         prop_data["property_type"] = None
     if "address" in prop_data:
         address_data = prop_data["address"]
-        prop_data["street_address"] = address_data.street_address
-        prop_data["unit"] = address_data.unit
+        prop_data["address_one"] = address_data.address_one
+        prop_data["address_two"] = address_data.address_two
         prop_data["city"] = address_data.city
         prop_data["state"] = address_data.state
         prop_data["zip_code"] = address_data.zip_code
-        prop_data["country"] = address_data.country
 
         del prop_data["address"]
 
@@ -101,9 +90,7 @@ def _process_result(result: Property) -> pd.DataFrame:
     return properties_df
 
 
-def _scrape_single_site(
-    location: str, site_name: str, listing_type: str, proxy: str = None
-) -> pd.DataFrame:
+def _scrape_single_site(location: str, site_name: str, listing_type: str, proxy: str = None) -> pd.DataFrame:
     """
     Helper function to scrape a single site.
     """
@@ -120,9 +107,7 @@ def _scrape_single_site(
     results = site.search()
 
     properties_dfs = [_process_result(result) for result in results]
-    properties_dfs = [
-        df.dropna(axis=1, how="all") for df in properties_dfs if not df.empty
-    ]
+    properties_dfs = [df.dropna(axis=1, how="all") for df in properties_dfs if not df.empty]
     if not properties_dfs:
         return pd.DataFrame()
 
@@ -158,9 +143,7 @@ def scrape_property(
     else:
         with ThreadPoolExecutor() as executor:
             futures = {
-                executor.submit(
-                    _scrape_single_site, location, s_name, listing_type, proxy
-                ): s_name
+                executor.submit(_scrape_single_site, location, s_name, listing_type, proxy): s_name
                 for s_name in site_name
             }
 
@@ -175,14 +158,12 @@ def scrape_property(
 
     final_df = pd.concat(results, ignore_index=True)
 
-    columns_to_track = ["street_address", "city", "unit"]
+    columns_to_track = ["address_one", "address_two", "city"]
 
     #: validate they exist, otherwise create them
     for col in columns_to_track:
         if col not in final_df.columns:
             final_df[col] = None
 
-    final_df = final_df.drop_duplicates(
-        subset=["street_address", "city", "unit"], keep="first"
-    )
+    final_df = final_df.drop_duplicates(subset=columns_to_track, keep="first")
     return final_df

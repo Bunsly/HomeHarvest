@@ -19,10 +19,7 @@ class Scraper:
         self.session = requests.Session()
         if scraper_input.proxy:
             proxy_url = scraper_input.proxy
-            proxies = {
-                "http": proxy_url,
-                "https": proxy_url
-            }
+            proxies = {"http": proxy_url, "https": proxy_url}
             self.session.proxies.update(proxies)
         self.listing_type = scraper_input.listing_type
         self.site_name = scraper_input.site_name

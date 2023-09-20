@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+from typing import Tuple
 
 
 class SiteName(Enum):
@@ -56,12 +57,11 @@ class PropertyType(Enum):
 
 @dataclass
 class Address:
-    street_address: str
-    city: str
-    state: str
-    zip_code: str
-    unit: str | None = None
-    country: str | None = None
+    address_one: str | None = None
+    address_two: str | None = "#"
+    city: str | None = None
+    state: str | None = None
+    zip_code: str | None = None
 
 
 @dataclass
@@ -73,12 +73,7 @@ class Property:
     property_type: PropertyType | None = None
 
     # house for sale
-    price: int | None = None
     tax_assessed_value: int | None = None
-    currency: str | None = None
-    square_feet: int | None = None
-    beds: int | None = None
-    baths: float | None = None
     lot_area_value: float | None = None
     lot_area_unit: str | None = None
     stories: int | None = None
@@ -90,23 +85,25 @@ class Property:
     img_src: str | None = None
     description: str | None = None
     status_text: str | None = None
-    latitude: float | None = None
-    longitude: float | None = None
     posted_time: str | None = None
 
     # building for sale
     bldg_name: str | None = None
-    bldg_unit_count: int | None = None
-    bldg_min_beds: int | None = None
-    bldg_min_baths: float | None = None
-    bldg_min_area: int | None = None
+    area_min: int | None = None
 
-    # apt
-    apt_min_beds: int | None = None
-    apt_max_beds: int | None = None
-    apt_min_baths: float | None = None
-    apt_max_baths: float | None = None
-    apt_min_price: int | None = None
-    apt_max_price: int | None = None
-    apt_min_sqft: int | None = None
-    apt_max_sqft: int | None = None
+    beds_min: int | None = None
+    beds_max: int | None = None
+
+    baths_min: float | None = None
+    baths_max: float | None = None
+
+    sqft_min: int | None = None
+    sqft_max: int | None = None
+
+    price_min: int | None = None
+    price_max: int | None = None
+
+    unit_count: int | None = None
+
+    latitude: float | None = None
+    longitude: float | None = None

@@ -1,7 +1,13 @@
+"""
+homeharvest.zillow.__init__
+~~~~~~~~~~~~
+
+This module implements the scraper for zillow.com
+"""
 import re
 import json
 from .. import Scraper
-from ....utils import parse_address_two, parse_unit
+from ....utils import parse_address_one, parse_address_two
 from ....exceptions import GeoCoordsNotFound, NoResultsFound
 from ..models import Property, Address, ListingType, PropertyType
 
@@ -13,12 +19,13 @@ class ZillowScraper(Scraper):
         if not self.is_plausible_location(self.location):
             raise NoResultsFound("Invalid location input: {}".format(self.location))
 
-        if self.listing_type == ListingType.FOR_SALE:
-            self.url = f"https://www.zillow.com/homes/for_sale/{self.location}_rb/"
-        elif self.listing_type == ListingType.FOR_RENT:
-            self.url = f"https://www.zillow.com/homes/for_rent/{self.location}_rb/"
-        else:
-            self.url = f"https://www.zillow.com/homes/recently_sold/{self.location}_rb/"
+        listing_type_to_url_path = {
+            ListingType.FOR_SALE: "for_sale",
+            ListingType.FOR_RENT: "for_rent",
+            ListingType.SOLD: "recently_sold",
+        }
+
+        self.url = f"https://www.zillow.com/homes/{listing_type_to_url_path[self.listing_type]}/{self.location}_rb/"
 
     def is_plausible_location(self, location: str) -> bool:
         url = (
@@ -31,9 +38,7 @@ class ZillowScraper(Scraper):
         return response.json()["results"] != []
 
     def search(self):
-        resp = self.session.get(
-            self.url, headers=self._get_headers()
-        )
+        resp = self.session.get(self.url, headers=self._get_headers())
         resp.raise_for_status()
         content = resp.text
 
@@ -43,9 +48,7 @@ class ZillowScraper(Scraper):
             re.DOTALL,
         )
         if not match:
-            raise NoResultsFound(
-                "No results were found for Zillow with the given Location."
-            )
+            raise NoResultsFound("No results were found for Zillow with the given Location.")
 
         json_str = match.group(1)
         data = json.loads(json_str)
@@ -130,9 +133,7 @@ class ZillowScraper(Scraper):
             "wants": {"cat1": ["mapResults"]},
             "isDebugRequest": False,
         }
-        resp = self.session.put(
-            url, headers=self._get_headers(), json=payload
-        )
+        resp = self.session.put(url, headers=self._get_headers(), json=payload)
         resp.raise_for_status()
         a = resp.json()
         return self._parse_properties(resp.json())
@@ -146,87 +147,71 @@ class ZillowScraper(Scraper):
             if "hdpData" in result:
                 home_info = result["hdpData"]["homeInfo"]
                 address_data = {
-                    "street_address": parse_address_two(home_info["streetAddress"])[0],
-                    "unit": parse_unit(home_info["unit"])
-                    if "unit" in home_info
-                    else None,
+                    "address_one": parse_address_one(home_info["streetAddress"])[0],
+                    "address_two": parse_address_two(home_info["unit"]) if "unit" in home_info else "#",
                     "city": home_info["city"],
                     "state": home_info["state"],
                     "zip_code": home_info["zipcode"],
-                    "country": home_info["country"],
                 }
-                property_data = {
-                    "site_name": self.site_name,
-                    "address": Address(**address_data),
-                    "property_url": f"https://www.zillow.com{result['detailUrl']}",
-                    "beds": int(home_info["bedrooms"])
-                    if "bedrooms" in home_info
-                    else None,
-                    "baths": home_info.get("bathrooms"),
-                    "square_feet": int(home_info["livingArea"])
-                    if "livingArea" in home_info
-                    else None,
-                    "currency": home_info["currency"],
-                    "price": home_info.get("price"),
-                    "tax_assessed_value": int(home_info["taxAssessedValue"])
-                    if "taxAssessedValue" in home_info
-                    else None,
-                    "property_type": PropertyType(home_info["homeType"]),
-                    "listing_type": ListingType(
-                        home_info["statusType"]
-                        if "statusType" in home_info
-                        else self.listing_type
+                property_obj = Property(
+                    site_name=self.site_name,
+                    address=Address(**address_data),
+                    property_url=f"https://www.zillow.com{result['detailUrl']}",
+                    tax_assessed_value=int(home_info["taxAssessedValue"]) if "taxAssessedValue" in home_info else None,
+                    property_type=PropertyType(home_info["homeType"]),
+                    listing_type=ListingType(
+                        home_info["statusType"] if "statusType" in home_info else self.listing_type
                     ),
-                    "lot_area_value": round(home_info["lotAreaValue"], 2)
-                    if "lotAreaValue" in home_info
-                    else None,
-                    "lot_area_unit": home_info.get("lotAreaUnit"),
-                    "latitude": result["latLong"]["latitude"],
-                    "longitude": result["latLong"]["longitude"],
-                    "status_text": result.get("statusText"),
-                    "posted_time": result["variableData"]["text"]
+                    status_text=result.get("statusText"),
+                    posted_time=result["variableData"]["text"]
                     if "variableData" in result
                     and "text" in result["variableData"]
                     and result["variableData"]["type"] == "TIME_ON_INFO"
                     else None,
-                    "img_src": result.get("imgSrc"),
-                    "price_per_sqft": int(home_info["price"] // home_info["livingArea"])
-                    if "livingArea" in home_info
-                    and home_info["livingArea"] != 0
-                    and "price" in home_info
+                    price_min=home_info.get("price"),
+                    price_max=home_info.get("price"),
+                    beds_min=int(home_info["bedrooms"]) if "bedrooms" in home_info else None,
+                    beds_max=int(home_info["bedrooms"]) if "bedrooms" in home_info else None,
+                    baths_min=home_info.get("bathrooms"),
+                    baths_max=home_info.get("bathrooms"),
+                    sqft_min=int(home_info["livingArea"]) if "livingArea" in home_info else None,
+                    sqft_max=int(home_info["livingArea"]) if "livingArea" in home_info else None,
+                    price_per_sqft=int(home_info["price"] // home_info["livingArea"])
+                    if "livingArea" in home_info and home_info["livingArea"] != 0 and "price" in home_info
                     else None,
-                }
-                property_obj = Property(**property_data)
+                    latitude=result["latLong"]["latitude"],
+                    longitude=result["latLong"]["longitude"],
+                    lot_area_value=round(home_info["lotAreaValue"], 2) if "lotAreaValue" in home_info else None,
+                    lot_area_unit=home_info.get("lotAreaUnit"),
+                    img_src=result.get("imgSrc"),
+                )
+
                 properties_list.append(property_obj)
 
             elif "isBuilding" in result:
-                price = result["price"]
-                building_data = {
-                    "property_url": f"https://www.zillow.com{result['detailUrl']}",
-                    "site_name": self.site_name,
-                    "property_type": PropertyType("BUILDING"),
-                    "listing_type": ListingType(result["statusType"]),
-                    "img_src": result["imgSrc"],
-                    "price": int(price.replace("From $", "").replace(",", ""))
-                    if "From $" in price
-                    else None,
-                    "apt_min_price": int(
-                        price.replace("$", "").replace(",", "").replace("+/mo", "")
-                    )
-                    if "+/mo" in price
-                    else None,
-                    "address": self._extract_address(result["address"]),
-                    "bldg_min_beds": result["minBeds"],
-                    "currency": "USD",
-                    "bldg_min_baths": result["minBaths"],
-                    "bldg_min_area": result.get("minArea"),
-                    "bldg_unit_count": result["unitCount"],
-                    "bldg_name": result.get("communityName"),
-                    "status_text": result["statusText"],
-                    "latitude": result["latLong"]["latitude"],
-                    "longitude": result["latLong"]["longitude"],
-                }
-                building_obj = Property(**building_data)
+                price_string = result["price"].replace("$", "").replace(",", "").replace("+/mo", "")
+
+                match = re.search(r"(\d+)", price_string)
+                price_value = int(match.group(1)) if match else None
+                building_obj = Property(
+                    property_url=f"https://www.zillow.com{result['detailUrl']}",
+                    site_name=self.site_name,
+                    property_type=PropertyType("BUILDING"),
+                    listing_type=ListingType(result["statusType"]),
+                    img_src=result["imgSrc"],
+                    address=self._extract_address(result["address"]),
+                    baths_min=result["minBaths"],
+                    area_min=result.get("minArea"),
+                    bldg_name=result.get("communityName"),
+                    status_text=result["statusText"],
+                    beds_min=result["minBeds"],
+                    price_min=price_value if "+/mo" in result["price"] else None,
+                    price_max=price_value if "+/mo" in result["price"] else None,
+                    latitude=result["latLong"]["latitude"],
+                    longitude=result["latLong"]["longitude"],
+                    unit_count=result["unitCount"],
+                )
+
                 properties_list.append(building_obj)
 
         return properties_list
@@ -241,43 +226,41 @@ class ZillowScraper(Scraper):
             else property_data["hdpUrl"]
         )
         address_data = property_data["address"]
-        street_address, unit = parse_address_two(address_data["streetAddress"])
+        address_one, address_two = parse_address_one(address_data["streetAddress"])
         address = Address(
-            street_address=street_address,
-            unit=unit,
+            address_one=address_one,
+            address_two=address_two if address_two else "#",
             city=address_data["city"],
             state=address_data["state"],
             zip_code=address_data["zipcode"],
-            country=property_data.get("country"),
         )
         property_type = property_data.get("homeType", None)
         return Property(
             site_name=self.site_name,
-            address=address,
             property_url=url,
-            beds=property_data.get("bedrooms", None),
-            baths=property_data.get("bathrooms", None),
-            year_built=property_data.get("yearBuilt", None),
-            price=property_data.get("price", None),
-            tax_assessed_value=property_data.get("taxAssessedValue", None),
+            property_type=PropertyType(property_type),
+            listing_type=self.listing_type,
+            address=address,
+            year_built=property_data.get("yearBuilt"),
+            tax_assessed_value=property_data.get("taxAssessedValue"),
+            lot_area_value=property_data.get("lotAreaValue"),
+            lot_area_unit=property_data["lotAreaUnits"].lower() if "lotAreaUnits" in property_data else None,
+            agent_name=property_data.get("attributionInfo", {}).get("agentName"),
+            stories=property_data.get("resoFacts", {}).get("stories"),
+            mls_id=property_data.get("attributionInfo", {}).get("mlsId"),
+            beds_min=property_data.get("bedrooms"),
+            beds_max=property_data.get("bedrooms"),
+            baths_min=property_data.get("bathrooms"),
+            baths_max=property_data.get("bathrooms"),
+            price_min=property_data.get("price"),
+            price_max=property_data.get("price"),
+            sqft_min=property_data.get("livingArea"),
+            sqft_max=property_data.get("livingArea"),
+            price_per_sqft=property_data.get("resoFacts", {}).get("pricePerSquareFoot"),
             latitude=property_data.get("latitude"),
             longitude=property_data.get("longitude"),
             img_src=property_data.get("streetViewTileImageUrlMediumAddress"),
-            currency=property_data.get("currency", None),
-            lot_area_value=property_data.get("lotAreaValue"),
-            lot_area_unit=property_data["lotAreaUnits"].lower()
-            if "lotAreaUnits" in property_data
-            else None,
-            agent_name=property_data.get("attributionInfo", {}).get("agentName", None),
-            stories=property_data.get("resoFacts", {}).get("stories", None),
-            description=property_data.get("description", None),
-            mls_id=property_data.get("attributionInfo", {}).get("mlsId", None),
-            price_per_sqft=property_data.get("resoFacts", {}).get(
-                "pricePerSquareFoot", None
-            ),
-            square_feet=property_data.get("livingArea", None),
-            property_type=PropertyType(property_type),
-            listing_type=self.listing_type,
+            description=property_data.get("description"),
         )
 
     def _extract_address(self, address_str):
@@ -290,7 +273,7 @@ class ZillowScraper(Scraper):
         if len(parts) != 3:
             raise ValueError(f"Unexpected address format: {address_str}")
 
-        street_address = parts[0].strip()
+        address_one = parts[0].strip()
         city = parts[1].strip()
         state_zip = parts[2].split(" ")
 
@@ -303,14 +286,13 @@ class ZillowScraper(Scraper):
         else:
             raise ValueError(f"Unexpected state/zip format in address: {address_str}")
 
-        street_address, unit = parse_address_two(street_address)
+        address_one, address_two = parse_address_one(address_one)
         return Address(
-            street_address=street_address,
+            address_one=address_one,
+            address_two=address_two if address_two else "#",
             city=city,
-            unit=unit,
             state=state,
             zip_code=zip_code,
-            country="USA",
         )
 
     @staticmethod

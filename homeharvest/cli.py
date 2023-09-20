@@ -5,9 +5,7 @@ from homeharvest import scrape_property
 
 def main():
     parser = argparse.ArgumentParser(description="Home Harvest Property Scraper")
-    parser.add_argument(
-        "location", type=str, help="Location to scrape (e.g., San Francisco, CA)"
-    )
+    parser.add_argument("location", type=str, help="Location to scrape (e.g., San Francisco, CA)")
 
     parser.add_argument(
         "-s",
@@ -44,15 +42,11 @@ def main():
         help="Name of the output file (without extension)",
     )
 
-    parser.add_argument(
-        "-p", "--proxy", type=str, default=None, help="Proxy to use for scraping"
-    )
+    parser.add_argument("-p", "--proxy", type=str, default=None, help="Proxy to use for scraping")
 
     args = parser.parse_args()
 
-    result = scrape_property(
-        args.location, args.site_name, args.listing_type, proxy=args.proxy
-    )
+    result = scrape_property(args.location, args.site_name, args.listing_type, proxy=args.proxy)
 
     if not args.filename:
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
