@@ -147,18 +147,18 @@ class ZillowScraper(Scraper):
             if "hdpData" in result:
                 home_info = result["hdpData"]["homeInfo"]
                 address_data = {
-                    "address_one": parse_address_one(home_info["streetAddress"])[0],
+                    "address_one": parse_address_one(home_info.get("streetAddress"))[0],
                     "address_two": parse_address_two(home_info["unit"]) if "unit" in home_info else "#",
-                    "city": home_info["city"],
-                    "state": home_info["state"],
-                    "zip_code": home_info["zipcode"],
+                    "city": home_info.get("city"),
+                    "state": home_info.get("state"),
+                    "zip_code": home_info.get("zipcode"),
                 }
                 property_obj = Property(
                     site_name=self.site_name,
                     address=Address(**address_data),
                     property_url=f"https://www.zillow.com{result['detailUrl']}",
                     tax_assessed_value=int(home_info["taxAssessedValue"]) if "taxAssessedValue" in home_info else None,
-                    property_type=PropertyType(home_info["homeType"]),
+                    property_type=PropertyType(home_info.get("homeType")),
                     listing_type=ListingType(
                         home_info["statusType"] if "statusType" in home_info else self.listing_type
                     ),
@@ -203,9 +203,9 @@ class ZillowScraper(Scraper):
                     baths_min=result.get("minBaths"),
                     area_min=result.get("minArea"),
                     bldg_name=result.get("communityName"),
-                    status_text=result["statusText"],
-                    price_min=price_value if "+/mo" in result["price"] else None,
-                    price_max=price_value if "+/mo" in result["price"] else None,
+                    status_text=result.get("statusText"),
+                    price_min=price_value if "+/mo" in result.get("price") else None,
+                    price_max=price_value if "+/mo" in result.get("price") else None,
                     latitude=result.get("latLong", {}).get("latitude"),
                     longitude=result.get("latLong", {}).get("longitude"),
                     unit_count=result.get("unitCount"),

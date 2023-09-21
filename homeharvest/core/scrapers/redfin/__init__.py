@@ -93,7 +93,7 @@ class RedfinScraper(Scraper):
             year_built=get_value("yearBuilt") if not single_search else home["yearBuilt"],
             lot_area_value=lot_size,
             property_type=PropertyType.from_int_code(home.get("propertyType")),
-            price_per_sqft=get_value("pricePerSqFt"),
+            price_per_sqft=get_value("pricePerSqFt") if type(home.get("pricePerSqFt")) != int else home.get("pricePerSqFt"),
             mls_id=get_value("mlsId"),
             latitude=home["latLong"]["latitude"] if "latLong" in home and "latitude" in home["latLong"] else None,
             longitude=home["latLong"]["longitude"] if "latLong" in home and "longitude" in home["latLong"] else None,
@@ -183,7 +183,7 @@ class RedfinScraper(Scraper):
             ),
             property_url="https://www.redfin.com{}".format(building["url"]),
             listing_type=self.listing_type,
-            unit_count=building["numUnitsForSale"],
+            unit_count=building.get("numUnitsForSale"),
         )
 
     def handle_address(self, home_id: str):
