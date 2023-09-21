@@ -37,6 +37,7 @@ By default:
 - The `-o` or `--output` default format is `excel`. Options are `csv` or `excel`.
 - If `-f` or `--filename` is left blank, the default is `HomeHarvest_<current_timestamp>`.
 - If `-p` or `--proxy` is not provided, the scraper uses the local IP.
+- Use `-k` or `--keep_duplicates` to keep duplicate properties based on address. If not provided, duplicates will be removed.
 ### Python 
 
 ```py
@@ -73,6 +74,7 @@ Required
 Optional
 ├── site_name (list[enum], default=all three sites): zillow, realtor.com, redfin
 ├── proxy (str): in format 'http://user:pass@host:port' or [https, socks]
+└── keep_duplicates (bool, default=False): whether to keep or remove duplicate properties based on address
 ```
 
 ### Property Schema
