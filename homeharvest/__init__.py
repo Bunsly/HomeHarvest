@@ -119,6 +119,7 @@ def scrape_property(
     site_name: Union[str, list[str]] = None,
     listing_type: str = "for_sale",
     proxy: str = None,
+    keep_duplicates: bool = False
 ) -> pd.DataFrame:
     """
     Scrape property from various sites from a given location and listing type.
@@ -165,5 +166,6 @@ def scrape_property(
         if col not in final_df.columns:
             final_df[col] = None
 
-    final_df = final_df.drop_duplicates(subset=columns_to_track, keep="first")
+    if not keep_duplicates:
+        final_df = final_df.drop_duplicates(subset=columns_to_track, keep="first")
     return final_df
