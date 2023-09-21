@@ -1,13 +1,16 @@
 <img src="https://github.com/ZacharyHampton/HomeHarvest/assets/78247585/d1a2bf8b-09f5-4c57-b33a-0ada8a34f12d" width="400">
 
-**Not technical?** Try out the web scraping tool on our site at [tryhomeharvest.com](https://tryhomeharvest.com).
-
-
 **HomeHarvest** is a simple, yet comprehensive, real estate scraping library.
 
 [![Try with Replit](https://replit.com/badge?caption=Try%20with%20Replit)](https://replit.com/@ZacharyHampton/HomeHarvestDemo)
 
+\
+**Not technical?** Try out the web scraping tool on our site at [tryhomeharvest.com](https://tryhomeharvest.com).
+
 *Looking to build a data-focused software product?* **[Book a call](https://calendly.com/zachary-products/15min)** *to work with us.*
+
+Check out another project we wrote: ***[JobSpy](https://github.com/cullenwatson/JobSpy)** – a Python package for job scraping*
+
 ## Features
 
 - Scrapes properties from **Zillow**, **Realtor.com** & **Redfin** simultaneously
