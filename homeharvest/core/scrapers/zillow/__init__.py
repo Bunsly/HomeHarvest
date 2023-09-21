@@ -198,18 +198,18 @@ class ZillowScraper(Scraper):
                     site_name=self.site_name,
                     property_type=PropertyType("BUILDING"),
                     listing_type=ListingType(result["statusType"]),
-                    img_src=result["imgSrc"],
+                    img_src=result.get("imgSrc"),
                     address=self._extract_address(result["address"]),
-                    baths_min=result["minBaths"],
+                    baths_min=result.get("minBaths"),
                     area_min=result.get("minArea"),
                     bldg_name=result.get("communityName"),
                     status_text=result["statusText"],
                     beds_min=result["minBeds"],
                     price_min=price_value if "+/mo" in result["price"] else None,
                     price_max=price_value if "+/mo" in result["price"] else None,
-                    latitude=result["latLong"]["latitude"],
-                    longitude=result["latLong"]["longitude"],
-                    unit_count=result["unitCount"],
+                    latitude=result.get("latLong", {}).get("latitude"),
+                    longitude=result.get("latLong", {}).get("longitude"),
+                    unit_count=result.get("unitCount"),
                 )
 
                 properties_list.append(building_obj)
