@@ -42,11 +42,18 @@ def main():
         help="Name of the output file (without extension)",
     )
 
+    parser.add_argument(
+        "-k",
+        "--keep_duplicates",
+        action="store_true",
+        help="Keep duplicate properties based on address"
+    )
+
     parser.add_argument("-p", "--proxy", type=str, default=None, help="Proxy to use for scraping")
 
     args = parser.parse_args()
 
-    result = scrape_property(args.location, args.site_name, args.listing_type, proxy=args.proxy)
+    result = scrape_property(args.location, args.site_name, args.listing_type, proxy=args.proxy, keep_duplicates=args.keep_duplicates)
 
     if not args.filename:
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
