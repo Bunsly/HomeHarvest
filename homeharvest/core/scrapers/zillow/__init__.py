@@ -204,7 +204,6 @@ class ZillowScraper(Scraper):
                     area_min=result.get("minArea"),
                     bldg_name=result.get("communityName"),
                     status_text=result["statusText"],
-                    beds_min=result["minBeds"],
                     price_min=price_value if "+/mo" in result["price"] else None,
                     price_max=price_value if "+/mo" in result["price"] else None,
                     latitude=result.get("latLong", {}).get("latitude"),
