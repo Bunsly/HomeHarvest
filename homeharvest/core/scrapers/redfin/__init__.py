@@ -220,7 +220,14 @@ class RedfinScraper(Scraper):
                 url = f"https://www.redfin.com/stingray/api/gis?al=1&region_id={region_id}&region_type={region_type}&sold_within_days=30&num_homes=100000"
             response = self.session.get(url)
             response_json = json.loads(response.text.replace("{}&&", ""))
-            homes = [self._parse_home(home) for home in response_json["payload"]["homes"]] + [
-                self._parse_building(building) for building in response_json["payload"]["buildings"].values()
-            ]
-            return homes
+
+            if "payload" in response_json:
+                homes_list = response_json["payload"].get("homes", [])
+                buildings_list = response_json["payload"].get("buildings", {}).values()
+
+                homes = [self._parse_home(home) for home in homes_list] + [
+                    self._parse_building(building) for building in buildings_list
+                ]
+                return homes
+            else:
+                return []
