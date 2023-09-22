@@ -90,7 +90,7 @@ class RedfinScraper(Scraper):
             stories=home["stories"] if "stories" in home else None,
             agent_name=get_value("listingAgent"),
             description=home["listingRemarks"] if "listingRemarks" in home else None,
-            year_built=get_value("yearBuilt") if not single_search else home["yearBuilt"],
+            year_built=get_value("yearBuilt") if not single_search else home.get("yearBuilt"),
             lot_area_value=lot_size,
             property_type=PropertyType.from_int_code(home.get("propertyType")),
             price_per_sqft=get_value("pricePerSqFt") if type(home.get("pricePerSqFt")) != int else home.get("pricePerSqFt"),
