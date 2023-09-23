@@ -237,7 +237,7 @@ class ZillowScraper(Scraper):
         return Property(
             site_name=self.site_name,
             property_url=url,
-            property_type=PropertyType(property_type),
+            property_type=PropertyType(property_type) if property_type in PropertyType.__members__ else None,
             listing_type=self.listing_type,
             address=address,
             year_built=property_data.get("yearBuilt"),
