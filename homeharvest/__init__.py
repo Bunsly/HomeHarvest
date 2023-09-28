@@ -57,6 +57,10 @@ def _get_ordered_properties(result: Property) -> list[str]:
         "stories",
         "year_built",
         "agent_name",
+        "agent_phone",
+        "agent_email",
+        "days_on_market",
+        "sold_date",
         "mls_id",
         "img_src",
         "latitude",
@@ -83,6 +87,18 @@ def _process_result(result: Property) -> pd.DataFrame:
         prop_data["zip_code"] = address_data.zip_code
 
         del prop_data["address"]
+
+    if "agent" in prop_data and prop_data["agent"] is not None:
+        agent_data = prop_data["agent"]
+        prop_data["agent_name"] = agent_data.name
+        prop_data["agent_phone"] = agent_data.phone
+        prop_data["agent_email"] = agent_data.email
+
+        del prop_data["agent"]
+    else:
+        prop_data["agent_name"] = None
+        prop_data["agent_phone"] = None
+        prop_data["agent_email"] = None
 
     properties_df = pd.DataFrame([prop_data])
     properties_df = properties_df[_get_ordered_properties(result)]

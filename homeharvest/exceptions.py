@@ -12,3 +12,7 @@ class NoResultsFound(Exception):
 
 class GeoCoordsNotFound(Exception):
     """Raised when no property is found for the given address"""
+
+
+class SearchTooBroad(Exception):
+    """Raised when the search is too broad"""

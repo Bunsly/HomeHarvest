@@ -9,7 +9,7 @@ import json
 from .. import Scraper
 from ....utils import parse_address_one, parse_address_two
 from ....exceptions import GeoCoordsNotFound, NoResultsFound
-from ..models import Property, Address, ListingType, PropertyType
+from ..models import Property, Address, ListingType, PropertyType, Agent
 
 
 class ZillowScraper(Scraper):
@@ -165,10 +165,10 @@ class ZillowScraper(Scraper):
                         home_info["statusType"] if "statusType" in home_info else self.listing_type
                     ),
                     status_text=result.get("statusText"),
-                    posted_time=result["variableData"]["text"]
+                    posted_time=result["variableData"]["text"]  #: TODO: change to datetime
                     if "variableData" in result
-                    and "text" in result["variableData"]
-                    and result["variableData"]["type"] == "TIME_ON_INFO"
+                       and "text" in result["variableData"]
+                       and result["variableData"]["type"] == "TIME_ON_INFO"
                     else None,
                     price_min=home_info.get("price"),
                     price_max=home_info.get("price"),
@@ -246,7 +246,9 @@ class ZillowScraper(Scraper):
             tax_assessed_value=property_data.get("taxAssessedValue"),
             lot_area_value=property_data.get("lotAreaValue"),
             lot_area_unit=property_data["lotAreaUnits"].lower() if "lotAreaUnits" in property_data else None,
-            agent_name=property_data.get("attributionInfo", {}).get("agentName"),
+            agent=Agent(
+                name=property_data.get("attributionInfo", {}).get("agentName")
+            ),
             stories=property_data.get("resoFacts", {}).get("stories"),
             mls_id=property_data.get("attributionInfo", {}).get("mlsId"),
             beds_min=property_data.get("bedrooms"),
@@ -298,20 +300,21 @@ class ZillowScraper(Scraper):
 
     def _get_headers(self):
         headers = {
-            "authority": "www.zillow.com",
-            "accept": "*/*",
-            "accept-language": "en-US,en;q=0.9",
-            "content-type": "application/json",
-            "origin": "https://www.zillow.com",
-            "referer": "https://www.zillow.com",
-            "sec-ch-ua": '"Chromium";v="116", "Not)A;Brand";v="24", "Google Chrome";v="116"',
-            "sec-ch-ua-mobile": "?0",
-            "sec-ch-ua-platform": '"Windows"',
-            "sec-fetch-dest": "empty",
-            "sec-fetch-mode": "cors",
-            "sec-fetch-site": "same-origin",
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+            'authority': 'www.zillow.com',
+            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+            'accept-language': 'en-US,en;q=0.9',
+            'sec-ch-ua': '"Google Chrome";v="117", "Not;A=Brand";v="8", "Chromium";v="117"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Windows"',
+            'sec-fetch-dest': 'document',
+            'sec-fetch-mode': 'navigate',
+            'sec-fetch-site': 'none',
+            'sec-fetch-user': '?1',
+            'upgrade-insecure-requests': '1',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
         }
+
         if self.cookies:
             headers['Cookie'] = self.cookies
+
         return headers

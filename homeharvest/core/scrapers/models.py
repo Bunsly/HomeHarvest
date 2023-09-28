@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 from typing import Tuple
+from datetime import datetime
 
 
 class SiteName(Enum):
@@ -65,6 +66,13 @@ class Address:
 
 
 @dataclass
+class Agent:
+    name: str
+    phone: str | None = None
+    email: str | None = None
+
+
+@dataclass
 class Property:
     property_url: str
     site_name: SiteName
@@ -81,11 +89,11 @@ class Property:
     price_per_sqft: int | None = None
     mls_id: str | None = None
 
-    agent_name: str | None = None
+    agent: Agent | None = None
     img_src: str | None = None
     description: str | None = None
     status_text: str | None = None
-    posted_time: str | None = None
+    posted_time: datetime | None = None
 
     # building for sale
     bldg_name: str | None = None
@@ -107,3 +115,6 @@ class Property:
 
     latitude: float | None = None
     longitude: float | None = None
+
+    sold_date: datetime | None = None
+    days_on_market: int | None = None
