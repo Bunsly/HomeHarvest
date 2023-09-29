@@ -6,7 +6,11 @@ This module implements the scraper for zillow.com
 """
 import re
 import json
+
+import tls_client
+
 from .. import Scraper
+from requests.exceptions import HTTPError
 from ....utils import parse_address_one, parse_address_two
 from ....exceptions import GeoCoordsNotFound, NoResultsFound
 from ..models import Property, Address, ListingType, PropertyType, Agent
@@ -16,6 +20,9 @@ class ZillowScraper(Scraper):
     def __init__(self, scraper_input):
         super().__init__(scraper_input)
         self.cookies = None
+        self.session = tls_client.Session(
+            client_identifier="chrome112", random_tls_extension_order=True
+        )
 
         if not self.is_plausible_location(self.location):
             raise NoResultsFound("Invalid location input: {}".format(self.location))
@@ -34,13 +41,16 @@ class ZillowScraper(Scraper):
             "}&abKey=6666272a-4b99-474c-b857-110ec438732b&clientId=homepage-render"
         ).format(location)
 
-        response = self.session.get(url)
+        resp = self.session.get(url)
 
-        return response.json()["results"] != []
+        return resp.json()["results"] != []
 
     def search(self):
         resp = self.session.get(self.url, headers=self._get_headers())
-        resp.raise_for_status()
+        if resp.status_code != 200:
+            raise HTTPError(
+                f"bad response status code: {resp.status_code}"
+            )
         content = resp.text
 
         match = re.search(
@@ -135,9 +145,11 @@ class ZillowScraper(Scraper):
             "isDebugRequest": False,
         }
         resp = self.session.put(url, headers=self._get_headers(), json=payload)
-        resp.raise_for_status()
+        if resp.status_code != 200:
+            raise HTTPError(
+                f"bad response status code: {resp.status_code}"
+            )
         self.cookies = resp.cookies
-        a = resp.json()
         return self._parse_properties(resp.json())
 
     def _parse_properties(self, property_data: dict):
@@ -301,14 +313,16 @@ class ZillowScraper(Scraper):
     def _get_headers(self):
         headers = {
             'authority': 'www.zillow.com',
-            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
             'accept-language': 'en-US,en;q=0.9',
-            'sec-ch-ua': '"Google Chrome";v="117", "Not;A=Brand";v="8", "Chromium";v="117"',
+            'cache-control': 'max-age=0',
+            'cookie': '<your_cookie_here>',
+            'sec-ch-ua': '"Chromium";v="117", "Not)A;Brand";v="24", "Google Chrome";v="117"',
             'sec-ch-ua-mobile': '?0',
             'sec-ch-ua-platform': '"Windows"',
             'sec-fetch-dest': 'document',
             'sec-fetch-mode': 'navigate',
-            'sec-fetch-site': 'none',
+            'sec-fetch-site': 'same-origin',
             'sec-fetch-user': '?1',
             'upgrade-insecure-requests': '1',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',

@@ -409,6 +409,17 @@ files = [
 ]
 
 [[package]]
+name = "tls-client"
+version = "0.2.2"
+description = "Advanced Python HTTP Client."
+optional = false
+python-versions = "*"
+files = [
+    {file = "tls_client-0.2.2-py3-none-any.whl", hash = "sha256:30934871397cdad6862e00b5634f382666314a452ddd3d774e18323a0ad9b765"},
+    {file = "tls_client-0.2.2.tar.gz", hash = "sha256:78bc0e291e3aadc6c5e903b62bb26c01374577691f2a9e5e17899900a5927a13"},
+]
+
+[[package]]
 name = "tomli"
 version = "2.0.1"
 description = "A lil' TOML parser"
@@ -450,4 +461,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "3647d568f5623dd762f19029230626a62e68309fa2ef8be49a36382c19264a5f"
+content-hash = "9b77e1a09fcf2cf5e7e6be53f304cd21a6a51ea51680d661a178afe5e5343670"
