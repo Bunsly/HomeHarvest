@@ -21,10 +21,25 @@ from datetime import datetime, timedelta
 class ZillowScraper(Scraper):
     def __init__(self, scraper_input):
         super().__init__(scraper_input)
-        self.cookies = None
         self.session = tls_client.Session(
             client_identifier="chrome112", random_tls_extension_order=True
         )
+
+        self.session.headers.update({
+            'authority': 'www.zillow.com',
+            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+            'accept-language': 'en-US,en;q=0.9',
+            'cache-control': 'max-age=0',
+            'sec-ch-ua': '"Chromium";v="117", "Not)A;Brand";v="24", "Google Chrome";v="117"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Windows"',
+            'sec-fetch-dest': 'document',
+            'sec-fetch-mode': 'navigate',
+            'sec-fetch-site': 'same-origin',
+            'sec-fetch-user': '?1',
+            'upgrade-insecure-requests': '1',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
+        })
 
         if not self.is_plausible_location(self.location):
             raise NoResultsFound("Invalid location input: {}".format(self.location))
@@ -48,7 +63,7 @@ class ZillowScraper(Scraper):
         return resp.json()["results"] != []
 
     def search(self):
-        resp = self.session.get(self.url, headers=self._get_headers())
+        resp = self.session.get(self.url)
         if resp.status_code != 200:
             raise HTTPError(
                 f"bad response status code: {resp.status_code}"
@@ -146,12 +161,11 @@ class ZillowScraper(Scraper):
             "wants": {"cat1": ["mapResults"]},
             "isDebugRequest": False,
         }
-        resp = self.session.put(url, headers=self._get_headers(), json=payload)
+        resp = self.session.put(url, json=payload)
         if resp.status_code != 200:
             raise HTTPError(
                 f"bad response status code: {resp.status_code}"
             )
-        self.cookies = resp.cookies
         return self._parse_properties(resp.json())
 
     @staticmethod
@@ -321,26 +335,3 @@ class ZillowScraper(Scraper):
             state=state,
             zip_code=zip_code,
         )
-
-    def _get_headers(self):
-        headers = {
-            'authority': 'www.zillow.com',
-            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-            'accept-language': 'en-US,en;q=0.9',
-            'cache-control': 'max-age=0',
-            'cookie': '<your_cookie_here>',
-            'sec-ch-ua': '"Chromium";v="117", "Not)A;Brand";v="24", "Google Chrome";v="117"',
-            'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-platform': '"Windows"',
-            'sec-fetch-dest': 'document',
-            'sec-fetch-mode': 'navigate',
-            'sec-fetch-site': 'same-origin',
-            'sec-fetch-user': '?1',
-            'upgrade-insecure-requests': '1',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
-        }
-
-        if self.cookies:
-            headers['Cookie'] = self.cookies
-
-        return headers
