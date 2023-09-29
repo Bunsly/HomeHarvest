@@ -8,8 +8,9 @@ import json
 from typing import Any
 from .. import Scraper
 from ....utils import parse_address_two, parse_address_one
-from ..models import Property, Address, PropertyType, ListingType, SiteName
-from ....exceptions import NoResultsFound
+from ..models import Property, Address, PropertyType, ListingType, SiteName, Agent
+from ....exceptions import NoResultsFound, SearchTooBroad
+from datetime import datetime
 
 
 class RedfinScraper(Scraper):
@@ -30,6 +31,8 @@ class RedfinScraper(Scraper):
                 return "6"  #: city
             elif match_type == "1":
                 return "address"  #: address, needs to be handled differently
+            elif match_type == "11":
+                return "state"
 
         if "exactMatch" not in response_json["payload"]:
             raise NoResultsFound("No results found for location: {}".format(self.location))
@@ -74,6 +77,8 @@ class RedfinScraper(Scraper):
         else:
             lot_size = lot_size_data
 
+        lat_long = get_value("latLong")
+
         return Property(
             site_name=self.site_name,
             listing_type=self.listing_type,
@@ -88,15 +93,20 @@ class RedfinScraper(Scraper):
             sqft_min=get_value("sqFt"),
             sqft_max=get_value("sqFt"),
             stories=home["stories"] if "stories" in home else None,
-            agent_name=get_value("listingAgent"),
+            agent=Agent(  #: listingAgent, some have sellingAgent as well
+                name=home['listingAgent'].get('name') if 'listingAgent' in home else None,
+                phone=home['listingAgent'].get('phone') if 'listingAgent' in home else None,
+            ),
             description=home["listingRemarks"] if "listingRemarks" in home else None,
             year_built=get_value("yearBuilt") if not single_search else home.get("yearBuilt"),
             lot_area_value=lot_size,
             property_type=PropertyType.from_int_code(home.get("propertyType")),
             price_per_sqft=get_value("pricePerSqFt") if type(home.get("pricePerSqFt")) != int else home.get("pricePerSqFt"),
             mls_id=get_value("mlsId"),
-            latitude=home["latLong"]["latitude"] if "latLong" in home and "latitude" in home["latLong"] else None,
-            longitude=home["latLong"]["longitude"] if "latLong" in home and "longitude" in home["latLong"] else None,
+            latitude=lat_long.get('latitude') if lat_long else None,
+            longitude=lat_long.get('longitude') if lat_long else None,
+            sold_date=datetime.fromtimestamp(home['soldDate'] / 1000) if 'soldDate' in home else None,
+            days_on_market=get_value("dom")
         )
 
     def _handle_rentals(self, region_id, region_type):
@@ -206,6 +216,9 @@ class RedfinScraper(Scraper):
 
     def search(self):
         region_id, region_type = self._handle_location()
+
+        if region_type == "state":
+            raise SearchTooBroad("State searches are not supported, please use a more specific location.")
 
         if region_type == "address":
             home_id = region_id
