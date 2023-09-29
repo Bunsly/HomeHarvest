@@ -14,6 +14,8 @@ from requests.exceptions import HTTPError
 from ....utils import parse_address_one, parse_address_two
 from ....exceptions import GeoCoordsNotFound, NoResultsFound
 from ..models import Property, Address, ListingType, PropertyType, Agent
+import urllib.parse
+from datetime import datetime, timedelta
 
 
 class ZillowScraper(Scraper):
@@ -39,7 +41,7 @@ class ZillowScraper(Scraper):
         url = (
             "https://www.zillowstatic.com/autocomplete/v3/suggestions?q={"
             "}&abKey=6666272a-4b99-474c-b857-110ec438732b&clientId=homepage-render"
-        ).format(location)
+        ).format(urllib.parse.quote(location))
 
         resp = self.session.get(url)
 
@@ -152,6 +154,16 @@ class ZillowScraper(Scraper):
         self.cookies = resp.cookies
         return self._parse_properties(resp.json())
 
+    @staticmethod
+    def parse_posted_time(time: str) -> datetime:
+        int_time = int(time.split(" ")[0])
+
+        if "hour" in time:
+            return datetime.now() - timedelta(hours=int_time)
+
+        if "day" in time:
+            return datetime.now() - timedelta(days=int_time)
+
     def _parse_properties(self, property_data: dict):
         mapresults = property_data["cat1"]["searchResults"]["mapResults"]
 
@@ -177,7 +189,7 @@ class ZillowScraper(Scraper):
                         home_info["statusType"] if "statusType" in home_info else self.listing_type
                     ),
                     status_text=result.get("statusText"),
-                    posted_time=result["variableData"]["text"]  #: TODO: change to datetime
+                    posted_time=self.parse_posted_time(result["variableData"]["text"])
                     if "variableData" in result
                        and "text" in result["variableData"]
                        and result["variableData"]["type"] == "TIME_ON_INFO"
