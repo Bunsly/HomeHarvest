@@ -20,10 +20,11 @@ from datetime import datetime, timedelta
 
 class ZillowScraper(Scraper):
     def __init__(self, scraper_input):
-        super().__init__(scraper_input)
-        self.session = tls_client.Session(
+        session = tls_client.Session(
             client_identifier="chrome112", random_tls_extension_order=True
         )
+
+        super().__init__(scraper_input, session)
 
         self.session.headers.update({
             'authority': 'www.zillow.com',

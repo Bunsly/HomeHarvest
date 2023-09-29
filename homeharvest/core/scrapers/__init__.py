@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import requests
+import tls_client
 from .models import Property, ListingType, SiteName
 
 
@@ -12,15 +13,20 @@ class ScraperInput:
 
 
 class Scraper:
-    def __init__(self, scraper_input: ScraperInput):
+    def __init__(self, scraper_input: ScraperInput, session: requests.Session | tls_client.Session = None):
         self.location = scraper_input.location
         self.listing_type = scraper_input.listing_type
 
-        self.session = requests.Session()
+        if not session:
+            self.session = requests.Session()
+        else:
+            self.session = session
+
         if scraper_input.proxy:
             proxy_url = scraper_input.proxy
             proxies = {"http": proxy_url, "https": proxy_url}
             self.session.proxies.update(proxies)
+
         self.listing_type = scraper_input.listing_type
         self.site_name = scraper_input.site_name
 
