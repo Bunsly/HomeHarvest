@@ -153,76 +153,90 @@ class RealtorScraper(Scraper):
             )
         ]
 
-    def handle_area(self, variables: dict, return_total: bool = False) -> list[Property] | int:
+    def handle_area(self, variables: dict, is_for_comps: bool = False, return_total: bool = False) -> list[Property] | int:
         """
         Handles a location area & returns a list of properties
         """
-        query = (
-            """query Home_search(
-                            $city: String,
-                            $county: [String],
-                            $state_code: String,
-                            $postal_code: String
-                            $offset: Int,
-                        ) {
-                            home_search(
-                                query: {
-                                    city: $city
-                                    county: $county
-                                    postal_code: $postal_code
-                                    state_code: $state_code
-                                    status: %s
-                                }
-                                limit: 200
-                                offset: $offset
+
+        results_query = """{
+            count
+            total
+            results {
+                property_id
+                description {
+                    baths
+                    beds
+                    lot_sqft
+                    sqft
+                    text
+                    sold_price
+                    stories
+                    year_built
+                    garage
+                    unit_number
+                    floor_number
+                }
+                location {
+                    address {
+                        city
+                        country
+                        line
+                        postal_code
+                        state_code
+                        state
+                        street_direction
+                        street_name
+                        street_number
+                        street_post_direction
+                        street_suffix
+                        unit
+                        coordinate {
+                            lon
+                            lat
+                        }
+                    }
+                }
+                list_price
+                price_per_sqft
+                source {
+                    id
+                }
+            }
+        }}"""
+
+        if not is_for_comps:
+            query = (
+                """query Home_search(
+                                $city: String,
+                                $county: [String],
+                                $state_code: String,
+                                $postal_code: String
+                                $offset: Int,
                             ) {
-                                count
-                                total
-                                results {
-                                    property_id
-                                    description {
-                                        baths
-                                        beds
-                                        lot_sqft
-                                        sqft
-                                        text
-                                        sold_price
-                                        stories
-                                        year_built
-                                        garage
-                                        unit_number
-                                        floor_number
+                                home_search(
+                                    query: {
+                                        city: $city
+                                        county: $county
+                                        postal_code: $postal_code
+                                        state_code: $state_code
+                                        status: %s
                                     }
-                                    location {
-                                        address {
-                                            city
-                                            country
-                                            line
-                                            postal_code
-                                            state_code
-                                            state
-                                            street_direction
-                                            street_name
-                                            street_number
-                                            street_post_direction
-                                            street_suffix
-                                            unit
-                                            coordinate {
-                                                lon
-                                                lat
-                                            }
-                                        }
-                                    }
-                                    list_price
-                                    price_per_sqft
-                                    source {
-                                        id
-                                    }
-                                }
-                            }
-                        }"""
-            % self.listing_type.value.lower()
-        )
+                                    limit: 200
+                                    offset: $offset
+                                ) %s"""
+                % (self.listing_type.value.lower(), results_query))
+        else:
+            query = (
+                """query Property_search(
+                    $coordinates: [Float]!
+                    $radius: String!
+                    $offset: Int!,
+                ) {
+                    property_search(
+                        query: { nearby: { coordinates: $coordinates, radius: $radius } }
+                        limit: 200
+                        offset: $offset
+                    ) %s""" % results_query)
 
         payload = {
             "query": query,
@@ -232,9 +246,10 @@ class RealtorScraper(Scraper):
         response = self.session.post(self.search_url, json=payload)
         response.raise_for_status()
         response_json = response.json()
+        search_key = "home_search" if not is_for_comps else "property_search"
 
         if return_total:
-            return response_json["data"]["home_search"]["total"]
+            return response_json["data"][search_key]["total"]
 
         properties: list[Property] = []
 
@@ -242,13 +257,13 @@ class RealtorScraper(Scraper):
             response_json is None
             or "data" not in response_json
             or response_json["data"] is None
-            or "home_search" not in response_json["data"]
-            or response_json["data"]["home_search"] is None
-            or "results" not in response_json["data"]["home_search"]
+            or search_key not in response_json["data"]
+            or response_json["data"][search_key] is None
+            or "results" not in response_json["data"][search_key]
         ):
             return []
 
-        for result in response_json["data"]["home_search"]["results"]:
+        for result in response_json["data"][search_key]["results"]:
             self.counter += 1
             address_one, _ = parse_address_one(result["location"]["address"]["line"])
             realty_property = Property(
@@ -297,21 +312,31 @@ class RealtorScraper(Scraper):
     def search(self):
         location_info = self.handle_location()
         location_type = location_info["area_type"]
+        is_for_comps = self.radius is not None and location_type == "address"
 
-        if location_type == "address":
+        if location_type == "address" and not is_for_comps:
             property_id = location_info["mpr_id"]
             return self.handle_address(property_id)
 
         offset = 0
-        search_variables = {
-            "city": location_info.get("city"),
-            "county": location_info.get("county"),
-            "state_code": location_info.get("state_code"),
-            "postal_code": location_info.get("postal_code"),
-            "offset": offset,
-        }
 
-        total = self.handle_area(search_variables, return_total=True)
+        if not is_for_comps:
+            search_variables = {
+                "city": location_info.get("city"),
+                "county": location_info.get("county"),
+                "state_code": location_info.get("state_code"),
+                "postal_code": location_info.get("postal_code"),
+                "offset": offset,
+            }
+        else:
+            coordinates = list(location_info["centroid"].values())
+            search_variables = {
+                "coordinates": coordinates,
+                "radius": "{}mi".format(self.radius),
+                "offset": offset,
+            }
+
+        total = self.handle_area(search_variables, return_total=True, is_for_comps=is_for_comps)
 
         homes = []
         with ThreadPoolExecutor(max_workers=10) as executor:
@@ -320,6 +345,7 @@ class RealtorScraper(Scraper):
                     self.handle_area,
                     variables=search_variables | {"offset": i},
                     return_total=False,
+                    is_for_comps=is_for_comps,
                 )
                 for i in range(0, total, 200)
             ]

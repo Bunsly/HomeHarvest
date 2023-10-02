@@ -9,6 +9,7 @@ class ScraperInput:
     location: str
     listing_type: ListingType
     site_name: SiteName
+    radius: float | None = None
     proxy: str | None = None
 
 
@@ -29,6 +30,7 @@ class Scraper:
 
         self.listing_type = scraper_input.listing_type
         self.site_name = scraper_input.site_name
+        self.radius = scraper_input.radius
 
     def search(self) -> list[Property]:
         ...

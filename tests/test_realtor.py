@@ -7,6 +7,16 @@ from homeharvest.exceptions import (
 )
 
 
+def test_realtor_comps():
+    result = scrape_property(
+            location="2530 Al Lipscomb Way",
+            site_name="realtor.com",
+            radius=0.5,
+    )
+
+    print(result)
+
+
 def test_realtor():
     results = [
         scrape_property(
