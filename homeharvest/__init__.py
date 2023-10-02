@@ -132,7 +132,7 @@ def _scrape_single_site(location: str, site_name: str, listing_type: str, proxy:
 
 def scrape_property(
     location: str,
-    site_name: Union[str, list[str]] = None,
+    site_name: Union[str, list[str]] = "realtor.com",
     listing_type: str = "for_sale",
     proxy: str = None,
     keep_duplicates: bool = False
@@ -140,12 +140,14 @@ def scrape_property(
     """
     Scrape property from various sites from a given location and listing type.
 
-    :returns: pd.DataFrame
+    :param keep_duplicates:
+    :param proxy:
     :param location: US Location (e.g. 'San Francisco, CA', 'Cook County, IL', '85281', '2530 Al Lipscomb Way')
     :param site_name: Site name or list of site names (e.g. ['realtor.com', 'zillow'], 'redfin')
     :param listing_type: Listing type (e.g. 'for_sale', 'for_rent', 'sold')
-    :return: pd.DataFrame containing properties
+    :returns: pd.DataFrame containing properties
     """
+
     if site_name is None:
         site_name = list(_scrapers.keys())
 

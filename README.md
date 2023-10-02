@@ -29,6 +29,21 @@ pip install homeharvest
 
 ## Usage
 
+### Python 
+
+```py
+from homeharvest import scrape_property
+import pandas as pd
+
+properties: pd.DataFrame = scrape_property(
+    location="85281",
+    listing_type="for_rent" # for_sale / sold
+)
+
+#: Note, to export to CSV or Excel, use properties.to_csv() or properties.to_excel().
+print(properties)
+```
+
 ### CLI 
 
 ```bash
@@ -44,21 +59,6 @@ By default:
 - If `-f` or `--filename` is left blank, the default is `HomeHarvest_<current_timestamp>`.
 - If `-p` or `--proxy` is not provided, the scraper uses the local IP.
 - Use `-k` or `--keep_duplicates` to keep duplicate properties based on address. If not provided, duplicates will be removed.
-### Python 
-
-```py
-from homeharvest import scrape_property
-import pandas as pd
-
-properties: pd.DataFrame = scrape_property(
-    site_name=["zillow", "realtor.com", "redfin"],
-    location="85281",
-    listing_type="for_rent" # for_sale / sold
-)
-
-#: Note, to export to CSV or Excel, use properties.to_csv() or properties.to_excel().
-print(properties)
-```
 
 ## Output
 ```py
