@@ -106,7 +106,7 @@ def _process_result(result: Property) -> pd.DataFrame:
     return properties_df
 
 
-def _scrape_single_site(location: str, site_name: str, listing_type: str, radius: float, proxy: str = None) -> pd.DataFrame:
+def _scrape_single_site(location: str, site_name: str, listing_type: str, radius: float, proxy: str = None, sold_last_x_days: int = None) -> pd.DataFrame:
     """
     Helper function to scrape a single site.
     """
@@ -118,6 +118,7 @@ def _scrape_single_site(location: str, site_name: str, listing_type: str, radius
         site_name=SiteName.get_by_value(site_name.lower()),
         proxy=proxy,
         radius=radius,
+        sold_last_x_days=sold_last_x_days
     )
 
     site = _scrapers[site_name.lower()](scraper_input)
@@ -136,12 +137,14 @@ def scrape_property(
     site_name: Union[str, list[str]] = "realtor.com",
     listing_type: str = "for_sale",
     radius: float = None,
+    sold_last_x_days: int = None,
     proxy: str = None,
     keep_duplicates: bool = False
 ) -> pd.DataFrame:
     """
     Scrape property from various sites from a given location and listing type.
 
+    :param sold_last_x_days: Sold in last x days
     :param radius: Radius in miles to find comparable properties on individual addresses
     :param keep_duplicates:
     :param proxy:
@@ -160,12 +163,12 @@ def scrape_property(
     results = []
 
     if len(site_name) == 1:
-        final_df = _scrape_single_site(location, site_name[0], listing_type, radius, proxy)
+        final_df = _scrape_single_site(location, site_name[0], listing_type, radius, proxy, sold_last_x_days)
         results.append(final_df)
     else:
         with ThreadPoolExecutor() as executor:
             futures = {
-                executor.submit(_scrape_single_site, location, s_name, listing_type, radius, proxy): s_name
+                executor.submit(_scrape_single_site, location, s_name, listing_type, radius, proxy, sold_last_x_days): s_name
                 for s_name in site_name
             }
 

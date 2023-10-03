@@ -4,7 +4,7 @@ homeharvest.realtor.__init__
 
 This module implements the scraper for relator.com
 """
-from ..models import Property, Address
+from ..models import Property, Address, ListingType
 from .. import Scraper
 from ....exceptions import NoResultsFound
 from ....utils import parse_address_one, parse_address_two
@@ -204,6 +204,10 @@ class RealtorScraper(Scraper):
             }
         }}"""
 
+        sold_date_param = ('sold_date: { min: "$today-%sD" }' % self.sold_last_x_days
+                           if self.listing_type == ListingType.SOLD and self.sold_last_x_days is not None
+                           else "")
+
         if not is_for_comps:
             query = (
                 """query Home_search(
@@ -220,11 +224,17 @@ class RealtorScraper(Scraper):
                                         postal_code: $postal_code
                                         state_code: $state_code
                                         status: %s
+                                        %s
                                     }
                                     limit: 200
                                     offset: $offset
                                 ) %s"""
-                % (self.listing_type.value.lower(), results_query))
+                % (
+                    self.listing_type.value.lower(),
+                    sold_date_param,
+                    results_query
+                )
+            )
         else:
             query = (
                 """query Property_search(
@@ -233,10 +243,16 @@ class RealtorScraper(Scraper):
                     $offset: Int!,
                 ) {
                     property_search(
-                        query: { nearby: { coordinates: $coordinates, radius: $radius } }
+                        query: {
+                            nearby: {
+                                coordinates: $coordinates
+                                radius: $radius 
+                            }
+                            %s
+                        }
                         limit: 200
                         offset: $offset
-                    ) %s""" % results_query)
+                    ) %s""" % (sold_date_param, results_query))
 
         payload = {
             "query": query,

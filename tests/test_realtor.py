@@ -14,7 +14,19 @@ def test_realtor_comps():
             radius=0.5,
     )
 
-    print(result)
+    assert result is not None and len(result) > 0
+
+
+def test_realtor_last_x_days_sold():
+    days_result_30 = scrape_property(
+        location="Dallas, TX", site_name="realtor.com", listing_type="sold", sold_last_x_days=30
+    )
+
+    days_result_10 = scrape_property(
+        location="Dallas, TX", site_name="realtor.com", listing_type="sold", sold_last_x_days=10
+    )
+
+    assert all([result is not None for result in [days_result_30, days_result_10]]) and len(days_result_30) != len(days_result_10)
 
 
 def test_realtor():
