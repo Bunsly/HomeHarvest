@@ -106,12 +106,16 @@ class RealtorScraper(Scraper):
             Property(
                 mls_id=property_id,
                 property_url=f"{self.PROPERTY_URL}{property_info['details']['permalink']}",
-                address=self._parse_address(property_info, search_type="handle_address"),
-                description=self._parse_description(property_info)
+                address=self._parse_address(
+                    property_info, search_type="handle_address"
+                ),
+                description=self._parse_description(property_info),
             )
         ]
 
-    def general_search(self, variables: dict, search_type: str) -> Dict[str, Union[int, list[Property]]]:
+    def general_search(
+        self, variables: dict, search_type: str
+    ) -> Dict[str, Union[int, list[Property]]]:
         """
         Handles a location area & returns a list of properties
         """
@@ -169,17 +173,23 @@ class RealtorScraper(Scraper):
                         }
                     }"""
 
-        sold_date_param = ('sold_date: { min: "$today-%sD" }' % self.sold_last_x_days
-                           if self.listing_type == ListingType.SOLD and self.sold_last_x_days
-                           else "")
-        sort_param = ('sort: [{ field: sold_date, direction: desc }]'
-                           if self.listing_type == ListingType.SOLD
-                           else 'sort: [{ field: list_date, direction: desc }]')
+        date_param = (
+            'sold_date: { min: "$today-%sD" }' % self.last_x_days
+            if self.listing_type == ListingType.SOLD and self.last_x_days
+            else (
+                'list_date: { min: "$today-%sD" }' % self.last_x_days
+                if self.last_x_days
+                else ""
+            )
+        )
+        sort_param = (
+            "sort: [{ field: sold_date, direction: desc }]"
+            if self.listing_type == ListingType.SOLD
+            else "sort: [{ field: list_date, direction: desc }]"
+        )
 
         if search_type == "comps":
-            print('general - comps')
-            query = (
-                    """query Property_search(
+            query = """query Property_search(
                     $coordinates: [Float]!
                     $radius: String!
                     $offset: Int!,
@@ -197,16 +207,13 @@ class RealtorScraper(Scraper):
                             limit: 200
                             offset: $offset
                     ) %s""" % (
-                                self.listing_type.value.lower(),
-                               sold_date_param,
-                               sort_param,
-                               results_query
-                    )
+                self.listing_type.value.lower(),
+                date_param,
+                sort_param,
+                results_query,
             )
         else:
-            print('general - not comps')
-            query = (
-                    """query Home_search(
+            query = """query Home_search(
                                 $city: String,
                                 $county: [String],
                                 $state_code: String,
@@ -225,13 +232,11 @@ class RealtorScraper(Scraper):
                                     %s
                                     limit: 200
                                     offset: $offset
-                                ) %s"""
-                    % (
-                        self.listing_type.value.lower(),
-                        sold_date_param,
-                        sort_param,
-                        results_query
-                    )
+                                ) %s""" % (
+                self.listing_type.value.lower(),
+                date_param,
+                sort_param,
+                results_query,
             )
 
         payload = {
@@ -247,12 +252,12 @@ class RealtorScraper(Scraper):
         properties: list[Property] = []
 
         if (
-                response_json is None
-                or "data" not in response_json
-                or response_json["data"] is None
-                or search_key not in response_json["data"]
-                or response_json["data"][search_key] is None
-                or "results" not in response_json["data"][search_key]
+            response_json is None
+            or "data" not in response_json
+            or response_json["data"] is None
+            or search_key not in response_json["data"]
+            or response_json["data"][search_key] is None
+            or "results" not in response_json["data"][search_key]
         ):
             return {"total": 0, "properties": []}
 
@@ -264,32 +269,44 @@ class RealtorScraper(Scraper):
                 else None
             )
 
-            if not mls:
+            if not mls and self.mls_only:
                 continue
 
-            able_to_get_lat_long = result and result.get("location") and result["location"].get("address") and result["location"]["address"].get("coordinate")
+            able_to_get_lat_long = (
+                result
+                and result.get("location")
+                and result["location"].get("address")
+                and result["location"]["address"].get("coordinate")
+            )
 
             realty_property = Property(
                 mls=mls,
-                mls_id=result["source"].get("listing_id") if "source" in result and isinstance(result["source"], dict) else None,
+                mls_id=result["source"].get("listing_id")
+                if "source" in result and isinstance(result["source"], dict)
+                else None,
                 property_url=f"{self.PROPERTY_URL}{result['property_id']}",
                 status=result["status"].upper(),
                 list_price=result["list_price"],
-                list_date=result["list_date"].split("T")[0] if result.get("list_date") else None,
+                list_date=result["list_date"].split("T")[0]
+                if result.get("list_date")
+                else None,
                 prc_sqft=result.get("price_per_sqft"),
                 last_sold_date=result.get("last_sold_date"),
-                hoa_fee=result["hoa"]["fee"] if result.get("hoa") and isinstance(result["hoa"], dict) else None,
-                latitude=result["location"]["address"]["coordinate"].get("lat") if able_to_get_lat_long else None,
-                longitude=result["location"]["address"]["coordinate"].get("lon") if able_to_get_lat_long else None,
+                hoa_fee=result["hoa"]["fee"]
+                if result.get("hoa") and isinstance(result["hoa"], dict)
+                else None,
+                latitude=result["location"]["address"]["coordinate"].get("lat")
+                if able_to_get_lat_long
+                else None,
+                longitude=result["location"]["address"]["coordinate"].get("lon")
+                if able_to_get_lat_long
+                else None,
                 address=self._parse_address(result, search_type="general_search"),
                 neighborhoods=self._parse_neighborhoods(result),
-                description=self._parse_description(result)
+                description=self._parse_description(result),
             )
             properties.append(realty_property)
 
-
-        # print(response_json["data"]["property_search"], variables["offset"])
-        # print(response_json["data"]["home_search"]["total"], variables["offset"])
         return {
             "total": response_json["data"][search_key]["total"],
             "properties": properties,
@@ -304,14 +321,13 @@ class RealtorScraper(Scraper):
         }
 
         search_type = "comps" if self.radius and location_type == "address" else "area"
-        print(search_type)
         if location_type == "address":
-            if not self.radius: #: single address search, non comps
+            if not self.radius:  #: single address search, non comps
                 property_id = location_info["mpr_id"]
                 search_variables |= {"property_id": property_id}
                 return self.handle_address(property_id)
 
-            else: #: general search, comps (radius)
+            else:  #: general search, comps (radius)
                 coordinates = list(location_info["centroid"].values())
                 search_variables |= {
                     "coordinates": coordinates,
@@ -370,10 +386,10 @@ class RealtorScraper(Scraper):
             )
         return Address(
             street=f"{result['address']['street_number']} {result['address']['street_name']} {result['address']['street_suffix']}",
-            unit=result['address']['unit'],
-            city=result['address']['city'],
-            state=result['address']['state_code'],
-            zip=result['address']['postal_code'],
+            unit=result["address"]["unit"],
+            city=result["address"]["city"],
+            state=result["address"]["state_code"],
+            zip=result["address"]["postal_code"],
         )
 
     @staticmethod

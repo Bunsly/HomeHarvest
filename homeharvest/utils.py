@@ -1,4 +1,4 @@
-from .core.scrapers.models import Property
+from .core.scrapers.models import Property, ListingType
 import pandas as pd
 
 ordered_properties = [
@@ -74,3 +74,10 @@ def process_result(result: Property) -> pd.DataFrame:
     properties_df = properties_df.reindex(columns=ordered_properties)
 
     return properties_df[ordered_properties]
+
+
+def validate_input(listing_type: str) -> None:
+    if listing_type.upper() not in ListingType.__members__:
+        raise InvalidListingType(
+            f"Provided listing type, '{listing_type}', does not exist."
+        )

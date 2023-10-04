@@ -36,13 +36,13 @@ pip install homeharvest
 ### CLI 
 
 ```
-usage: homeharvest [-h] [-l {for_sale,for_rent,sold}] [-o {excel,csv}] [-f FILENAME] [-p PROXY] [-d DAYS] [-r RADIUS] location
-                                                                                                                              
+usage: homeharvest [-l {for_sale,for_rent,sold}] [-o {excel,csv}] [-f FILENAME] [-p PROXY] [-d DAYS] [-r RADIUS] [-m] location
+                                                                                                                             
 Home Harvest Property Scraper                                                                                                 
-                                                                                                                              
+                                                                                                                             
 positional arguments:                                                                                                         
   location              Location to scrape (e.g., San Francisco, CA)                                                          
-                                                                                                                              
+                                                                                                                             
 options:                                                                                                                      
   -l {for_sale,for_rent,sold}, --listing_type {for_sale,for_rent,sold}                                                        
                         Listing type to scrape                                                                                
@@ -54,7 +54,8 @@ options:
                         Proxy to use for scraping                                                                             
   -d DAYS, --days DAYS  Sold in last _ days filter.                                                                           
   -r RADIUS, --radius RADIUS                                                                                                  
-                        Get comparable properties within _ (eg. 0.0) miles. Only applicable for individual addresses.
+                        Get comparable properties within _ (eg. 0.0) miles. Only applicable for individual addresses.        
+  -m, --mls_only        If set, fetches only MLS listings.
 ```
 ```bash
 > homeharvest "San Francisco, CA" -l for_rent -o excel -f HomeHarvest
@@ -73,9 +74,14 @@ filename = f"output/{current_timestamp}.csv"
 properties = scrape_property(
     location="San Diego, CA",
     listing_type="sold", # for_sale, for_rent
+    last_x_days=30, # sold/listed in last 30 days
+    mls_only=True, # only fetch MLS listings
 )
 print(f"Number of properties: {len(properties)}")
+
+# Export to csv
 properties.to_csv(filename, index=False)
+print(properties.head())
 ```
 
 
@@ -94,12 +100,23 @@ properties.to_csv(filename, index=False)
 ### Parameters for `scrape_property()`
 ```
 Required
-├── location (str): address in various formats e.g. just zip, full address, city/state, etc.
-└── listing_type (enum): for_rent, for_sale, sold
+├── location (str): The address in various formats - this could be just a zip code, a full address, or city/state, etc.
+└── listing_type (option): Choose the type of listing.
+    - 'for_rent'
+    - 'for_sale'
+    - 'sold'
+
 Optional
-├── radius_for_comps (float): Radius in miles to find comparable properties based on individual addresses.
-├── sold_last_x_days (int): Number of past days to filter sold properties.
-├── proxy (str): in format 'http://user:pass@host:port'
+├── radius (decimal): Radius in miles to find comparable properties based on individual addresses.
+│    Example: 5.5 (fetches properties within a 5.5-mile radius if location is set to a specific address; otherwise, ignored)
+│
+├── last_x_days (integer): Number of past days to filter properties. Utilizes 'COEDate' for 'sold' listing types, and 'Lst Date' for others (for_rent, for_sale).
+│    Example: 30 (fetches properties listed/sold in the last 30 days)
+│
+├── mls_only (True/False): If set, fetches only MLS listings (mainly applicable to 'sold' listings)
+│
+└── proxy (string): In format 'http://user:pass@host:port'
+
 ```
 ### Property Schema
 ```plaintext
@@ -111,51 +128,49 @@ Property
 │ └── status (str)
 
 ├── Address Details:
-│ ├── street (str)
-│ ├── unit (str)
-│ ├── city (str)
-│ ├── state (str)
-│ └── zip (str)
+│ ├── street
+│ ├── unit
+│ ├── city
+│ ├── state
+│ └── zip
 
 ├── Property Description:
-│ ├── style (str)
-│ ├── beds (int)
-│ ├── baths_full (int)
-│ ├── baths_half (int)
-│ ├── sqft (int)
-│ ├── lot_sqft (int)
-│ ├── sold_price (int)
-│ ├── year_built (int)
-│ ├── garage (float)
-│ └── stories (int)
+│ ├── style
+│ ├── beds
+│ ├── baths_full
+│ ├── baths_half
+│ ├── sqft
+│ ├── lot_sqft
+│ ├── sold_price
+│ ├── year_built
+│ ├── garage
+│ └── stories
 
 ├── Property Listing Details:
-│ ├── list_price (int)
-│ ├── list_date (str)
-│ ├── last_sold_date (str)
-│ ├── prc_sqft (int)
-│ └── hoa_fee (int)
+│ ├── list_price
+│ ├── list_date
+│ ├── last_sold_date
+│ ├── prc_sqft
+│ └── hoa_fee
 
 ├── Location Details:
-│ ├── latitude (float)
-│ ├── longitude (float)
-│ └── neighborhoods (str)
+│ ├── latitude
+│ ├── longitude
+│ └── neighborhoods
 ```
-## Supported Countries for Property Scraping
-
-* **Realtor.com**: mainly from the **US** but also has international listings
 
 ### Exceptions
 The following exceptions may be raised when using HomeHarvest:
 
 - `InvalidListingType` - valid options: `for_sale`, `for_rent`, `sold`
-- `NoResultsFound` - no properties found from your input
-
+- `NoResultsFound` - no properties found from your search
+  
+  
 ## Frequently Asked Questions
 ---
 
 **Q: Encountering issues with your searches?**  
-**A:** Try to broaden the location. If problems persist, [submit an issue](https://github.com/ZacharyHampton/HomeHarvest/issues).
+**A:** Try to broaden the parameters you're using. If problems persist, [submit an issue](https://github.com/ZacharyHampton/HomeHarvest/issues).
 
 ---
 
@@ -163,7 +178,7 @@ The following exceptions may be raised when using HomeHarvest:
 **A:** This indicates that you have been blocked by Realtor.com for sending too many requests. We recommend:
 
 - Waiting a few seconds between requests.
-- Trying a VPN to change your IP address.
+- Trying a VPN or useing a proxy as a parameter to scrape_property() to change your IP address.
 
 ---
 

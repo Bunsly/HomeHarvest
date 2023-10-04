@@ -5,7 +5,9 @@ from homeharvest import scrape_property
 
 def main():
     parser = argparse.ArgumentParser(description="Home Harvest Property Scraper")
-    parser.add_argument("location", type=str, help="Location to scrape (e.g., San Francisco, CA)")
+    parser.add_argument(
+        "location", type=str, help="Location to scrape (e.g., San Francisco, CA)"
+    )
 
     parser.add_argument(
         "-l",
@@ -33,21 +35,41 @@ def main():
         help="Name of the output file (without extension)",
     )
 
-    parser.add_argument("-p", "--proxy", type=str, default=None, help="Proxy to use for scraping")
-    parser.add_argument("-d", "--days", type=int, default=None, help="Sold in last _ days filter.")
+    parser.add_argument(
+        "-p", "--proxy", type=str, default=None, help="Proxy to use for scraping"
+    )
+    parser.add_argument(
+        "-d",
+        "--days",
+        type=int,
+        default=None,
+        help="Sold/listed in last _ days filter.",
+    )
 
     parser.add_argument(
         "-r",
-        "--sold-properties-radius",
-        dest="sold_properties_radius",  # This makes sure the parsed argument is stored as radius_for_comps in args
+        "--radius",
         type=float,
         default=None,
-        help="Get comparable properties within _ (eg. 0.0) miles. Only applicable for individual addresses."
+        help="Get comparable properties within _ (eg. 0.0) miles. Only applicable for individual addresses.",
+    )
+    parser.add_argument(
+        "-m",
+        "--mls_only",
+        action="store_true",
+        help="If set, fetches only MLS listings.",
     )
 
     args = parser.parse_args()
 
-    result = scrape_property(args.location, args.listing_type, radius_for_comps=args.radius_for_comps, proxy=args.proxy)
+    result = scrape_property(
+        args.location,
+        args.listing_type,
+        radius=args.radius,
+        proxy=args.proxy,
+        mls_only=args.mls_only,
+        last_x_days=args.days,
+    )
 
     if not args.filename:
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")

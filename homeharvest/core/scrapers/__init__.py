@@ -8,14 +8,18 @@ from .models import Property, ListingType, SiteName
 class ScraperInput:
     location: str
     listing_type: ListingType
-    site_name: SiteName
     radius: float | None = None
+    mls_only: bool | None = None
     proxy: str | None = None
-    sold_last_x_days: int | None = None
+    last_x_days: int | None = None
 
 
 class Scraper:
-    def __init__(self, scraper_input: ScraperInput, session: requests.Session | tls_client.Session = None):
+    def __init__(
+        self,
+        scraper_input: ScraperInput,
+        session: requests.Session | tls_client.Session = None,
+    ):
         self.location = scraper_input.location
         self.listing_type = scraper_input.listing_type
 
@@ -30,9 +34,9 @@ class Scraper:
             self.session.proxies.update(proxies)
 
         self.listing_type = scraper_input.listing_type
-        self.site_name = scraper_input.site_name
         self.radius = scraper_input.radius
-        self.sold_last_x_days = scraper_input.sold_last_x_days
+        self.last_x_days = scraper_input.last_x_days
+        self.mls_only = scraper_input.mls_only
 
     def search(self) -> list[Property]:
         ...
