@@ -18,8 +18,12 @@ class ScraperInput:
     timeframe: Optional[str] = None
 
     def __post_init__(self):
+        if self.status == "sold" and not self.timeframe:
+            raise InvalidTimeFrame("Timeframe is required when status is 'sold'")
+
         if self.timeframe and self.timeframe not in VALID_TIMEFRAMES:
             raise InvalidTimeFrame(f"Invalid timeframe provided: {self.timeframe}")
+
         if self.status and self.status not in VALID_STATUSES:
             raise InvalidTimeFrame(f"Invalid status provided: {self.status}")
 

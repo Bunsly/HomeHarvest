@@ -258,9 +258,8 @@ class RealtorScraper(Scraper):
             self.status,
             f'"$nowUTC-{self.timeframe}"',
         )
-
         payload = {
-            "query": query,
+            "query": self.get_query(),
             "variables": variables,
         }
         response = self.session.post(self.endpoint, json=payload)
@@ -314,7 +313,6 @@ class RealtorScraper(Scraper):
                 + result["property_id"],
                 mls=mls,
                 mls_id=mls_id,
-                # status=(result["source"]["raw"].get("status").upper() if 'source' in result and isinstance(result["source"], dict) and "raw" in result["source"] and isinstance(result["source"]["raw"], dict) else None),
                 status=result["status"].upper(),
                 style=result["description"]["type"].upper(),
                 beds=result["description"]["beds"],
@@ -323,7 +321,9 @@ class RealtorScraper(Scraper):
                 est_sf=result["description"]["sqft"],
                 lot_sf=result["description"]["lot_sqft"],
                 list_price=result["list_price"],
-                list_date=result["list_date"].split("T")[0],
+                list_date=result["list_date"].split("T")[0]
+                if result["list_date"]
+                else None,
                 sold_price=result["description"]["sold_price"],
                 prc_sqft=result["price_per_sqft"],
                 last_sold_date=result["last_sold_date"],
@@ -362,6 +362,230 @@ class RealtorScraper(Scraper):
             "total": response_json["data"]["home_search"]["total"],
             "properties": properties,
         }
+
+    def get_query(self):
+        if self.status == "sold":
+            return """query Home_search(
+                                    $city: String,
+                                    $county: [String],
+                                    $state_code: String,
+                                    $postal_code: String,
+                                    $offset: Int
+                                ) {
+                                    home_search(
+                                        query: {
+                                            city: $city
+                                            county: $county
+                                            postal_code: $postal_code
+                                            state_code: $state_code
+                                            status: %s
+                                            sold_date: {
+                                                min: %s
+                                            }
+                                        }
+                                        limit: 200
+                                        offset: $offset
+                                        sort: [
+                                {
+                                    field: sold_date,
+                                    direction: desc 
+                                }
+                            ]
+                                    ) {
+                                        count
+                                        total
+                                        results {
+                                            property_id
+                                            list_date
+                                            status
+                                            last_sold_price
+                                            last_sold_date
+                                            hoa {
+                                            fee
+                                            }
+                                            description {
+                                                baths_full
+                                                baths_half
+                                                beds
+                                                lot_sqft
+                                                sqft
+                                                sold_price
+                                                year_built
+                                                garage
+                                                sold_price
+                                                type
+                                                sub_type
+                                                name
+                                                stories
+                                            }
+                                            source {
+                                                raw {
+                                                    area
+                                                    status
+                                                    style
+                                                }
+                                                last_update_date
+                                                contract_date
+                                                id
+                                                listing_id
+                                                name
+                                                type
+                                                listing_href
+                                                community_id
+                                                management_id
+                                                corporation_id
+                                                subdivision_status
+                                                spec_id
+                                                plan_id
+                                                tier_rank
+                                                feed_type
+                                            }
+                                            location {
+                                                address {
+                                                    city
+                                                    country
+                                                    line
+                                                    postal_code
+                                                    state_code
+                                                    state
+                                                    coordinate {
+                                                        lon
+                                                        lat
+                                                    }
+                                                    street_direction
+                                                    street_name
+                                                    street_number
+                                                    street_post_direction
+                                                    street_suffix
+                                                    unit
+                                                }
+                                                neighborhoods {
+                                                name
+                                                }
+                                            }
+                                            list_price
+                                            price_per_sqft
+                                                                                style_category_tags {
+                                                                                exterior}
+
+                                            source {
+                                                id
+                                            }
+                                        }
+                                    }
+                                }""" % (
+                self.status,
+                f'"$nowUTC-{self.timeframe}"',
+            )
+        else:
+            return """query Home_search(
+                                    $city: String,
+                                    $county: [String],
+                                    $state_code: String,
+                                    $postal_code: String,
+                                    $offset: Int
+                                ) {
+                                    home_search(
+                                        query: {
+                                            city: $city
+                                            county: $county
+                                            postal_code: $postal_code
+                                            state_code: $state_code
+                                            status: %s
+                                        }
+                                        limit: 200
+                                        offset: $offset
+                                        sort: [
+                                {
+                                    field: sold_date,
+                                    direction: desc 
+                                }
+                            ]
+                                    ) {
+                                        count
+                                        total
+                                        results {
+                                            property_id
+                                            list_date
+                                            status
+                                            last_sold_price
+                                            last_sold_date
+                                            hoa {
+                                            fee
+                                            }
+                                            description {
+                                                baths_full
+                                                baths_half
+                                                beds
+                                                lot_sqft
+                                                sqft
+                                                sold_price
+                                                year_built
+                                                garage
+                                                sold_price
+                                                type
+                                                sub_type
+                                                name
+                                                stories
+                                            }
+                                            source {
+                                                raw {
+                                                    area
+                                                    status
+                                                    style
+                                                }
+                                                last_update_date
+                                                contract_date
+                                                id
+                                                listing_id
+                                                name
+                                                type
+                                                listing_href
+                                                community_id
+                                                management_id
+                                                corporation_id
+                                                subdivision_status
+                                                spec_id
+                                                plan_id
+                                                tier_rank
+                                                feed_type
+                                            }
+                                            location {
+                                                address {
+                                                    city
+                                                    country
+                                                    line
+                                                    postal_code
+                                                    state_code
+                                                    state
+                                                    coordinate {
+                                                        lon
+                                                        lat
+                                                    }
+                                                    street_direction
+                                                    street_name
+                                                    street_number
+                                                    street_post_direction
+                                                    street_suffix
+                                                    unit
+                                                }
+                                                neighborhoods {
+                                                name
+                                                }
+                                            }
+                                            list_price
+                                            price_per_sqft
+                                                                                style_category_tags {
+                                                                                exterior}
+
+                                            source {
+                                                id
+                                            }
+                                        }
+                                    }
+                                }""" % (
+                self.status,
+            )
 
     def search(self):
         location_info = self.handle_location()

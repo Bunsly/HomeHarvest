@@ -29,7 +29,6 @@ def _scrape_single_site(
     """
     Helper function to scrape a single site.
     """
-    print(status)
     _validate_input(site_name, status)
 
     scraper_input = ScraperInput(
@@ -42,7 +41,6 @@ def _scrape_single_site(
 
     site = _scrapers[site_name.lower()](scraper_input)
     results = site.search()
-    print(f"Found {len(results)} results for {site_name}")
 
     properties_dfs = [process_result(result) for result in results]
     if not properties_dfs:
@@ -53,7 +51,7 @@ def _scrape_single_site(
 
 def scrape_property(
     location: str,
-    timeframe: str,
+    timeframe: str = None,
     site_name: Union[str, list[str]] = None,
     status: str = "sale",
     proxy: str = None,
