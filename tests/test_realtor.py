@@ -1,9 +1,7 @@
 from homeharvest import scrape_property
 from homeharvest.exceptions import (
-    InvalidSite,
     InvalidListingType,
     NoResultsFound,
-    GeoCoordsNotFound,
 )
 
 
@@ -11,7 +9,7 @@ def test_realtor_comps():
     result = scrape_property(
         location="2530 Al Lipscomb Way",
         radius=0.5,
-        sold_last_x_days=180,
+        last_x_days=180,
         listing_type="sold",
     )
 
@@ -20,11 +18,11 @@ def test_realtor_comps():
 
 def test_realtor_last_x_days_sold():
     days_result_30 = scrape_property(
-        location="Dallas, TX", listing_type="sold", sold_last_x_days=30
+        location="Dallas, TX", listing_type="sold", last_x_days=30
     )
 
     days_result_10 = scrape_property(
-        location="Dallas, TX", listing_type="sold", sold_last_x_days=10
+        location="Dallas, TX", listing_type="sold", last_x_days=10
     )
 
     assert all(

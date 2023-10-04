@@ -13,7 +13,7 @@ from ..models import Property, Address, ListingType, Description
 
 
 class RealtorScraper(Scraper):
-    SEARCH_URL = "https://www.realtor.com/api/v1/rdc_search_srp?client_id=rdc-search-new-communities&schema=vesta"
+    SEARCH_GQL_URL = "https://www.realtor.com/api/v1/rdc_search_srp?client_id=rdc-search-new-communities&schema=vesta"
     PROPERTY_URL = "https://www.realtor.com/realestateandhomes-detail/"
     ADDRESS_AUTOCOMPLETE_URL = "https://parser-external.geo.moveaws.com/suggest"
 
@@ -41,6 +41,145 @@ class RealtorScraper(Scraper):
             raise NoResultsFound("No results found for location: " + self.location)
 
         return result[0]
+
+    def handle_listing(self, listing_id: str) -> list[Property]:
+        query = """query Listing($listing_id: ID!) {
+                    listing(id: $listing_id) {
+                        source {
+                            id
+                            listing_id
+                        }
+                        address {
+                            street_number
+                            street_name
+                            street_suffix
+                            unit
+                            city
+                            state_code
+                            postal_code
+                            location {
+                                coordinate {
+                                    lat
+                                    lon
+                                }
+                            }
+                        }
+                        basic {
+                            sqft
+                            beds
+                            baths_full
+                            baths_half
+                            lot_sqft
+                            sold_price
+                            sold_price
+                            type
+                            price
+                            status
+                            sold_date
+                            list_date
+                        }
+                        details {
+                            year_built
+                            stories
+                            garage
+                            permalink
+                        }
+                    }
+                }"""
+
+        variables = {"listing_id": listing_id}
+        payload = {
+            "query": query,
+            "variables": variables,
+        }
+
+        response = self.session.post(self.SEARCH_GQL_URL, json=payload)
+        response_json = response.json()
+
+        property_info = response_json["data"]["listing"]
+
+        mls = (
+            property_info["source"].get("id")
+            if "source" in property_info and isinstance(property_info["source"], dict)
+            else None
+        )
+
+        able_to_get_lat_long = (
+                property_info
+                and property_info.get("address")
+                and property_info["address"].get("location")
+                and property_info["address"]["location"].get("coordinate")
+        )
+
+        listing = Property(
+            mls=mls,
+            mls_id=property_info["source"].get("listing_id")
+            if "source" in property_info and isinstance(property_info["source"], dict)
+            else None,
+            property_url=f"{self.PROPERTY_URL}{property_info['details']['permalink']}",
+            status=property_info["basic"]["status"].upper(),
+            list_price=property_info["basic"]["price"],
+            list_date=property_info["basic"]["list_date"].split("T")[0]
+            if property_info["basic"].get("list_date")
+            else None,
+            prc_sqft=property_info["basic"].get("price") / property_info["basic"].get("sqft")
+            if property_info["basic"].get("price") and property_info["basic"].get("sqft")
+            else None,
+            last_sold_date=property_info["basic"]["sold_date"].split("T")[0]
+            if property_info["basic"].get("sold_date")
+            else None,
+            latitude=property_info["address"]["location"]["coordinate"].get("lat")
+            if able_to_get_lat_long
+            else None,
+            longitude=property_info["address"]["location"]["coordinate"].get("lon")
+            if able_to_get_lat_long
+            else None,
+            address=self._parse_address(property_info, search_type="handle_listing"),
+            description=Description(
+                style=property_info["basic"].get("type", "").upper(),
+                beds=property_info["basic"].get("beds"),
+                baths_full=property_info["basic"].get("baths_full"),
+                baths_half=property_info["basic"].get("baths_half"),
+                sqft=property_info["basic"].get("sqft"),
+                lot_sqft=property_info["basic"].get("lot_sqft"),
+                sold_price=property_info["basic"].get("sold_price"),
+                year_built=property_info["details"].get("year_built"),
+                garage=property_info["details"].get("garage"),
+                stories=property_info["details"].get("stories"),
+            )
+        )
+
+        return [listing]
+
+    def get_latest_listing_id(self, property_id: str) -> str | None:
+        query = """query Property($property_id: ID!) {
+                    property(id: $property_id) {
+                        listings {
+                            listing_id
+                            primary
+                        }
+                    }
+                }
+                """
+
+        variables = {"property_id": property_id}
+        payload = {
+            "query": query,
+            "variables": variables,
+        }
+
+        response = self.session.post(self.SEARCH_GQL_URL, json=payload)
+        response_json = response.json()
+
+        property_info = response_json["data"]["property"]
+        if property_info["listings"] is None:
+            return None
+
+        primary_listing = next((listing for listing in property_info["listings"] if listing["primary"]), None)
+        if primary_listing:
+            return primary_listing["listing_id"]
+        else:
+            return property_info["listings"][0]["listing_id"]
 
     def handle_address(self, property_id: str) -> list[Property]:
         """
@@ -97,7 +236,7 @@ class RealtorScraper(Scraper):
             "variables": variables,
         }
 
-        response = self.session.post(self.SEARCH_URL, json=payload)
+        response = self.session.post(self.SEARCH_GQL_URL, json=payload)
         response_json = response.json()
 
         property_info = response_json["data"]["property"]
@@ -182,6 +321,7 @@ class RealtorScraper(Scraper):
                 else ""
             )
         )
+
         sort_param = (
             "sort: [{ field: sold_date, direction: desc }]"
             if self.listing_type == ListingType.SOLD
@@ -212,7 +352,7 @@ class RealtorScraper(Scraper):
                 sort_param,
                 results_query,
             )
-        else:
+        elif search_type == "area":
             query = """query Home_search(
                                 $city: String,
                                 $county: [String],
@@ -238,16 +378,29 @@ class RealtorScraper(Scraper):
                 sort_param,
                 results_query,
             )
+        else:
+            query = (
+                    """query Property_search(
+                        $property_id: [ID]!
+                        $offset: Int!,
+                    ) {
+                        property_search(
+                            query: {
+                                property_id: $property_id
+                            }
+                            limit: 1
+                            offset: $offset
+                        ) %s""" % results_query)
 
         payload = {
             "query": query,
             "variables": variables,
         }
 
-        response = self.session.post(self.SEARCH_URL, json=payload)
+        response = self.session.post(self.SEARCH_GQL_URL, json=payload)
         response.raise_for_status()
         response_json = response.json()
-        search_key = "property_search" if search_type == "comps" else "home_search"
+        search_key = "home_search" if search_type == "area" else "property_search"
 
         properties: list[Property] = []
 
@@ -320,12 +473,21 @@ class RealtorScraper(Scraper):
             "offset": 0,
         }
 
-        search_type = "comps" if self.radius and location_type == "address" else "area"
+        search_type = "comps" if self.radius and location_type == "address" else "address" if location_type == "address" and not self.radius else "area"
         if location_type == "address":
             if not self.radius:  #: single address search, non comps
                 property_id = location_info["mpr_id"]
                 search_variables |= {"property_id": property_id}
-                return self.handle_address(property_id)
+
+                gql_results = self.general_search(search_variables, search_type=search_type)
+                if gql_results["total"] == 0:
+                    listing_id = self.get_latest_listing_id(property_id)
+                    if listing_id is None:
+                        return self.handle_address(property_id)
+                    else:
+                        return self.handle_listing(listing_id)
+                else:
+                    return gql_results["properties"]
 
             else:  #: general search, comps (radius)
                 coordinates = list(location_info["centroid"].values())
