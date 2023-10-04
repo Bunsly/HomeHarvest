@@ -39,7 +39,6 @@ def process_result(result: Property) -> pd.DataFrame:
     prop_data["MLS"] = prop_data["mls"]
     prop_data["MLS #"] = prop_data["mls_id"]
     prop_data["Status"] = prop_data["status"]
-    prop_data["Style"] = prop_data["style"]
 
     if "address" in prop_data:
         address_data = prop_data["address"]
@@ -49,26 +48,27 @@ def process_result(result: Property) -> pd.DataFrame:
         prop_data["State"] = address_data.state
         prop_data["Zip"] = address_data.zip
 
-    prop_data["Community"] = prop_data["neighborhoods"]
-    prop_data["Beds"] = prop_data["beds"]
-    prop_data["FB"] = prop_data["baths_full"]
-    prop_data["NumHB"] = prop_data["baths_half"]
-    prop_data["EstSF"] = prop_data["est_sf"]
     prop_data["ListPrice"] = prop_data["list_price"]
     prop_data["Lst Date"] = prop_data["list_date"]
-    prop_data["Sold Price"] = prop_data["sold_price"]
     prop_data["COEDate"] = prop_data["last_sold_date"]
-    prop_data["LotSFApx"] = prop_data["lot_sf"]
+    prop_data["PrcSqft"] = prop_data["prc_sqft"]
     prop_data["HOAFee"] = prop_data["hoa_fee"]
 
-    if prop_data.get("prc_sqft") is not None:
-        prop_data["PrcSqft"] = round(prop_data["prc_sqft"], 2)
+    description = result.description
+    prop_data["Style"] = description.style
+    prop_data["Beds"] = description.beds
+    prop_data["FB"] = description.baths_full
+    prop_data["NumHB"] = description.baths_half
+    prop_data["EstSF"] = description.sqft
+    prop_data["LotSFApx"] = description.lot_sqft
+    prop_data["Sold Price"] = description.sold_price
+    prop_data["YrBlt"] = description.year_built
+    prop_data["PrkgGar"] = description.garage
+    prop_data["Stories"] = description.stories
 
-    prop_data["YrBlt"] = prop_data["yr_blt"]
     prop_data["LATITUDE"] = prop_data["latitude"]
     prop_data["LONGITUDE"] = prop_data["longitude"]
-    prop_data["Stories"] = prop_data["stories"]
-    prop_data["PrkgGar"] = prop_data["prkg_gar"]
+    prop_data["Community"] = prop_data["neighborhoods"]
 
     properties_df = pd.DataFrame([prop_data])
     properties_df = properties_df.reindex(columns=ordered_properties)

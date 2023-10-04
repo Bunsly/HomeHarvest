@@ -38,7 +38,8 @@ def main():
 
     parser.add_argument(
         "-r",
-        "--radius",
+        "--sold-properties-radius",
+        dest="sold_properties_radius",  # This makes sure the parsed argument is stored as radius_for_comps in args
         type=float,
         default=None,
         help="Get comparable properties within _ (eg. 0.0) miles. Only applicable for individual addresses."
@@ -46,7 +47,7 @@ def main():
 
     args = parser.parse_args()
 
-    result = scrape_property(args.location, args.listing_type, proxy=args.proxy)
+    result = scrape_property(args.location, args.listing_type, radius_for_comps=args.radius_for_comps, proxy=args.proxy)
 
     if not args.filename:
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")

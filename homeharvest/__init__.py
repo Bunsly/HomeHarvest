@@ -1,5 +1,4 @@
 import pandas as pd
-from typing import Union
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
 
@@ -7,7 +6,7 @@ from .core.scrapers import ScraperInput
 from .utils import process_result, ordered_properties
 from .core.scrapers.realtor import RealtorScraper
 from .core.scrapers.models import ListingType, Property, SiteName
-from .exceptions import InvalidSite, InvalidListingType
+from .exceptions import InvalidListingType
 
 
 _scrapers = {
@@ -15,10 +14,7 @@ _scrapers = {
 }
 
 
-def _validate_input(site_name: str, listing_type: str) -> None:
-    if site_name.lower() not in _scrapers:
-        raise InvalidSite(f"Provided site, '{site_name}', does not exist.")
-
+def _validate_input(listing_type: str) -> None:
     if listing_type.upper() not in ListingType.__members__:
         raise InvalidListingType(f"Provided listing type, '{listing_type}', does not exist.")
 
@@ -27,7 +23,7 @@ def _scrape_single_site(location: str, site_name: str, listing_type: str, radius
     """
     Helper function to scrape a single site.
     """
-    _validate_input(site_name, listing_type)
+    _validate_input(listing_type)
 
     scraper_input = ScraperInput(
         location=location,
@@ -40,6 +36,7 @@ def _scrape_single_site(location: str, site_name: str, listing_type: str, radius
 
     site = _scrapers[site_name.lower()](scraper_input)
     results = site.search()
+    print(f"found {len(results)}")
 
     properties_dfs = [process_result(result) for result in results]
     if not properties_dfs:
@@ -50,22 +47,19 @@ def _scrape_single_site(location: str, site_name: str, listing_type: str, radius
 
 def scrape_property(
     location: str,
-    #: site_name: Union[str, list[str]] = "realtor.com",
     listing_type: str = "for_sale",
     radius: float = None,
     sold_last_x_days: int = None,
     proxy: str = None,
 ) -> pd.DataFrame:
     """
-    Scrape property from various sites from a given location and listing type.
+    Scrape properties from Realtor.com based on a given location and listing type.
 
-    :param sold_last_x_days: Sold in last x days
-    :param radius: Radius in miles to find comparable properties on individual addresses
-    :param keep_duplicates:
-    :param proxy:
     :param location: US Location (e.g. 'San Francisco, CA', 'Cook County, IL', '85281', '2530 Al Lipscomb Way')
-    :param site_name: Site name or list of site names (e.g. ['realtor.com', 'zillow'], 'redfin')
-    :param listing_type: Listing type (e.g. 'for_sale', 'for_rent', 'sold')
+    :param listing_type: Listing type (e.g. 'for_sale', 'for_rent', 'sold'). Default is 'for_sale'.
+    :param radius: Radius in miles to find comparable properties on individual addresses. Optional.
+    :param sold_last_x_days: Number of past days to filter sold properties. Optional.
+    :param proxy: Proxy IP address to be used for scraping. Optional.
     :returns: pd.DataFrame containing properties
     """
     site_name = "realtor.com"

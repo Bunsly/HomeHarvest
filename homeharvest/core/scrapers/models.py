@@ -32,39 +32,34 @@ class Address:
 
 
 @dataclass
-class Agent:
-    name: str
-    phone: str | None = None
-    email: str | None = None
+class Description:
+    style: str | None = None
+    beds: int | None = None
+    baths_full: int | None = None
+    baths_half: int | None = None
+    sqft: int | None = None
+    lot_sqft: int | None = None
+    sold_price: int | None = None
+    year_built: int | None = None
+    garage: float | None = None
+    stories: int | None = None
 
 
 @dataclass
 class Property:
-    property_url: str | None = None
+    property_url: str
     mls: str | None = None
     mls_id: str | None = None
     status: str | None = None
-    style: str | None = None
-
-    beds: int | None = None
-    baths_full: int | None = None
-    baths_half: int | None = None
-    list_price: int | None = None
-    list_date: str | None = None
-    sold_price: int | None = None
-    last_sold_date: str | None = None
-    prc_sqft: float | None = None
-    est_sf: int | None = None
-    lot_sf: int | None = None
-    hoa_fee: int | None = None
-
     address: Address | None = None
 
-    yr_blt: int | None = None
+    list_price: int | None = None
+    list_date: str | None = None
+    last_sold_date: str | None = None
+    prc_sqft: int | None = None
+    hoa_fee: int | None = None
+    description: Description | None = None
+
     latitude: float | None = None
     longitude: float | None = None
-
-    stories: int | None = None
-    prkg_gar: float | None = None
-
     neighborhoods: Optional[str] = None
