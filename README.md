@@ -46,19 +46,31 @@ print(properties)
 
 ### CLI 
 
-```bash
-homeharvest "San Francisco, CA" -s zillow realtor.com redfin -l for_rent -o excel -f HomeHarvest
 ```
-
-This will scrape properties from the specified sites for the given location and listing type, and save the results to an Excel file named `HomeHarvest.xlsx`.
-
-By default:
-- If `-s` or `--site_name` is not provided, it will scrape from all available sites.
-- If `-l` or `--listing_type` is left blank, the default is `for_sale`. Other options are `for_rent` or `sold`.
-- The `-o` or `--output` default format is `excel`. Options are `csv` or `excel`.
-- If `-f` or `--filename` is left blank, the default is `HomeHarvest_<current_timestamp>`.
-- If `-p` or `--proxy` is not provided, the scraper uses the local IP.
-- Use `-k` or `--keep_duplicates` to keep duplicate properties based on address. If not provided, duplicates will be removed.
+usage: homeharvest [-h] [-l {for_sale,for_rent,sold}] [-o {excel,csv}] [-f FILENAME] [-p PROXY] [-d DAYS] [-r RADIUS] location
+                                                                                                                              
+Home Harvest Property Scraper                                                                                                 
+                                                                                                                              
+positional arguments:                                                                                                         
+  location              Location to scrape (e.g., San Francisco, CA)                                                          
+                                                                                                                              
+options:                                                                                                                      
+  -h, --help            show this help message and exit                                                                       
+  -l {for_sale,for_rent,sold}, --listing_type {for_sale,for_rent,sold}                                                        
+                        Listing type to scrape                                                                                
+  -o {excel,csv}, --output {excel,csv}                                                                                        
+                        Output format                                                                                         
+  -f FILENAME, --filename FILENAME                                                                                            
+                        Name of the output file (without extension)                                                           
+  -p PROXY, --proxy PROXY                                                                                                     
+                        Proxy to use for scraping                                                                             
+  -d DAYS, --days DAYS  Sold in last _ days filter.                                                                           
+  -r RADIUS, --radius RADIUS                                                                                                  
+                        Get comparable properties within _ (eg. 0.0) miles. Only applicable for individual addresses.
+```
+```bash
+> homeharvest "San Francisco, CA" -l for_rent -o excel -f HomeHarvest
+```
 
 ## Output
 ```py
