@@ -7,7 +7,6 @@ This module implements the scraper for relator.com
 from ..models import Property, Address, ListingType
 from .. import Scraper
 from ....exceptions import NoResultsFound
-from ....utils import parse_address_one, parse_address_two
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
@@ -118,91 +117,105 @@ class RealtorScraper(Scraper):
         response_json = response.json()
 
         property_info = response_json["data"]["property"]
-        address_one, address_two = parse_address_one(property_info["address"]["line"])
 
         return [
             Property(
-                site_name=self.site_name,
-                address=Address(
-                    address_one=address_one,
-                    address_two=address_two,
-                    city=property_info["address"]["city"],
-                    state=property_info["address"]["state_code"],
-                    zip_code=property_info["address"]["postal_code"],
-                ),
                 property_url="https://www.realtor.com/realestateandhomes-detail/"
-                + property_info["details"]["permalink"],
+                             + property_info["details"]["permalink"],
                 stories=property_info["details"]["stories"],
-                year_built=property_info["details"]["year_built"],
-                price_per_sqft=property_info["basic"]["price"] // property_info["basic"]["sqft"]
-                if property_info["basic"]["sqft"] is not None and property_info["basic"]["price"] is not None
-                else None,
                 mls_id=property_id,
-                listing_type=self.listing_type,
-                lot_area_value=property_info["public_record"]["lot_size"]
-                if property_info["public_record"] is not None
-                else None,
-                beds_min=property_info["basic"]["beds"],
-                beds_max=property_info["basic"]["beds"],
-                baths_min=property_info["basic"]["baths"],
-                baths_max=property_info["basic"]["baths"],
-                sqft_min=property_info["basic"]["sqft"],
-                sqft_max=property_info["basic"]["sqft"],
-                price_min=property_info["basic"]["price"],
-                price_max=property_info["basic"]["price"],
             )
         ]
 
-    def handle_area(self, variables: dict, is_for_comps: bool = False, return_total: bool = False) -> list[Property] | int:
+    def handle_area(self, variables: dict, is_for_comps: bool = False, return_total: bool = False) -> list[
+                                                                                                          Property] | int:
         """
         Handles a location area & returns a list of properties
         """
 
         results_query = """{
-            count
-            total
-            results {
-                property_id
-                description {
-                    baths
-                    beds
-                    lot_sqft
-                    sqft
-                    text
-                    sold_price
-                    stories
-                    year_built
-                    garage
-                    unit_number
-                    floor_number
-                }
-                location {
-                    address {
-                        city
-                        country
-                        line
-                        postal_code
-                        state_code
-                        state
-                        street_direction
-                        street_name
-                        street_number
-                        street_post_direction
-                        street_suffix
-                        unit
-                        coordinate {
-                            lon
-                            lat
+                            count
+                            total
+                            results {
+                                property_id
+                                list_date
+                                status
+                                last_sold_price
+                                last_sold_date
+                                hoa {
+                                fee
+                                }
+                                description {
+                                    baths_full
+                                    baths_half
+                                    beds
+                                    lot_sqft
+                                    sqft
+                                    sold_price
+                                    year_built
+                                    garage
+                                    sold_price
+                                    type
+                                    sub_type
+                                    name
+                                    stories
+                                }
+                                source {
+                                    raw {
+                                        area
+                                        status
+                                        style
+                                    }
+                                    last_update_date
+                                    contract_date
+                                    id
+                                    listing_id
+                                    name
+                                    type
+                                    listing_href
+                                    community_id
+                                    management_id
+                                    corporation_id
+                                    subdivision_status
+                                    spec_id
+                                    plan_id
+                                    tier_rank
+                                    feed_type
+                                }
+                                location {
+                                    address {
+                                        city
+                                        country
+                                        line
+                                        postal_code
+                                        state_code
+                                        state
+                                        coordinate {
+                                            lon
+                                            lat
+                                        }
+                                        street_direction
+                                        street_name
+                                        street_number
+                                        street_post_direction
+                                        street_suffix
+                                        unit
+                                    }
+                                    neighborhoods {
+                                    name
+                                    }
+                                }
+                                list_price
+                                price_per_sqft
+                                style_category_tags {
+                                    exterior
+                                }
+                                source {
+                                    id
+                                }
+                            }
                         }
-                    }
-                }
-                list_price
-                price_per_sqft
-                source {
-                    id
-                }
-            }
-        }}"""
+                    }"""
 
         sold_date_param = ('sold_date: { min: "$today-%sD" }' % self.sold_last_x_days
                            if self.listing_type == ListingType.SOLD and self.sold_last_x_days is not None
@@ -210,7 +223,7 @@ class RealtorScraper(Scraper):
 
         if not is_for_comps:
             query = (
-                """query Home_search(
+                    """query Home_search(
                                 $city: String,
                                 $county: [String],
                                 $state_code: String,
@@ -229,15 +242,15 @@ class RealtorScraper(Scraper):
                                     limit: 200
                                     offset: $offset
                                 ) %s"""
-                % (
-                    self.listing_type.value.lower(),
-                    sold_date_param,
-                    results_query
-                )
+                    % (
+                        self.listing_type.value.lower(),
+                        sold_date_param,
+                        results_query
+                    )
             )
         else:
             query = (
-                """query Property_search(
+                    """query Property_search(
                     $coordinates: [Float]!
                     $radius: String!
                     $offset: Int!,
@@ -270,56 +283,80 @@ class RealtorScraper(Scraper):
         properties: list[Property] = []
 
         if (
-            response_json is None
-            or "data" not in response_json
-            or response_json["data"] is None
-            or search_key not in response_json["data"]
-            or response_json["data"][search_key] is None
-            or "results" not in response_json["data"][search_key]
+                response_json is None
+                or "data" not in response_json
+                or response_json["data"] is None
+                or search_key not in response_json["data"]
+                or response_json["data"][search_key] is None
+                or "results" not in response_json["data"][search_key]
         ):
             return []
 
         for result in response_json["data"][search_key]["results"]:
             self.counter += 1
-            address_one, _ = parse_address_one(result["location"]["address"]["line"])
+            mls = (
+                result["source"].get("id")
+                if "source" in result and isinstance(result["source"], dict)
+                else None
+            )
+            mls_id = (
+                result["source"].get("listing_id")
+                if "source" in result and isinstance(result["source"], dict)
+                else None
+            )
+
+            if not mls_id:
+                continue
+                # not type
+
+            neighborhoods_list = []
+            neighborhoods = result["location"].get("neighborhoods", [])
+
+            if neighborhoods:
+                for neighborhood in neighborhoods:
+                    name = neighborhood.get("name")
+                    if name:
+                        neighborhoods_list.append(name)
+
+            neighborhoods_str = (
+                ", ".join(neighborhoods_list) if neighborhoods_list else None
+            )
+
+            able_to_get_lat_long = result and result.get("location") and result["location"].get("address") and result["location"]["address"].get("coordinate")
+
             realty_property = Property(
+                property_url="https://www.realtor.com/realestateandhomes-detail/"
+                             + result["property_id"],
+                mls=mls,
+                mls_id=mls_id,
+                status=result["status"].upper(),
+                style=result["description"]["type"].upper(),
+                beds=result["description"]["beds"],
+                baths_full=result["description"]["baths_full"],
+                baths_half=result["description"]["baths_half"],
+                est_sf=result["description"]["sqft"],
+                lot_sf=result["description"]["lot_sqft"],
+                list_price=result["list_price"],
+                list_date=result["list_date"].split("T")[0]
+                if result["list_date"]
+                else None,
+                sold_price=result["description"]["sold_price"],
+                prc_sqft=result["price_per_sqft"],
+                last_sold_date=result["last_sold_date"],
+                hoa_fee=result["hoa"]["fee"] if result.get("hoa") and isinstance(result["hoa"], dict) else None,
                 address=Address(
-                    address_one=address_one,
+                    street=f"{result['location']['address']['street_number']} {result['location']['address']['street_name']} {result['location']['address']['street_suffix']}",
+                    unit=result["location"]["address"]["unit"],
                     city=result["location"]["address"]["city"],
                     state=result["location"]["address"]["state_code"],
-                    zip_code=result["location"]["address"]["postal_code"],
-                    address_two=parse_address_two(result["location"]["address"]["unit"]),
+                    zip=result["location"]["address"]["postal_code"],
                 ),
-                latitude=result["location"]["address"]["coordinate"]["lat"]
-                if result
-                and result.get("location")
-                and result["location"].get("address")
-                and result["location"]["address"].get("coordinate")
-                and "lat" in result["location"]["address"]["coordinate"]
-                else None,
-                longitude=result["location"]["address"]["coordinate"]["lon"]
-                if result
-                and result.get("location")
-                and result["location"].get("address")
-                and result["location"]["address"].get("coordinate")
-                and "lon" in result["location"]["address"]["coordinate"]
-                else None,
-                site_name=self.site_name,
-                property_url="https://www.realtor.com/realestateandhomes-detail/" + result["property_id"],
+                yr_blt=result["description"]["year_built"],
+                latitude=result["location"]["address"]["coordinate"].get("lat") if able_to_get_lat_long else None,
+                longitude=result["location"]["address"]["coordinate"].get("lon") if able_to_get_lat_long else None,
+                prkg_gar=result["description"]["garage"],
                 stories=result["description"]["stories"],
-                year_built=result["description"]["year_built"],
-                price_per_sqft=result["price_per_sqft"],
-                mls_id=result["property_id"],
-                listing_type=self.listing_type,
-                lot_area_value=result["description"]["lot_sqft"],
-                beds_min=result["description"]["beds"],
-                beds_max=result["description"]["beds"],
-                baths_min=result["description"]["baths"],
-                baths_max=result["description"]["baths"],
-                sqft_min=result["description"]["sqft"],
-                sqft_max=result["description"]["sqft"],
-                price_min=result["list_price"],
-                price_max=result["list_price"],
+                neighborhoods=neighborhoods_str,
             )
             properties.append(realty_property)
 
