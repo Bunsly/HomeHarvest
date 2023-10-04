@@ -17,7 +17,13 @@ def test_parse_address_one():
 
 
 def test_parse_address_two():
-    test_data = [("Apt 126", "#126"), ("apt 2B", "#2B"), ("UNIT 3A", "#3A"), ("unit 3A", "#3A"), ("SuIte 3A", "#3A")]
+    test_data = [
+        ("Apt 126", "#126"),
+        ("apt 2B", "#2B"),
+        ("UNIT 3A", "#3A"),
+        ("unit 3A", "#3A"),
+        ("SuIte 3A", "#3A"),
+    ]
 
     for input_data, expected in test_data:
         output = parse_address_two(input_data)

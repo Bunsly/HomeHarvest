@@ -10,10 +10,14 @@ from homeharvest.exceptions import (
 
 def test_redfin():
     results = [
-        scrape_property(location="San Diego", site_name="redfin", listing_type="for_sale"),
-        scrape_property(location="2530 Al Lipscomb Way", site_name="redfin", listing_type="for_sale"),
-        scrape_property(location="Phoenix, AZ, USA", site_name=["redfin"], listing_type="for_rent"),
-        scrape_property(location="Dallas, TX, USA", site_name="redfin", listing_type="sold"),
+        scrape_property(location="San Diego", site_name="redfin", status="sale"),
+        scrape_property(
+            location="2530 Al Lipscomb Way", site_name="redfin", status="sale"
+        ),
+        scrape_property(
+            location="Phoenix, AZ, USA", site_name=["redfin"], status="rent"
+        ),
+        scrape_property(location="Dallas, TX, USA", site_name="redfin", status="sold"),
         scrape_property(location="85281", site_name="redfin"),
     ]
 
@@ -25,11 +29,17 @@ def test_redfin():
             scrape_property(
                 location="abceefg ju098ot498hh9",
                 site_name="redfin",
-                listing_type="for_sale",
+                status="sale",
             ),
-            scrape_property(location="Florida", site_name="redfin", listing_type="for_rent"),
+            scrape_property(location="Florida", site_name="redfin", status="for_rent"),
         ]
-    except (InvalidSite, InvalidListingType, NoResultsFound, GeoCoordsNotFound, SearchTooBroad):
+    except (
+        InvalidSite,
+        InvalidListingType,
+        NoResultsFound,
+        GeoCoordsNotFound,
+        SearchTooBroad,
+    ):
         assert True
 
     assert all([result is None for result in bad_results])

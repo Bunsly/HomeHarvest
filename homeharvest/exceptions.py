@@ -16,3 +16,7 @@ class GeoCoordsNotFound(Exception):
 
 class SearchTooBroad(Exception):
     """Raised when the search is too broad"""
+
+
+class InvalidTimeFrame(Exception):
+    """Raised when the time frame is invalid"""

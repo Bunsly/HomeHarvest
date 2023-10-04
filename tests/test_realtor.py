@@ -12,13 +12,13 @@ def test_realtor():
         scrape_property(
             location="2530 Al Lipscomb Way",
             site_name="realtor.com",
-            listing_type="for_sale",
+            status="for_sale",
         ),
         scrape_property(
-            location="Phoenix, AZ", site_name=["realtor.com"], listing_type="for_rent"
+            location="Phoenix, AZ", site_name=["realtor.com"], status="for_rent"
         ),  #: does not support "city, state, USA" format
         scrape_property(
-            location="Dallas, TX", site_name="realtor.com", listing_type="sold"
+            location="Dallas, TX", site_name="realtor.com", status="sold"
         ),  #: does not support "city, state, USA" format
         scrape_property(location="85281", site_name="realtor.com"),
     ]
@@ -31,7 +31,7 @@ def test_realtor():
             scrape_property(
                 location="abceefg ju098ot498hh9",
                 site_name="realtor.com",
-                listing_type="for_sale",
+                status="sale",
             )
         ]
     except (InvalidSite, InvalidListingType, NoResultsFound, GeoCoordsNotFound):
