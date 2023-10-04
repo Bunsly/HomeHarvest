@@ -127,8 +127,7 @@ class RealtorScraper(Scraper):
             )
         ]
 
-    def handle_area(self, variables: dict, is_for_comps: bool = False, return_total: bool = False) -> list[
-                                                                                                          Property] | int:
+    def general_search(self, variables: dict, search_type: str, return_total: bool = False) -> list[Property] | int:
         """
         Handles a location area & returns a list of properties
         """
@@ -221,7 +220,7 @@ class RealtorScraper(Scraper):
                            if self.listing_type == ListingType.SOLD and self.sold_last_x_days is not None
                            else "")
 
-        if not is_for_comps:
+        if search_type == "area":
             query = (
                     """query Home_search(
                                 $city: String,
@@ -248,7 +247,7 @@ class RealtorScraper(Scraper):
                         results_query
                     )
             )
-        else:
+        elif search_type == "comp_address":
             query = (
                     """query Property_search(
                     $coordinates: [Float]!
@@ -266,6 +265,20 @@ class RealtorScraper(Scraper):
                         limit: 200
                         offset: $offset
                     ) %s""" % (sold_date_param, results_query))
+        else:
+            query = (
+                    """query Property_search(
+                        $property_id: [ID]!
+                        $offset: Int!,
+                    ) {
+                        property_search(
+                            query: {
+                                property_id: $property_id
+                                %s
+                            }
+                            limit: 200
+                            offset: $offset
+                        ) %s""" % (sold_date_param, results_query))
 
         payload = {
             "query": query,
@@ -275,7 +288,7 @@ class RealtorScraper(Scraper):
         response = self.session.post(self.search_url, json=payload)
         response.raise_for_status()
         response_json = response.json()
-        search_key = "home_search" if not is_for_comps else "property_search"
+        search_key = "home_search" if search_type == "area" else "property_search"
 
         if return_total:
             return response_json["data"][search_key]["total"]
@@ -367,38 +380,49 @@ class RealtorScraper(Scraper):
         location_type = location_info["area_type"]
         is_for_comps = self.radius is not None and location_type == "address"
 
-        if location_type == "address" and not is_for_comps:
-            property_id = location_info["mpr_id"]
-            return self.handle_address(property_id)
-
         offset = 0
+        search_variables = {
+            "offset": offset,
+        }
 
-        if not is_for_comps:
-            search_variables = {
+        search_type = "comp_address" if is_for_comps \
+            else "address" if location_type == "address" and not is_for_comps \
+            else "area"
+
+        if location_type == "address" and not is_for_comps:  #: single address search, non comps
+            property_id = location_info["mpr_id"]
+            search_variables = search_variables | {"property_id": property_id}
+
+            general_search = self.general_search(search_variables, search_type)
+            if general_search:
+                return general_search
+            else:
+                return self.handle_address(property_id)  #: TODO: support single address search for query by property address (can go from property -> listing to get better data)
+
+        elif not is_for_comps:  #: area search
+            search_variables = search_variables | {
                 "city": location_info.get("city"),
                 "county": location_info.get("county"),
                 "state_code": location_info.get("state_code"),
                 "postal_code": location_info.get("postal_code"),
-                "offset": offset,
             }
-        else:
+        else:  #: comps search
             coordinates = list(location_info["centroid"].values())
-            search_variables = {
+            search_variables = search_variables | {
                 "coordinates": coordinates,
                 "radius": "{}mi".format(self.radius),
-                "offset": offset,
             }
 
-        total = self.handle_area(search_variables, return_total=True, is_for_comps=is_for_comps)
+        total = self.general_search(search_variables, return_total=True, search_type=search_type)
 
         homes = []
         with ThreadPoolExecutor(max_workers=10) as executor:
             futures = [
                 executor.submit(
-                    self.handle_area,
+                    self.general_search,
                     variables=search_variables | {"offset": i},
                     return_total=False,
-                    is_for_comps=is_for_comps,
+                    search_type=search_type,
                 )
                 for i in range(0, total, 200)
             ]

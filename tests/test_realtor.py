@@ -11,6 +11,8 @@ def test_realtor_comps():
     result = scrape_property(
             location="2530 Al Lipscomb Way",
             radius=0.5,
+            sold_last_x_days=180,
+            listing_type="sold",
     )
 
     assert result is not None and len(result) > 0
@@ -26,6 +28,21 @@ def test_realtor_last_x_days_sold():
     )
 
     assert all([result is not None for result in [days_result_30, days_result_10]]) and len(days_result_30) != len(days_result_10)
+
+
+def test_realtor_single_property():
+    results = [
+        scrape_property(
+            location="15509 N 172nd Dr, Surprise, AZ 85388",
+            listing_type="for_sale",
+        ),
+        scrape_property(
+            location="2530 Al Lipscomb Way",
+            listing_type="for_sale",
+        )
+    ]
+
+    assert all([result is not None for result in results])
 
 
 def test_realtor():
