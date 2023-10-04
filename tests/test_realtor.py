@@ -70,7 +70,7 @@ def test_realtor():
                 listing_type="for_sale",
             )
         ]
-    except (InvalidSite, InvalidListingType, NoResultsFound, GeoCoordsNotFound):
+    except (InvalidListingType, NoResultsFound):
         assert True
 
     assert all([result is None for result in bad_results])
