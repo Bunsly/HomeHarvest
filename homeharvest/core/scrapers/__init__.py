@@ -16,6 +16,7 @@ class ScraperInput:
     site_name: str
     proxy: Optional[str] = None
     timeframe: Optional[str] = None
+    radius: float | None = None
 
     def __post_init__(self):
         if self.status == "sold" and not self.timeframe:
@@ -50,6 +51,7 @@ class Scraper:
 
         self.listing_type = scraper_input.status
         self.site_name = scraper_input.site_name
+        self.radius = scraper_input.radius
 
     def search(self) -> list[Property]:
         ...

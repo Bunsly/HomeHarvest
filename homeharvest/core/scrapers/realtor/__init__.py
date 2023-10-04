@@ -590,19 +590,29 @@ class RealtorScraper(Scraper):
     def search(self):
         location_info = self.handle_location()
         location_type = location_info["area_type"]
+        is_for_comps = self.radius is not None and location_type == "address"
 
-        if location_type == "address":
+        if location_type == "address" and not is_for_comps:
             property_id = location_info["mpr_id"]
             return self.handle_address(property_id)
 
         offset = 0
-        search_variables = {
-            "city": location_info.get("city"),
-            "county": location_info.get("county"),
-            "state_code": location_info.get("state_code"),
-            "postal_code": location_info.get("postal_code"),
-            "offset": offset,
-        }
+
+        if not is_for_comps:
+            search_variables = {
+                "city": location_info.get("city"),
+                "county": location_info.get("county"),
+                "state_code": location_info.get("state_code"),
+                "postal_code": location_info.get("postal_code"),
+                "offset": offset,
+            }
+        else:
+            coordinates = list(location_info["centroid"].values())
+            search_variables = {
+                "coordinates": coordinates,
+                "radius": "{}mi".format(self.radius),
+                "offset": offset,
+            }
 
         result = self.handle_area(search_variables)
         total = result["total"]

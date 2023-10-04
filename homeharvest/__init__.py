@@ -24,7 +24,12 @@ def _validate_input(site_name: str, status: str) -> None:
 
 
 def _scrape_single_site(
-    location: str, site_name: str, status: str, proxy: str = None, timeframe: str = None
+    location: str,
+    site_name: str,
+    status: str,
+    radius: float,
+    proxy: str = None,
+    timeframe: str = None,
 ) -> pd.DataFrame:
     """
     Helper function to scrape a single site.
@@ -36,6 +41,7 @@ def _scrape_single_site(
         status=status,
         site_name=SiteName.get_by_value(site_name.lower()),
         proxy=proxy,
+        radius=radius,
         timeframe=timeframe,
     )
 
@@ -53,7 +59,8 @@ def scrape_property(
     location: str,
     timeframe: str = None,
     site_name: Union[str, list[str]] = None,
-    status: str = "sale",
+    listing_type: str = "for_sale",
+    radius: float = None,
     proxy: str = None,
 ) -> pd.DataFrame:
     """
@@ -65,6 +72,7 @@ def scrape_property(
     :param listing_type: Listing type (e.g. 'for_sale', 'for_rent', 'sold')
     :return: pd.DataFrame containing properties
     """
+    status = listing_type
     if site_name is None:
         site_name = list(_scrapers.keys())
 
@@ -80,7 +88,13 @@ def scrape_property(
         with ThreadPoolExecutor() as executor:
             futures = {
                 executor.submit(
-                    _scrape_single_site, location, s_name, status, proxy, timeframe
+                    _scrape_single_site,
+                    location,
+                    s_name,
+                    status,
+                    radius,
+                    proxy,
+                    timeframe,
                 ): s_name
                 for s_name in site_name
             }
