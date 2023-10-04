@@ -52,7 +52,7 @@ options:
                         Name of the output file (without extension)                                                           
   -p PROXY, --proxy PROXY                                                                                                     
                         Proxy to use for scraping                                                                             
-  -d DAYS, --days DAYS  Sold in last _ days filter.                                                                           
+  -d DAYS, --days DAYS  Sold/listed in last _ days filter.                                                                           
   -r RADIUS, --radius RADIUS                                                                                                  
                         Get comparable properties within _ (eg. 0.0) miles. Only applicable for individual addresses.        
   -m, --mls_only        If set, fetches only MLS listings.
@@ -73,8 +73,8 @@ filename = f"output/{current_timestamp}.csv"
 
 properties = scrape_property(
     location="San Diego, CA",
-    listing_type="sold", # for_sale, for_rent
-    last_x_days=30, # sold/listed in last 30 days
+    listing_type="sold", #  or (for_sale, for_rent)
+    last_x_days=30, # sold in last 30 days - listed in last x days if (for_sale, for_rent)
     mls_only=True, # only fetch MLS listings
 )
 print(f"Number of properties: {len(properties)}")
