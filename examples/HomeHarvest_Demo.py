@@ -7,9 +7,11 @@ filename = f"HomeHarvest_{current_timestamp}.csv"
 
 properties = scrape_property(
     location="San Diego, CA",
-    listing_type="sold", # for_sale, for_rent
-    property_younger_than=30, # sold/listed in last 30 days
-    mls_only=True, # only fetch MLS listings
+    listing_type="sold",  # or (for_sale, for_rent)
+    property_younger_than=30,  # sold in last 30 days - listed in last x days if (for_sale, for_rent)
+    # pending_or_contingent=True # use on for_sale listings to find pending / contingent listings
+    # mls_only=True,  # only fetch MLS listings
+    # proxy="http://user:pass@host:port"  # use a proxy to change your IP address
 )
 print(f"Number of properties: {len(properties)}")
 

@@ -60,6 +60,13 @@ def main():
         help="If set, fetches only MLS listings.",
     )
 
+    parser.add_argument(
+        "-c",
+        "--pending_or_contingent",
+        action="store_true",
+        help="If set, fetches only pending or contingent listings. Only applicable for for_sale listings from general area searches.",
+    )
+
     args = parser.parse_args()
 
     result = scrape_property(
@@ -69,6 +76,7 @@ def main():
         proxy=args.proxy,
         mls_only=args.mls_only,
         property_younger_than=args.days,
+        pending_or_contingent=args.pending_or_contingent,
     )
 
     if not args.filename:

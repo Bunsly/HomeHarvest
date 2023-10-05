@@ -16,7 +16,12 @@ def test_realtor_pending_or_contingent():
         pending_or_contingent=False,
     )
 
-    assert all([result is not None for result in [pending_or_contingent_result, regular_result]])
+    assert all(
+        [
+            result is not None
+            for result in [pending_or_contingent_result, regular_result]
+        ]
+    )
     assert len(pending_or_contingent_result) != len(regular_result)
 
 
