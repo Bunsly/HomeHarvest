@@ -3,7 +3,7 @@ from datetime import datetime
 
 # Generate filename based on current timestamp
 current_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-filename = f"output/{current_timestamp}.csv"
+filename = f"HomeHarvest_{current_timestamp}.csv"
 
 properties = scrape_property(
     location="San Diego, CA",
