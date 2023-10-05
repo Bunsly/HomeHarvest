@@ -5,15 +5,8 @@ from homeharvest import scrape_property
 
 def main():
     parser = argparse.ArgumentParser(description="Home Harvest Property Scraper")
-    parser.add_argument("location", type=str, help="Location to scrape (e.g., San Francisco, CA)")
-
     parser.add_argument(
-        "-s",
-        "--site_name",
-        type=str,
-        nargs="*",
-        default=None,
-        help="Site name(s) to scrape from (e.g., realtor, zillow)",
+        "location", type=str, help="Location to scrape (e.g., San Francisco, CA)"
     )
 
     parser.add_argument(
@@ -43,17 +36,40 @@ def main():
     )
 
     parser.add_argument(
-        "-k",
-        "--keep_duplicates",
-        action="store_true",
-        help="Keep duplicate properties based on address"
+        "-p", "--proxy", type=str, default=None, help="Proxy to use for scraping"
+    )
+    parser.add_argument(
+        "-d",
+        "--days",
+        type=int,
+        default=None,
+        help="Sold/listed in last _ days filter.",
     )
 
-    parser.add_argument("-p", "--proxy", type=str, default=None, help="Proxy to use for scraping")
+    parser.add_argument(
+        "-r",
+        "--radius",
+        type=float,
+        default=None,
+        help="Get comparable properties within _ (eg. 0.0) miles. Only applicable for individual addresses.",
+    )
+    parser.add_argument(
+        "-m",
+        "--mls_only",
+        action="store_true",
+        help="If set, fetches only MLS listings.",
+    )
 
     args = parser.parse_args()
 
-    result = scrape_property(args.location, args.site_name, args.listing_type, proxy=args.proxy, keep_duplicates=args.keep_duplicates)
+    result = scrape_property(
+        args.location,
+        args.listing_type,
+        radius=args.radius,
+        proxy=args.proxy,
+        mls_only=args.mls_only,
+        property_younger_than=args.days,
+    )
 
     if not args.filename:
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
