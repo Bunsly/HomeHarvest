@@ -8,7 +8,7 @@ filename = f"output/{current_timestamp}.csv"
 properties = scrape_property(
     location="San Diego, CA",
     listing_type="sold", # for_sale, for_rent
-    last_x_days=30, # sold/listed in last 30 days
+    property_younger_than=30, # sold/listed in last 30 days
     mls_only=True, # only fetch MLS listings
 )
 print(f"Number of properties: {len(properties)}")

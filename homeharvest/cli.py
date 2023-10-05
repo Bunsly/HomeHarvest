@@ -68,7 +68,7 @@ def main():
         radius=args.radius,
         proxy=args.proxy,
         mls_only=args.mls_only,
-        last_x_days=args.days,
+        property_younger_than=args.days,
     )
 
     if not args.filename:

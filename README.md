@@ -61,7 +61,7 @@ options:
 > homeharvest "San Francisco, CA" -l for_rent -o excel -f HomeHarvest
 ```
 
-### Python 
+### Python
 
 ```py
 from homeharvest import scrape_property
@@ -72,10 +72,10 @@ current_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 filename = f"output/{current_timestamp}.csv"
 
 properties = scrape_property(
-    location="San Diego, CA",
-    listing_type="sold", #  or (for_sale, for_rent)
-    last_x_days=30, # sold in last 30 days - listed in last x days if (for_sale, for_rent)
-    mls_only=True, # only fetch MLS listings
+  location="San Diego, CA",
+  listing_type="sold",  # or (for_sale, for_rent)
+  property_younger_than=30,  # sold in last 30 days - listed in last x days if (for_sale, for_rent)
+  mls_only=True,  # only fetch MLS listings
 )
 print(f"Number of properties: {len(properties)}")
 
@@ -83,7 +83,6 @@ print(f"Number of properties: {len(properties)}")
 properties.to_csv(filename, index=False)
 print(properties.head())
 ```
-
 
 ## Output
 ```plaintext

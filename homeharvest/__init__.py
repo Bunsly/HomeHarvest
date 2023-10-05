@@ -12,11 +12,17 @@ def scrape_property(
     listing_type: str = "for_sale",
     radius: float = None,
     mls_only: bool = False,
-    last_x_days: int = None,
+    property_younger_than: int = None,
     proxy: str = None,
 ) -> pd.DataFrame:
     """
     Scrape properties from Realtor.com based on a given location and listing type.
+    :param location: Location to search (e.g. "Dallas, TX", "85281", "2530 Al Lipscomb Way")
+    :param listing_type: Listing Type (for_sale, for_rent, sold)
+    :param radius: Get properties within _ (e.g. 1.0) miles. Only applicable for individual addresses.
+    :param mls_only: If set, fetches only listings with MLS IDs.
+    :param property_younger_than: Get properties sold/listed in last _ days.
+    :param proxy: Proxy to use for scraping
     """
     validate_input(listing_type)
 
@@ -26,7 +32,7 @@ def scrape_property(
         proxy=proxy,
         radius=radius,
         mls_only=mls_only,
-        last_x_days=last_x_days,
+        last_x_days=property_younger_than,
     )
 
     site = RealtorScraper(scraper_input)
