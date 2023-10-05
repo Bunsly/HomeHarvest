@@ -75,7 +75,8 @@ properties = scrape_property(
   location="San Diego, CA",
   listing_type="sold",  # or (for_sale, for_rent)
   property_younger_than=30,  # sold in last 30 days - listed in last x days if (for_sale, for_rent)
-  mls_only=True,  # only fetch MLS listings
+  # pending_or_contingent=True # use on for_sale listings to find pending / contingent listings
+  # mls_only=True,  # only fetch MLS listings
 )
 print(f"Number of properties: {len(properties)}")
 
