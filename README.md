@@ -50,6 +50,7 @@ properties = scrape_property(
   property_younger_than=30,  # sold in last 30 days - listed in last x days if (for_sale, for_rent)
   # pending_or_contingent=True # use on for_sale listings to find pending / contingent listings
   # mls_only=True,  # only fetch MLS listings
+  # proxy="http://user:pass@host:port"  # use a proxy to change your IP address
 )
 print(f"Number of properties: {len(properties)}")
 
@@ -61,7 +62,7 @@ print(properties.head())
 ### CLI 
 
 ```
-usage: homeharvest [-l {for_sale,for_rent,sold}] [-o {excel,csv}] [-f FILENAME] [-p PROXY] [-d DAYS] [-r RADIUS] [-m] location
+usage: homeharvest [-l {for_sale,for_rent,sold}] [-o {excel,csv}] [-f FILENAME] [-p PROXY] [-d DAYS] [-r RADIUS] [-m] [-c] location
                                                                                                                              
 Home Harvest Property Scraper                                                                                                 
                                                                                                                              
@@ -79,8 +80,11 @@ options:
                         Proxy to use for scraping                                                                             
   -d DAYS, --days DAYS  Sold/listed in last _ days filter.                                                                           
   -r RADIUS, --radius RADIUS                                                                                                  
-                        Get comparable properties within _ (eg. 0.0) miles. Only applicable for individual addresses.        
-  -m, --mls_only        If set, fetches only MLS listings.
+                        Get comparable properties within _ (e.g., 0.0) miles. Only applicable for individual addresses.        
+  -m, --mls_only        If set, fetches only MLS listings.                                                                    
+  -c, --pending_or_contingent
+                        If set, fetches only pending or contingent listings. Only applicable for for_sale listings from general area searches.
+
 ```
 ```bash
 > homeharvest "San Francisco, CA" -l for_rent -o excel -f HomeHarvest

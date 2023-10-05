@@ -105,10 +105,10 @@ class RealtorScraper(Scraper):
         )
 
         able_to_get_lat_long = (
-                property_info
-                and property_info.get("address")
-                and property_info["address"].get("location")
-                and property_info["address"]["location"].get("coordinate")
+            property_info
+            and property_info.get("address")
+            and property_info["address"].get("location")
+            and property_info["address"]["location"].get("coordinate")
         )
 
         listing = Property(
@@ -122,8 +122,10 @@ class RealtorScraper(Scraper):
             list_date=property_info["basic"]["list_date"].split("T")[0]
             if property_info["basic"].get("list_date")
             else None,
-            prc_sqft=property_info["basic"].get("price") / property_info["basic"].get("sqft")
-            if property_info["basic"].get("price") and property_info["basic"].get("sqft")
+            prc_sqft=property_info["basic"].get("price")
+            / property_info["basic"].get("sqft")
+            if property_info["basic"].get("price")
+            and property_info["basic"].get("sqft")
             else None,
             last_sold_date=property_info["basic"]["sold_date"].split("T")[0]
             if property_info["basic"].get("sold_date")
@@ -146,7 +148,7 @@ class RealtorScraper(Scraper):
                 year_built=property_info["details"].get("year_built"),
                 garage=property_info["details"].get("garage"),
                 stories=property_info["details"].get("stories"),
-            )
+            ),
         )
 
         return [listing]
@@ -175,7 +177,10 @@ class RealtorScraper(Scraper):
         if property_info["listings"] is None:
             return None
 
-        primary_listing = next((listing for listing in property_info["listings"] if listing["primary"]), None)
+        primary_listing = next(
+            (listing for listing in property_info["listings"] if listing["primary"]),
+            None,
+        )
         if primary_listing:
             return primary_listing["listing_id"]
         else:
@@ -328,7 +333,11 @@ class RealtorScraper(Scraper):
             else "sort: [{ field: list_date, direction: desc }]"
         )
 
-        pending_or_contingent_param = "or_filters: { contingent: true, pending: true }" if self.pending_or_contingent else ""
+        pending_or_contingent_param = (
+            "or_filters: { contingent: true, pending: true }"
+            if self.pending_or_contingent
+            else ""
+        )
 
         if search_type == "comps":  #: comps search, came from an address
             query = """query Property_search(
@@ -384,7 +393,7 @@ class RealtorScraper(Scraper):
             )
         else:  #: general search, came from an address
             query = (
-                    """query Property_search(
+                """query Property_search(
                         $property_id: [ID]!
                         $offset: Int!,
                     ) {
@@ -394,7 +403,9 @@ class RealtorScraper(Scraper):
                             }
                             limit: 1
                             offset: $offset
-                        ) %s""" % results_query)
+                        ) %s"""
+                % results_query
+            )
 
         payload = {
             "query": query,
@@ -477,13 +488,21 @@ class RealtorScraper(Scraper):
             "offset": 0,
         }
 
-        search_type = "comps" if self.radius and location_type == "address" else "address" if location_type == "address" and not self.radius else "area"
+        search_type = (
+            "comps"
+            if self.radius and location_type == "address"
+            else "address"
+            if location_type == "address" and not self.radius
+            else "area"
+        )
         if location_type == "address":
             if not self.radius:  #: single address search, non comps
                 property_id = location_info["mpr_id"]
                 search_variables |= {"property_id": property_id}
 
-                gql_results = self.general_search(search_variables, search_type=search_type)
+                gql_results = self.general_search(
+                    search_variables, search_type=search_type
+                )
                 if gql_results["total"] == 0:
                     listing_id = self.get_latest_listing_id(property_id)
                     if listing_id is None:
@@ -561,8 +580,17 @@ class RealtorScraper(Scraper):
     @staticmethod
     def _parse_description(result: dict) -> Description:
         description_data = result.get("description", {})
+
+        if description_data is None or not isinstance(description_data, dict):
+            print("Warning: description_data is invalid!")
+            description_data = {}
+
+        style = description_data.get("type", "")
+        if style is not None:
+            style = style.upper()
+
         return Description(
-            style=description_data.get("type", "").upper(),
+            style=style,
             beds=description_data.get("beds"),
             baths_full=description_data.get("baths_full"),
             baths_half=description_data.get("baths_half"),
