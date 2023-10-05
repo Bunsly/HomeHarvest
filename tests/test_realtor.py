@@ -5,6 +5,21 @@ from homeharvest.exceptions import (
 )
 
 
+def test_realtor_pending_or_contingent():
+    pending_or_contingent_result = scrape_property(
+        location="Surprise, AZ",
+        pending_or_contingent=True,
+    )
+
+    regular_result = scrape_property(
+        location="Surprise, AZ",
+        pending_or_contingent=False,
+    )
+
+    assert all([result is not None for result in [pending_or_contingent_result, regular_result]])
+    assert len(pending_or_contingent_result) != len(regular_result)
+
+
 def test_realtor_comps():
     result = scrape_property(
         location="2530 Al Lipscomb Way",

@@ -13,6 +13,7 @@ def scrape_property(
     radius: float = None,
     mls_only: bool = False,
     property_younger_than: int = None,
+    pending_or_contingent: bool = False,
     proxy: str = None,
 ) -> pd.DataFrame:
     """
@@ -22,6 +23,7 @@ def scrape_property(
     :param radius: Get properties within _ (e.g. 1.0) miles. Only applicable for individual addresses.
     :param mls_only: If set, fetches only listings with MLS IDs.
     :param property_younger_than: Get properties sold/listed in last _ days.
+    :param pending_or_contingent: If set, fetches only pending or contingent listings. Only applicable for for_sale listings from general area searches.
     :param proxy: Proxy to use for scraping
     """
     validate_input(listing_type)
@@ -33,6 +35,7 @@ def scrape_property(
         radius=radius,
         mls_only=mls_only,
         last_x_days=property_younger_than,
+        pending_or_contingent=pending_or_contingent,
     )
 
     site = RealtorScraper(scraper_input)

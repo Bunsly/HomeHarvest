@@ -328,7 +328,9 @@ class RealtorScraper(Scraper):
             else "sort: [{ field: list_date, direction: desc }]"
         )
 
-        if search_type == "comps":
+        pending_or_contingent_param = "or_filters: { contingent: true, pending: true }" if self.pending_or_contingent else ""
+
+        if search_type == "comps":  #: comps search, came from an address
             query = """query Property_search(
                     $coordinates: [Float]!
                     $radius: String!
@@ -352,7 +354,7 @@ class RealtorScraper(Scraper):
                 sort_param,
                 results_query,
             )
-        elif search_type == "area":
+        elif search_type == "area":  #: general search, came from a general location
             query = """query Home_search(
                                 $city: String,
                                 $county: [String],
@@ -368,6 +370,7 @@ class RealtorScraper(Scraper):
                                         state_code: $state_code
                                         status: %s
                                         %s
+                                        %s
                                     }
                                     %s
                                     limit: 200
@@ -375,10 +378,11 @@ class RealtorScraper(Scraper):
                                 ) %s""" % (
                 self.listing_type.value.lower(),
                 date_param,
+                pending_or_contingent_param,
                 sort_param,
                 results_query,
             )
-        else:
+        else:  #: general search, came from an address
             query = (
                     """query Property_search(
                         $property_id: [ID]!
