@@ -109,7 +109,7 @@ Optional
 ├── radius (decimal): Radius in miles to find comparable properties based on individual addresses.
 │    Example: 5.5 (fetches properties within a 5.5-mile radius if location is set to a specific address; otherwise, ignored)
 │
-├── property_younger_than (integer): Number of past days to filter properties. Utilizes 'COEDate' for 'sold' listing types, and 'Lst Date' for others (for_rent, for_sale).
+├── property_younger_than (integer): Number of past days to filter properties. Utilizes 'last_sold_date' for 'sold' listing types, and 'list_date' for others (for_rent, for_sale).
 │    Example: 30 (fetches properties listed/sold in the last 30 days)
 │
 ├── mls_only (True/False): If set, fetches only MLS listings (mainly applicable to 'sold' listings)
