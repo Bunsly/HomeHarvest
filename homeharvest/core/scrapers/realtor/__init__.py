@@ -18,7 +18,6 @@ class RealtorScraper(Scraper):
     ADDRESS_AUTOCOMPLETE_URL = "https://parser-external.geo.moveaws.com/suggest"
 
     def __init__(self, scraper_input):
-        self.counter = 1
         super().__init__(scraper_input)
 
     def handle_location(self):
@@ -274,6 +273,10 @@ class RealtorScraper(Scraper):
                                 last_sold_date
                                 list_price
                                 price_per_sqft
+                                flags {
+                                    is_contingent
+                                    is_pending
+                                }
                                 description {
                                     sqft
                                     beds
@@ -335,9 +338,11 @@ class RealtorScraper(Scraper):
 
         pending_or_contingent_param = (
             "or_filters: { contingent: true, pending: true }"
-            if self.pending_or_contingent
+            if self.listing_type == ListingType.PENDING
             else ""
         )
+
+        listing_type = ListingType.FOR_SALE if self.listing_type == ListingType.PENDING else self.listing_type
 
         if search_type == "comps":  #: comps search, came from an address
             query = """query Property_search(
@@ -345,7 +350,7 @@ class RealtorScraper(Scraper):
                     $radius: String!
                     $offset: Int!,
                     ) {
-                        property_search(
+                        home_search(
                             query: { 
                                 nearby: {
                                     coordinates: $coordinates
@@ -353,13 +358,15 @@ class RealtorScraper(Scraper):
                                 }
                                 status: %s
                                 %s
+                                %s
                             }
                             %s
                             limit: 200
                             offset: $offset
                     ) %s""" % (
-                self.listing_type.value.lower(),
+                listing_type.value.lower(),
                 date_param,
+                pending_or_contingent_param,
                 sort_param,
                 results_query,
             )
@@ -385,7 +392,7 @@ class RealtorScraper(Scraper):
                                     limit: 200
                                     offset: $offset
                                 ) %s""" % (
-                self.listing_type.value.lower(),
+                listing_type.value.lower(),
                 date_param,
                 pending_or_contingent_param,
                 sort_param,
@@ -415,7 +422,7 @@ class RealtorScraper(Scraper):
         response = self.session.post(self.SEARCH_GQL_URL, json=payload)
         response.raise_for_status()
         response_json = response.json()
-        search_key = "home_search" if search_type == "area" else "property_search"
+        search_key = "home_search" if "home_search" in query else "property_search"
 
         properties: list[Property] = []
 
@@ -430,7 +437,6 @@ class RealtorScraper(Scraper):
             return {"total": 0, "properties": []}
 
         for result in response_json["data"][search_key]["results"]:
-            self.counter += 1
             mls = (
                 result["source"].get("id")
                 if "source" in result and isinstance(result["source"], dict)
@@ -447,13 +453,15 @@ class RealtorScraper(Scraper):
                 and result["location"]["address"].get("coordinate")
             )
 
+            is_pending = result["flags"].get("is_pending") or result["flags"].get("is_contingent")
+
             realty_property = Property(
                 mls=mls,
                 mls_id=result["source"].get("listing_id")
                 if "source" in result and isinstance(result["source"], dict)
                 else None,
                 property_url=f"{self.PROPERTY_URL}{result['property_id']}",
-                status=result["status"].upper(),
+                status="PENDING" if is_pending else result["status"].upper(),
                 list_price=result["list_price"],
                 list_date=result["list_date"].split("T")[0]
                 if result.get("list_date")

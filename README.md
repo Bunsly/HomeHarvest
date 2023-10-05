@@ -45,9 +45,8 @@ filename = f"HomeHarvest_{current_timestamp}.csv"
 
 properties = scrape_property(
   location="San Diego, CA",
-  listing_type="sold",  # or (for_sale, for_rent)
+  listing_type="sold",  # or (for_sale, for_rent, pending)
   past_days=30,  # sold in last 30 days - listed in last x days if (for_sale, for_rent)
-  # pending_or_contingent=True # use on for_sale listings to find pending / contingent listings
   # mls_only=True,  # only fetch MLS listings
   # proxy="http://user:pass@host:port"  # use a proxy to change your IP address
 )
@@ -69,7 +68,7 @@ positional arguments:
   location              Location to scrape (e.g., San Francisco, CA)                                                          
                                                                                                                              
 options:                                                                                                                      
-  -l {for_sale,for_rent,sold}, --listing_type {for_sale,for_rent,sold}                                                        
+  -l {for_sale,for_rent,sold,pending}, --listing_type {for_sale,for_rent,sold,pending}                                                        
                         Listing type to scrape                                                                                
   -o {excel,csv}, --output {excel,csv}                                                                                        
                         Output format                                                                                         
@@ -81,9 +80,6 @@ options:
   -r RADIUS, --radius RADIUS                                                                                                  
                         Get comparable properties within _ (e.g., 0.0) miles. Only applicable for individual addresses.        
   -m, --mls_only        If set, fetches only MLS listings.                                                                    
-  -c, --pending_or_contingent
-                        If set, fetches only pending or contingent listings. Only applicable for for_sale listings from general area searches.
-
 ```
 ```bash
 homeharvest "San Francisco, CA" -l for_rent -o excel -f HomeHarvest
@@ -110,6 +106,7 @@ Required
     - 'for_rent'
     - 'for_sale'
     - 'sold'
+    - 'pending'
 
 Optional
 ├── radius (decimal): Radius in miles to find comparable properties based on individual addresses.
@@ -117,8 +114,6 @@ Optional
 │
 ├── past_days (integer): Number of past days to filter properties. Utilizes 'last_sold_date' for 'sold' listing types, and 'list_date' for others (for_rent, for_sale).
 │    Example: 30 (fetches properties listed/sold in the last 30 days)
-|
-├── pending_or_contingent (True/False): If set, fetches only pending or contingent listings. Only applicable for `for_sale listings` from general area searches.
 │
 ├── mls_only (True/False): If set, fetches only MLS listings (mainly applicable to 'sold' listings)
 │

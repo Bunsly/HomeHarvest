@@ -8,12 +8,12 @@ from homeharvest.exceptions import (
 def test_realtor_pending_or_contingent():
     pending_or_contingent_result = scrape_property(
         location="Surprise, AZ",
-        pending_or_contingent=True,
+        listing_type="pending"
     )
 
     regular_result = scrape_property(
         location="Surprise, AZ",
-        pending_or_contingent=False,
+        listing_type="for_sale"
     )
 
     assert all(
@@ -23,6 +23,35 @@ def test_realtor_pending_or_contingent():
         ]
     )
     assert len(pending_or_contingent_result) != len(regular_result)
+
+
+def test_realtor_pending_comps():
+    pending_comps = scrape_property(
+        location="2530 Al Lipscomb Way",
+        radius=5,
+        past_days=180,
+        listing_type="pending",
+    )
+
+    for_sale_comps = scrape_property(
+        location="2530 Al Lipscomb Way",
+        radius=5,
+        past_days=180,
+        listing_type="for_sale",
+    )
+
+    sold_comps = scrape_property(
+        location="2530 Al Lipscomb Way",
+        radius=5,
+        past_days=180,
+        listing_type="sold",
+    )
+
+    results = [pending_comps, for_sale_comps, sold_comps]
+    assert all([result is not None for result in results])
+
+    #: assert all lengths are different
+    assert len(set([len(result) for result in results])) == len(results)
 
 
 def test_realtor_comps():

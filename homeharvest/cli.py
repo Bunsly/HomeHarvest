@@ -14,7 +14,7 @@ def main():
         "--listing_type",
         type=str,
         default="for_sale",
-        choices=["for_sale", "for_rent", "sold"],
+        choices=["for_sale", "for_rent", "sold", "pending"],
         help="Listing type to scrape",
     )
 
@@ -60,13 +60,6 @@ def main():
         help="If set, fetches only MLS listings.",
     )
 
-    parser.add_argument(
-        "-c",
-        "--pending_or_contingent",
-        action="store_true",
-        help="If set, fetches only pending or contingent listings. Only applicable for for_sale listings from general area searches.",
-    )
-
     args = parser.parse_args()
 
     result = scrape_property(
@@ -76,7 +69,6 @@ def main():
         proxy=args.proxy,
         mls_only=args.mls_only,
         past_days=args.days,
-        pending_or_contingent=args.pending_or_contingent,
     )
 
     if not args.filename:

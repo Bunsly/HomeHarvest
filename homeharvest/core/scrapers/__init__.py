@@ -11,7 +11,6 @@ class ScraperInput:
     mls_only: bool | None = None
     proxy: str | None = None
     last_x_days: int | None = None
-    pending_or_contingent: bool | None = None
 
 
 class Scraper:
@@ -37,7 +36,6 @@ class Scraper:
         self.radius = scraper_input.radius
         self.last_x_days = scraper_input.last_x_days
         self.mls_only = scraper_input.mls_only
-        self.pending_or_contingent = scraper_input.pending_or_contingent
 
     def search(self) -> list[Property]:
         ...

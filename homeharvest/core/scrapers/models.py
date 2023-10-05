@@ -19,6 +19,7 @@ class SiteName(Enum):
 class ListingType(Enum):
     FOR_SALE = "FOR_SALE"
     FOR_RENT = "FOR_RENT"
+    PENDING = "PENDING"
     SOLD = "SOLD"
 
 
