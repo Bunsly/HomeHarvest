@@ -29,7 +29,7 @@ def test_realtor_comps():
     result = scrape_property(
         location="2530 Al Lipscomb Way",
         radius=0.5,
-        property_younger_than=180,
+        past_days=180,
         listing_type="sold",
     )
 
@@ -38,11 +38,11 @@ def test_realtor_comps():
 
 def test_realtor_last_x_days_sold():
     days_result_30 = scrape_property(
-        location="Dallas, TX", listing_type="sold", property_younger_than=30
+        location="Dallas, TX", listing_type="sold", past_days=30
     )
 
     days_result_10 = scrape_property(
-        location="Dallas, TX", listing_type="sold", property_younger_than=10
+        location="Dallas, TX", listing_type="sold", past_days=10
     )
 
     assert all(

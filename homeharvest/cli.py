@@ -75,7 +75,7 @@ def main():
         radius=args.radius,
         proxy=args.proxy,
         mls_only=args.mls_only,
-        property_younger_than=args.days,
+        past_days=args.days,
         pending_or_contingent=args.pending_or_contingent,
     )
 
