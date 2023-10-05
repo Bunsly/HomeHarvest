@@ -17,8 +17,9 @@ Check out another project we wrote: ***[JobSpy](https://github.com/cullenwatson/
 - **Data Format**: Structures data to resemble MLS listings.
 - **Export Flexibility**: Options to save as either CSV or Excel.
 - **Usage Modes**:
-  - **CLI**: For users who prefer command-line operations.
   - **Python**: For those who'd like to integrate scraping into their Python scripts.
+  - **CLI**: For users who prefer command-line operations.
+
 
 [Video Guide for HomeHarvest](https://youtu.be/JnV7eR2Ve2o) - _updated for release v0.2.7_
 
@@ -32,6 +33,30 @@ pip install homeharvest
   _Python version >= [3.10](https://www.python.org/downloads/release/python-3100/) required_ 
 
 ## Usage
+
+### Python
+
+```py
+from homeharvest import scrape_property
+from datetime import datetime
+
+# Generate filename based on current timestamp
+current_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+filename = f"HomeHarvest_{current_timestamp}.csv"
+
+properties = scrape_property(
+  location="San Diego, CA",
+  listing_type="sold",  # or (for_sale, for_rent)
+  property_younger_than=30,  # sold in last 30 days - listed in last x days if (for_sale, for_rent)
+  # pending_or_contingent=True # use on for_sale listings to find pending / contingent listings
+  # mls_only=True,  # only fetch MLS listings
+)
+print(f"Number of properties: {len(properties)}")
+
+# Export to csv
+properties.to_csv(filename, index=False)
+print(properties.head())
+```
 
 ### CLI 
 
@@ -61,29 +86,6 @@ options:
 > homeharvest "San Francisco, CA" -l for_rent -o excel -f HomeHarvest
 ```
 
-### Python
-
-```py
-from homeharvest import scrape_property
-from datetime import datetime
-
-# Generate filename based on current timestamp
-current_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-filename = f"HomeHarvest_{current_timestamp}.csv"
-
-properties = scrape_property(
-  location="San Diego, CA",
-  listing_type="sold",  # or (for_sale, for_rent)
-  property_younger_than=30,  # sold in last 30 days - listed in last x days if (for_sale, for_rent)
-  # pending_or_contingent=True # use on for_sale listings to find pending / contingent listings
-  # mls_only=True,  # only fetch MLS listings
-)
-print(f"Number of properties: {len(properties)}")
-
-# Export to csv
-properties.to_csv(filename, index=False)
-print(properties.head())
-```
 
 ## Output
 ```plaintext
