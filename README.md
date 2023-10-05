@@ -86,7 +86,7 @@ options:
 
 ```
 ```bash
-> homeharvest "San Francisco, CA" -l for_rent -o excel -f HomeHarvest
+homeharvest "San Francisco, CA" -l for_rent -o excel -f HomeHarvest
 ```
 
 

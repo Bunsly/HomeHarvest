@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 import requests
-import tls_client
 from .models import Property, ListingType, SiteName
 
 
@@ -19,7 +18,7 @@ class Scraper:
     def __init__(
         self,
         scraper_input: ScraperInput,
-        session: requests.Session | tls_client.Session = None,
+        session: requests.Session = None,
     ):
         self.location = scraper_input.location
         self.listing_type = scraper_input.listing_type
