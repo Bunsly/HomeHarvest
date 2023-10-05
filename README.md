@@ -111,6 +111,8 @@ Optional
 │
 ├── property_younger_than (integer): Number of past days to filter properties. Utilizes 'last_sold_date' for 'sold' listing types, and 'list_date' for others (for_rent, for_sale).
 │    Example: 30 (fetches properties listed/sold in the last 30 days)
+|
+├── pending_or_contingent (True/False): If set, fetches only pending or contingent listings. Only applicable for `for_sale listings` from general area searches.
 │
 ├── mls_only (True/False): If set, fetches only MLS listings (mainly applicable to 'sold' listings)
 │
