@@ -459,7 +459,7 @@ class RealtorScraper(Scraper):
                 if able_to_get_lat_long
                 else None,
                 address=self._parse_address(result, search_type="general_search"),
-                neighborhoods=self._parse_neighborhoods(result),
+                #: neighborhoods=self._parse_neighborhoods(result),
                 description=self._parse_description(result),
             )
             properties.append(realty_property)

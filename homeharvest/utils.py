@@ -1,74 +1,62 @@
 from .core.scrapers.models import Property, ListingType
 import pandas as pd
+from .exceptions import InvalidListingType
 
 ordered_properties = [
-    "PropertyURL",
-    "MLS",
-    "MLS #",
-    "Status",
-    "Style",
-    "Street",
-    "Unit",
-    "City",
-    "State",
-    "Zip",
-    "Beds",
-    "FB",
-    "NumHB",
-    "EstSF",
-    "YrBlt",
-    "ListPrice",
-    "Lst Date",
-    "Sold Price",
-    "COEDate",
-    "LotSFApx",
-    "PrcSqft",
-    "LATITUDE",
-    "LONGITUDE",
-    "Stories",
-    "HOAFee",
-    "PrkgGar",
-    "Community",
+    "property_url",
+    "mls",
+    "mls_id",
+    "status",
+    "style",
+    "street",
+    "unit",
+    "city",
+    "state",
+    "zip_code",
+    "beds",
+    "full_baths",
+    "half_baths",
+    "sqft",
+    "year_built",
+    "list_price",
+    "list_date",
+    "sold_price",
+    "last_sold_date",
+    "lot_sqft",
+    "price_per_sqft",
+    "latitude",
+    "longitude",
+    "stories",
+    "hoa_fee",
+    "parking_garage",
 ]
 
 
 def process_result(result: Property) -> pd.DataFrame:
     prop_data = {prop: None for prop in ordered_properties}
     prop_data.update(result.__dict__)
-    prop_data["PropertyURL"] = prop_data["property_url"]
-    prop_data["MLS"] = prop_data["mls"]
-    prop_data["MLS #"] = prop_data["mls_id"]
-    prop_data["Status"] = prop_data["status"]
 
     if "address" in prop_data:
         address_data = prop_data["address"]
-        prop_data["Street"] = address_data.street
-        prop_data["Unit"] = address_data.unit
-        prop_data["City"] = address_data.city
-        prop_data["State"] = address_data.state
-        prop_data["Zip"] = address_data.zip
+        prop_data["street"] = address_data.street
+        prop_data["unit"] = address_data.unit
+        prop_data["city"] = address_data.city
+        prop_data["state"] = address_data.state
+        prop_data["zip_code"] = address_data.zip
 
-    prop_data["ListPrice"] = prop_data["list_price"]
-    prop_data["Lst Date"] = prop_data["list_date"]
-    prop_data["COEDate"] = prop_data["last_sold_date"]
-    prop_data["PrcSqft"] = prop_data["prc_sqft"]
-    prop_data["HOAFee"] = prop_data["hoa_fee"]
+    prop_data["price_per_sqft"] = prop_data["prc_sqft"]
 
     description = result.description
-    prop_data["Style"] = description.style
-    prop_data["Beds"] = description.beds
-    prop_data["FB"] = description.baths_full
-    prop_data["NumHB"] = description.baths_half
-    prop_data["EstSF"] = description.sqft
-    prop_data["LotSFApx"] = description.lot_sqft
-    prop_data["Sold Price"] = description.sold_price
-    prop_data["YrBlt"] = description.year_built
-    prop_data["PrkgGar"] = description.garage
-    prop_data["Stories"] = description.stories
-
-    prop_data["LATITUDE"] = prop_data["latitude"]
-    prop_data["LONGITUDE"] = prop_data["longitude"]
-    prop_data["Community"] = prop_data["neighborhoods"]
+    prop_data["style"] = description.style
+    prop_data["beds"] = description.beds
+    prop_data["full_baths"] = description.baths_full
+    prop_data["half_baths"] = description.baths_half
+    prop_data["sqft"] = description.sqft
+    prop_data["lot_sqft"] = description.lot_sqft
+    prop_data["sold_price"] = description.sold_price
+    prop_data["year_built"] = description.year_built
+    prop_data["parking_garage"] = description.garage
+    prop_data["stories"] = description.stories
 
     properties_df = pd.DataFrame([prop_data])
     properties_df = properties_df.reindex(columns=ordered_properties)
