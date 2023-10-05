@@ -121,41 +121,42 @@ Optional
 ```plaintext
 Property
 ├── Basic Information:
-│ ├── property_url (str)
-│ ├── mls (str)
-│ ├── mls_id (str)
-│ └── status (str)
+│ ├── property_url
+│ ├── mls
+│ ├── mls_id
+│ └── status
 
 ├── Address Details:
 │ ├── street
 │ ├── unit
 │ ├── city
 │ ├── state
-│ └── zip
+│ └── zip_code
 
 ├── Property Description:
 │ ├── style
 │ ├── beds
-│ ├── baths_full
-│ ├── baths_half
+│ ├── full_baths
+│ ├── half_baths
 │ ├── sqft
-│ ├── lot_sqft
-│ ├── sold_price
 │ ├── year_built
-│ ├── garage
-│ └── stories
+│ ├── stories
+│ └── lot_sqft
 
 ├── Property Listing Details:
 │ ├── list_price
 │ ├── list_date
+│ ├── sold_price
 │ ├── last_sold_date
-│ ├── prc_sqft
+│ ├── price_per_sqft
 │ └── hoa_fee
 
 ├── Location Details:
 │ ├── latitude
 │ ├── longitude
-│ └── neighborhoods
+
+└── Parking Details:
+    └── parking_garage
 ```
 
 ### Exceptions
