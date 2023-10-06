@@ -20,7 +20,7 @@ Check out another project we wrote: ***[JobSpy](https://github.com/cullenwatson/
   - **CLI**: For users who prefer command-line operations.
 
 
-[Video Guide for HomeHarvest](https://youtu.be/JnV7eR2Ve2o) - _updated for release v0.2.7_
+[Video Guide for HomeHarvest](https://youtu.be/J1qgNPgmSLI) - _updated for release v0.3.4_
 
 ![homeharvest](https://github.com/ZacharyHampton/HomeHarvest/assets/78247585/b3d5d727-e67b-4a9f-85d8-1e65fd18620a)
 
