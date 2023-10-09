@@ -4,6 +4,7 @@ homeharvest.realtor.__init__
 
 This module implements the scraper for realtor.com
 """
+from datetime import datetime
 from typing import Dict, Union, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -104,11 +105,29 @@ class RealtorScraper(Scraper):
         )
 
         able_to_get_lat_long = (
-            property_info
-            and property_info.get("address")
-            and property_info["address"].get("location")
-            and property_info["address"]["location"].get("coordinate")
+                property_info
+                and property_info.get("address")
+                and property_info["address"].get("location")
+                and property_info["address"]["location"].get("coordinate")
         )
+        list_date_str = property_info["basic"]["list_date"].split("T")[0] if property_info["basic"].get(
+            "list_date") else None
+        last_sold_date_str = property_info["basic"]["sold_date"].split("T")[0] if property_info["basic"].get(
+            "sold_date") else None
+
+        list_date = datetime.strptime(list_date_str, "%Y-%m-%d") if list_date_str else None
+        last_sold_date = datetime.strptime(last_sold_date_str, "%Y-%m-%d") if last_sold_date_str else None
+        today = datetime.now()
+
+        days_on_mls = None
+        status = property_info["basic"]["status"].lower()
+        if list_date:
+            if status == "sold" and last_sold_date:
+                days_on_mls = (last_sold_date - list_date).days
+            elif status in ('for_sale', 'for_rent'):
+                days_on_mls = (today - list_date).days
+            if days_on_mls and days_on_mls < 0:
+                days_on_mls = None
 
         listing = Property(
             mls=mls,
@@ -118,17 +137,13 @@ class RealtorScraper(Scraper):
             property_url=f"{self.PROPERTY_URL}{property_info['details']['permalink']}",
             status=property_info["basic"]["status"].upper(),
             list_price=property_info["basic"]["price"],
-            list_date=property_info["basic"]["list_date"].split("T")[0]
-            if property_info["basic"].get("list_date")
-            else None,
+            list_date=list_date,
             prc_sqft=property_info["basic"].get("price")
-            / property_info["basic"].get("sqft")
+                     / property_info["basic"].get("sqft")
             if property_info["basic"].get("price")
-            and property_info["basic"].get("sqft")
+               and property_info["basic"].get("sqft")
             else None,
-            last_sold_date=property_info["basic"]["sold_date"].split("T")[0]
-            if property_info["basic"].get("sold_date")
-            else None,
+            last_sold_date=last_sold_date,
             latitude=property_info["address"]["location"]["coordinate"].get("lat")
             if able_to_get_lat_long
             else None,
@@ -148,6 +163,7 @@ class RealtorScraper(Scraper):
                 garage=property_info["details"].get("garage"),
                 stories=property_info["details"].get("stories"),
             ),
+            days_on_mls=days_on_mls
         )
 
         return [listing]
@@ -478,8 +494,8 @@ class RealtorScraper(Scraper):
                 if able_to_get_lat_long
                 else None,
                 address=self._parse_address(result, search_type="general_search"),
-                #: neighborhoods=self._parse_neighborhoods(result),
                 description=self._parse_description(result),
+                days_on_mls=self.calculate_days_on_mls(result)
             )
             properties.append(realty_property)
 
@@ -590,7 +606,6 @@ class RealtorScraper(Scraper):
         description_data = result.get("description", {})
 
         if description_data is None or not isinstance(description_data, dict):
-            print("Warning: description_data is invalid!")
             description_data = {}
 
         style = description_data.get("type", "")
@@ -609,3 +624,22 @@ class RealtorScraper(Scraper):
             garage=description_data.get("garage"),
             stories=description_data.get("stories"),
         )
+
+    @staticmethod
+    def calculate_days_on_mls(result):
+        list_date_str = result.get("list_date")
+        list_date = datetime.strptime(list_date_str.split("T")[0], "%Y-%m-%d") if list_date_str else None
+        last_sold_date_str = result.get("last_sold_date")
+        last_sold_date = datetime.strptime(last_sold_date_str, "%Y-%m-%d") if last_sold_date_str else None
+        today = datetime.now()
+
+        if list_date:
+            if result["status"] == 'sold':
+                if last_sold_date:
+                    days = (last_sold_date - list_date).days
+                    if days >= 0:
+                        return days
+            elif result["status"] in ('for_sale', 'for_rent'):
+                days = (today - list_date).days
+                if days >= 0:
+                    return days
