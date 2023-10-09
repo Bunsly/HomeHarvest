@@ -7,14 +7,10 @@ from homeharvest.exceptions import (
 
 def test_realtor_pending_or_contingent():
     pending_or_contingent_result = scrape_property(
-        location="Surprise, AZ",
-        listing_type="pending"
+        location="Surprise, AZ", listing_type="pending"
     )
 
-    regular_result = scrape_property(
-        location="Surprise, AZ",
-        listing_type="for_sale"
-    )
+    regular_result = scrape_property(location="Surprise, AZ", listing_type="for_sale")
 
     assert all(
         [
