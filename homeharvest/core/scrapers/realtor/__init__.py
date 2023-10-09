@@ -626,7 +626,7 @@ class RealtorScraper(Scraper):
         )
 
     @staticmethod
-    def calculate_days_on_mls(result):
+    def calculate_days_on_mls(result: dict) -> Optional[int]:
         list_date_str = result.get("list_date")
         list_date = datetime.strptime(list_date_str.split("T")[0], "%Y-%m-%d") if list_date_str else None
         last_sold_date_str = result.get("last_sold_date")
