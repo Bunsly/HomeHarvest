@@ -18,6 +18,7 @@ ordered_properties = [
     "half_baths",
     "sqft",
     "year_built",
+    "days_on_mls",
     "list_price",
     "list_date",
     "sold_price",
