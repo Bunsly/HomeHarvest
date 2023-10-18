@@ -471,6 +471,9 @@ class RealtorScraper(Scraper):
 
             is_pending = result["flags"].get("is_pending") or result["flags"].get("is_contingent")
 
+            if is_pending and self.listing_type != ListingType.PENDING:
+                continue
+
             realty_property = Property(
                 mls=mls,
                 mls_id=result["source"].get("listing_id")
