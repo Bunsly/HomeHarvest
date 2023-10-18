@@ -50,6 +50,16 @@ def test_realtor_pending_comps():
     assert len(set([len(result) for result in results])) == len(results)
 
 
+def test_realtor_sold_past():
+    result = scrape_property(
+        location="San Diego, CA",
+        past_days=30,
+        listing_type="sold",
+    )
+
+    assert result is not None and len(result) > 0
+
+
 def test_realtor_comps():
     result = scrape_property(
         location="2530 Al Lipscomb Way",

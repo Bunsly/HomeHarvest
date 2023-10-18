@@ -587,21 +587,28 @@ class RealtorScraper(Scraper):
         return ", ".join(neighborhoods_list) if neighborhoods_list else None
 
     @staticmethod
-    def _parse_address(result: dict, search_type):
+    def handle_none_safely(address_part):
+        if address_part is None:
+            return ""
+
+        return address_part
+
+    def _parse_address(self, result: dict, search_type):
         if search_type == "general_search":
-            return Address(
-                street=f"{result['location']['address']['street_number']} {result['location']['address']['street_name']} {result['location']['address']['street_suffix']}",
-                unit=result["location"]["address"]["unit"],
-                city=result["location"]["address"]["city"],
-                state=result["location"]["address"]["state_code"],
-                zip=result["location"]["address"]["postal_code"],
-            )
+            address = result['location']['address']
+        else:
+            address = result["address"]
+
         return Address(
-            street=f"{result['address']['street_number']} {result['address']['street_name']} {result['address']['street_suffix']}",
-            unit=result["address"]["unit"],
-            city=result["address"]["city"],
-            state=result["address"]["state_code"],
-            zip=result["address"]["postal_code"],
+            street=" ".join([
+                self.handle_none_safely(address.get('street_number')),
+                self.handle_none_safely(address.get('street_name')),
+                self.handle_none_safely(address.get('street_suffix')),
+            ]).strip(),
+            unit=address["unit"],
+            city=address["city"],
+            state=address["state_code"],
+            zip=address["postal_code"],
         )
 
     @staticmethod
