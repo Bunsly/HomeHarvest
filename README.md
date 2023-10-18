@@ -8,7 +8,7 @@
 
 *Looking to build a data-focused software product?* **[Book a call](https://calendly.com/bunsly/15min)** *to work with us.*
 
-Check out another project we wrote: ***[JobSpy](https://github.com/cullenwatson/JobSpy)** – a Python package for job scraping*
+Check out another project we wrote: ***[JobSpy](https://github.com/Bunsly/JobSpy)** – a Python package for job scraping*
 
 ## HomeHarvest Features
 
