@@ -91,14 +91,15 @@ Optional
 ├── past_days (integer): Number of past days to filter properties. Utilizes 'last_sold_date' for 'sold' listing types, and 'list_date' for others (for_rent, for_sale).
 │    Example: 30 (fetches properties listed/sold in the last 30 days)
 │
-├── date_range (string tuple): Start and end dates to filter properties listed or sold, both dates are required.
+├── date_from, date_to (string): Start and end dates to filter properties listed or sold, both dates are required.
 }    (use this to get properties in chunks as there's a 10k result limit)
 │    Format for both must be "YYYY-MM-DD". 
-│    Example: ("2023-05-01", "2023-05-15") (fetches properties listed/sold between these dates)
+│    Example: "2023-05-01", "2023-05-15" (fetches properties listed/sold between these dates)
 │
 ├── mls_only (True/False): If set, fetches only MLS listings (mainly applicable to 'sold' listings)
 │
 └── proxy (string): In format 'http://user:pass@host:port'
+
 
 ```
 
