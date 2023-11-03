@@ -178,7 +178,7 @@ Property
 The following exceptions may be raised when using HomeHarvest:
 
 - `InvalidListingType` - valid options: `for_sale`, `for_rent`, `sold`
-- `NoResultsFound` - no properties found from your search
+- `InvalidDate` - date_from or date_to is not in the format YYYY-MM-DD
   
   
 ## Frequently Asked Questions
