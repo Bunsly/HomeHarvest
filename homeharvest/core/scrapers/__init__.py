@@ -11,6 +11,8 @@ class ScraperInput:
     mls_only: bool | None = None
     proxy: str | None = None
     last_x_days: int | None = None
+    date_from: str | None = None
+    date_to: str | None = None
 
 
 class Scraper:
@@ -36,6 +38,8 @@ class Scraper:
         self.radius = scraper_input.radius
         self.last_x_days = scraper_input.last_x_days
         self.mls_only = scraper_input.mls_only
+        self.date_from = scraper_input.date_from
+        self.date_to = scraper_input.date_to
 
     def search(self) -> list[Property]:
         ...

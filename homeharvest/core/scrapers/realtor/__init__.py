@@ -9,7 +9,6 @@ from typing import Dict, Union, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .. import Scraper
-from ....exceptions import NoResultsFound
 from ..models import Property, Address, ListingType, Description
 
 
@@ -38,7 +37,7 @@ class RealtorScraper(Scraper):
         result = response_json["autocomplete"]
 
         if not result:
-            raise NoResultsFound("No results found for location: " + self.location)
+            return None
 
         return result[0]
 
@@ -336,15 +335,17 @@ class RealtorScraper(Scraper):
                         }
                     }"""
 
-        date_param = (
-            'sold_date: { min: "$today-%sD" }' % self.last_x_days
-            if self.listing_type == ListingType.SOLD and self.last_x_days
-            else (
-                'list_date: { min: "$today-%sD" }' % self.last_x_days
-                if self.last_x_days
-                else ""
-            )
-        )
+        date_param = ""
+        if self.listing_type == ListingType.SOLD:
+            if self.date_from and self.date_to:
+                date_param = f'sold_date: {{ min: "{self.date_from}", max: "{self.date_to}" }}'
+            elif self.last_x_days:
+                date_param = f'sold_date: {{ min: "$today-{self.last_x_days}D" }}'
+        else:
+            if self.date_from and self.date_to:
+                date_param = f'list_date: {{ min: "{self.date_from}", max: "{self.date_to}" }}'
+            elif self.last_x_days:
+                date_param = f'list_date: {{ min: "$today-{self.last_x_days}D" }}'
 
         sort_param = (
             "sort: [{ field: sold_date, direction: desc }]"
@@ -509,6 +510,9 @@ class RealtorScraper(Scraper):
 
     def search(self):
         location_info = self.handle_location()
+        if not location_info:
+            return []
+
         location_type = location_info["area_type"]
 
         search_variables = {

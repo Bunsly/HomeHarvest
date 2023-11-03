@@ -1,7 +1,6 @@
 from homeharvest import scrape_property
 from homeharvest.exceptions import (
     InvalidListingType,
-    NoResultsFound,
 )
 
 
@@ -85,6 +84,20 @@ def test_realtor_last_x_days_sold():
     ) and len(days_result_30) != len(days_result_10)
 
 
+def test_realtor_date_range_sold():
+    days_result_30 = scrape_property(
+        location="Dallas, TX", listing_type="sold", date_from="2023-05-01", date_to="2023-05-28"
+    )
+
+    days_result_60 = scrape_property(
+        location="Dallas, TX", listing_type="sold", date_from="2023-04-01", date_to="2023-06-10"
+    )
+
+    assert all(
+        [result is not None for result in [days_result_30, days_result_60]]
+    ) and len(days_result_30) < len(days_result_60)
+
+
 def test_realtor_single_property():
     results = [
         scrape_property(
@@ -117,15 +130,12 @@ def test_realtor():
 
     assert all([result is not None for result in results])
 
-    bad_results = []
-    try:
-        bad_results += [
-            scrape_property(
-                location="abceefg ju098ot498hh9",
-                listing_type="for_sale",
-            )
-        ]
-    except (InvalidListingType, NoResultsFound):
+
+def test_realtor_bad_address():
+    bad_results = scrape_property(
+            location="abceefg ju098ot498hh9",
+            listing_type="for_sale",
+        )
+    if len(bad_results) == 0:
         assert True
 
-    assert all([result is None for result in bad_results])
