@@ -49,6 +49,7 @@ class RealtorScraper(Scraper):
                             listing_id
                         }
                         address {
+                            street_direction
                             street_number
                             street_name
                             street_suffix
@@ -215,6 +216,7 @@ class RealtorScraper(Scraper):
                             stories
                         }
                         address {
+                            street_direction
                             street_number
                             street_name
                             street_suffix
@@ -315,6 +317,7 @@ class RealtorScraper(Scraper):
                                 }
                                 location {
                                     address {
+                                        street_direction
                                         street_number
                                         street_name
                                         street_suffix
@@ -606,6 +609,7 @@ class RealtorScraper(Scraper):
         return Address(
             street=" ".join([
                 self.handle_none_safely(address.get('street_number')),
+                self.handle_none_safely(address.get('street_direction')),
                 self.handle_none_safely(address.get('street_name')),
                 self.handle_none_safely(address.get('street_suffix')),
             ]).strip(),
