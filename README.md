@@ -92,7 +92,7 @@ Optional
 │    Example: 30 (fetches properties listed/sold in the last 30 days)
 │
 ├── date_from, date_to (string): Start and end dates to filter properties listed or sold, both dates are required.
-}    (use this to get properties in chunks as there's a 10k result limit)
+|    (use this to get properties in chunks as there's a 10k result limit)
 │    Format for both must be "YYYY-MM-DD". 
 │    Example: "2023-05-01", "2023-05-15" (fetches properties listed/sold between these dates)
 │
