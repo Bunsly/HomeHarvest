@@ -84,6 +84,12 @@ class RealtorScraper(Scraper):
                             garage
                             permalink
                         }
+                        primary_photo {
+                            href
+                        }
+                        photos {
+                            href
+                        }
                     }
                 }"""
 
@@ -152,6 +158,8 @@ class RealtorScraper(Scraper):
             else None,
             address=self._parse_address(property_info, search_type="handle_listing"),
             description=Description(
+                primary_photo=property_info["primary_photo"].get("href", "").replace("s.jpg", "od-w480_h360_x2.webp?w=1080&q=75"),
+                alt_photos=self.process_alt_photos(property_info.get("photos", [])),
                 style=property_info["basic"].get("type", "").upper(),
                 beds=property_info["basic"].get("beds"),
                 baths_full=property_info["basic"].get("baths_full"),
@@ -247,6 +255,12 @@ class RealtorScraper(Scraper):
                             units
                             year_built
                         }
+                        primary_photo {
+                            href
+                        }
+                        photos {
+                            href
+                        }
                     }
                 }"""
 
@@ -333,6 +347,12 @@ class RealtorScraper(Scraper):
                                     neighborhoods {
                                         name
                                     }
+                                }
+                                primary_photo {
+                                    href
+                                }
+                                photos {
+                                    href
                                 }
                             }
                         }
@@ -621,6 +641,7 @@ class RealtorScraper(Scraper):
 
     @staticmethod
     def _parse_description(result: dict) -> Description:
+
         description_data = result.get("description", {})
 
         if description_data is None or not isinstance(description_data, dict):
@@ -630,7 +651,16 @@ class RealtorScraper(Scraper):
         if style is not None:
             style = style.upper()
 
+        primary_photo = ""
+        if result and "primary_photo" in result:
+            primary_photo_info = result["primary_photo"]
+            if primary_photo_info and "href" in primary_photo_info:
+                primary_photo_href = primary_photo_info["href"]
+                primary_photo = primary_photo_href.replace("s.jpg", "od-w480_h360_x2.webp?w=1080&q=75")
+
         return Description(
+            primary_photo=primary_photo,
+            alt_photos=RealtorScraper.process_alt_photos(result.get("photos")),
             style=style,
             beds=description_data.get("beds"),
             baths_full=description_data.get("baths_full"),
@@ -642,6 +672,7 @@ class RealtorScraper(Scraper):
             garage=description_data.get("garage"),
             stories=description_data.get("stories"),
         )
+
 
     @staticmethod
     def calculate_days_on_mls(result: dict) -> Optional[int]:
@@ -661,3 +692,16 @@ class RealtorScraper(Scraper):
                 days = (today - list_date).days
                 if days >= 0:
                     return days
+
+    @staticmethod
+    def process_alt_photos(photos_info):
+        try:
+            alt_photos = []
+            if photos_info:
+                for photo_info in photos_info:
+                    href = photo_info.get("href", "")
+                    alt_photo_href = href.replace("s.jpg", "od-w480_h360_x2.webp?w=1080&q=75")
+                    alt_photos.append(alt_photo_href)
+            return alt_photos
+        except Exception:
+            pass

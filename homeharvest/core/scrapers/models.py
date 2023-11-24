@@ -34,6 +34,8 @@ class Address:
 
 @dataclass
 class Description:
+    primary_photo: str | None = None
+    alt_photos: list[str] | None = None
     style: str | None = None
     beds: int | None = None
     baths_full: int | None = None

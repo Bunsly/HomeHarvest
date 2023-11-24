@@ -5,6 +5,8 @@ from .exceptions import InvalidListingType, InvalidDate
 
 ordered_properties = [
     "property_url",
+    "primary_photo",
+    "alt_photos",
     "mls",
     "mls_id",
     "status",
@@ -49,6 +51,8 @@ def process_result(result: Property) -> pd.DataFrame:
     prop_data["price_per_sqft"] = prop_data["prc_sqft"]
 
     description = result.description
+    prop_data["primary_photo"] = description.primary_photo
+    prop_data["alt_photos"] = ", ".join(description.alt_photos)
     prop_data["style"] = description.style
     prop_data["beds"] = description.beds
     prop_data["full_baths"] = description.baths_full
