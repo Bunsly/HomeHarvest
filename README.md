@@ -2,13 +2,9 @@
 
 **HomeHarvest** is a simple, yet comprehensive, real estate scraping library that extracts and formats data in the style of MLS listings.
 
-[![Try with Replit](https://replit.com/badge?caption=Try%20with%20Replit)](https://replit.com/@ZacharyHampton/HomeHarvestDemo)
-
 **Not technical?** Try out the web scraping tool on our site at [tryhomeharvest.com](https://tryhomeharvest.com).
 
 *Looking to build a data-focused software product?* **[Book a call](https://bunsly.com)** *to work with us.*
-
-Check out another project we wrote: ***[JobSpy](https://github.com/Bunsly/JobSpy)** – a Python package for job scraping*
 
 ## HomeHarvest Features
 
@@ -193,7 +189,7 @@ The following exceptions may be raised when using HomeHarvest:
 **A:** This indicates that you have been blocked by Realtor.com for sending too many requests. We recommend:
 
 - Waiting a few seconds between requests.
-- Trying a VPN or useing a proxy as a parameter to scrape_property() to change your IP address.
+- Trying a VPN or using a proxy as a parameter to scrape_property() to change your IP address.
 
 ---
 
