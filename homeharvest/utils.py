@@ -5,8 +5,6 @@ from .exceptions import InvalidListingType, InvalidDate
 
 ordered_properties = [
     "property_url",
-    "primary_photo",
-    "alt_photos",
     "mls",
     "mls_id",
     "status",
@@ -33,6 +31,8 @@ ordered_properties = [
     "stories",
     "hoa_fee",
     "parking_garage",
+    "primary_photo",
+    "alt_photos",
 ]
 
 
