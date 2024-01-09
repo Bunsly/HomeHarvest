@@ -503,7 +503,7 @@ class RealtorScraper(Scraper):
                 mls_id=result["source"].get("listing_id")
                 if "source" in result and isinstance(result["source"], dict)
                 else None,
-                property_url=f"{self.PROPERTY_URL}{result['property_id']}",
+                property_url=f"{self.PROPERTY_URL}{result['property_id']}" if self.listing_type != ListingType.FOR_RENT else f"{self.PROPERTY_URL}M{result['property_id']}?listing_status=rental",
                 status="PENDING" if is_pending else result["status"].upper(),
                 list_price=result["list_price"],
                 list_date=result["list_date"].split("T")[0]
