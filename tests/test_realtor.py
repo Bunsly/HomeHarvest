@@ -139,3 +139,15 @@ def test_realtor_bad_address():
     if len(bad_results) == 0:
         assert True
 
+
+def test_realtor_foreclosed():
+    foreclosed = scrape_property(
+        location="Dallas, TX", listing_type="for_sale", past_days=100, foreclosure=True
+    )
+
+    not_foreclosed = scrape_property(
+        location="Dallas, TX", listing_type="for_sale", past_days=100, foreclosure=False
+    )
+
+    assert len(foreclosed) != len(not_foreclosed)
+

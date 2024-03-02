@@ -13,6 +13,7 @@ class ScraperInput:
     last_x_days: int | None = None
     date_from: str | None = None
     date_to: str | None = None
+    foreclosure: bool | None = None
 
 
 class Scraper:
@@ -40,6 +41,7 @@ class Scraper:
         self.mls_only = scraper_input.mls_only
         self.date_from = scraper_input.date_from
         self.date_to = scraper_input.date_to
+        self.foreclosure = scraper_input.foreclosure
 
     def search(self) -> list[Property]:
         ...
