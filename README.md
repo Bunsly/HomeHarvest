@@ -11,8 +11,6 @@
 - **Source**: Fetches properties directly from **Realtor.com**.
 - **Data Format**: Structures data to resemble MLS listings.
 - **Export Flexibility**: Options to save as either CSV or Excel.
-- **Usage Modes**:
-  - **Python**: For those who'd like to integrate scraping into their Python scripts.
 
 [Video Guide for HomeHarvest](https://youtu.be/J1qgNPgmSLI) - _updated for release v0.3.4_
 
@@ -21,7 +19,7 @@
 ## Installation
 
 ```bash
-pip install homeharvest
+pip install -U homeharvest
 ```
   _Python version >= [3.10](https://www.python.org/downloads/release/python-3100/) required_ 
 
