@@ -1,6 +1,6 @@
 <img src="https://github.com/ZacharyHampton/HomeHarvest/assets/78247585/d1a2bf8b-09f5-4c57-b33a-0ada8a34f12d" width="400">
 
-**HomeHarvest** is a simple, yet comprehensive, real estate scraping library that extracts and formats data in the style of MLS listings.
+**HomeHarvest** is a real estate scraping library that extracts and formats data in the style of MLS listings.
 
 **Not technical?** Try out the web scraping tool on our site at [tryhomeharvest.com](https://tryhomeharvest.com).
 
@@ -13,8 +13,6 @@
 - **Export Flexibility**: Options to save as either CSV or Excel.
 - **Usage Modes**:
   - **Python**: For those who'd like to integrate scraping into their Python scripts.
-  - **CLI**: For users who prefer command-line operations.
-
 
 [Video Guide for HomeHarvest](https://youtu.be/J1qgNPgmSLI) - _updated for release v0.3.4_
 
@@ -46,9 +44,9 @@ properties = scrape_property(
   
   # date_from="2023-05-01", # alternative to past_days 
   # date_to="2023-05-28", 
+  # foreclosure=True
   
   # mls_only=True,  # only fetch MLS listings
-  # proxy="http://user:pass@host:port"  # use a proxy to change your IP address
 )
 print(f"Number of properties: {len(properties)}")
 
@@ -56,7 +54,6 @@ print(f"Number of properties: {len(properties)}")
 properties.to_csv(filename, index=False)
 print(properties.head())
 ```
-
 
 ## Output
 ```plaintext
@@ -94,37 +91,9 @@ Optional
 │
 ├── mls_only (True/False): If set, fetches only MLS listings (mainly applicable to 'sold' listings)
 │
+├── foreclosure (True/False): If set, fetches only foreclosures
+│
 └── proxy (string): In format 'http://user:pass@host:port'
-
-
-```
-
-### CLI 
-
-```
-usage: homeharvest [-l {for_sale,for_rent,sold}] [-o {excel,csv}] [-f FILENAME] [-p PROXY] [-d DAYS] [-r RADIUS] [-m] [-c] location
-                                                                                                                             
-Home Harvest Property Scraper                                                                                                 
-                                                                                                                             
-positional arguments:                                                                                                         
-  location              Location to scrape (e.g., San Francisco, CA)                                                          
-                                                                                                                             
-options:                                                                                                                      
-  -l {for_sale,for_rent,sold,pending}, --listing_type {for_sale,for_rent,sold,pending}                                                        
-                        Listing type to scrape                                                                                
-  -o {excel,csv}, --output {excel,csv}                                                                                        
-                        Output format                                                                                         
-  -f FILENAME, --filename FILENAME                                                                                            
-                        Name of the output file (without extension)                                                           
-  -p PROXY, --proxy PROXY                                                                                                     
-                        Proxy to use for scraping                                                                             
-  -d DAYS, --days DAYS  Sold/listed in last _ days filter.                                                                           
-  -r RADIUS, --radius RADIUS                                                                                                  
-                        Get comparable properties within _ (e.g., 0.0) miles. Only applicable for individual addresses.        
-  -m, --mls_only        If set, fetches only MLS listings.                                                                    
-```
-```bash
-homeharvest "San Francisco, CA" -l for_rent -o excel -f HomeHarvest
 ```
 
 ### Property Schema
@@ -176,20 +145,3 @@ The following exceptions may be raised when using HomeHarvest:
 - `InvalidListingType` - valid options: `for_sale`, `for_rent`, `sold`
 - `InvalidDate` - date_from or date_to is not in the format YYYY-MM-DD
   
-  
-## Frequently Asked Questions
----
-
-**Q: Encountering issues with your searches?**  
-**A:** Try to broaden the parameters you're using. If problems persist, [submit an issue](https://github.com/ZacharyHampton/HomeHarvest/issues).
-
----
-
-**Q: Received a Forbidden 403 response code?**  
-**A:** This indicates that you have been blocked by Realtor.com for sending too many requests. We recommend:
-
-- Waiting a few seconds between requests.
-- Trying a VPN or using a proxy as a parameter to scrape_property() to change your IP address.
-
----
-

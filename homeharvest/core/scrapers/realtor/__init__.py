@@ -381,9 +381,16 @@ class RealtorScraper(Scraper):
             if self.listing_type == ListingType.PENDING
             else ""
         )
-
+ 
         listing_type = ListingType.FOR_SALE if self.listing_type == ListingType.PENDING else self.listing_type
-
+        is_foreclosure = ""
+        
+        if 'foreclosure' in variables and variables['foreclosure'] == True:
+               is_foreclosure = "foreclosure: true"
+        
+        if 'foreclosure' in variables and variables['foreclosure'] == False:
+             is_foreclosure = "foreclosure: false"
+        
         if search_type == "comps":  #: comps search, came from an address
             query = """query Property_search(
                     $coordinates: [Float]!
@@ -392,6 +399,7 @@ class RealtorScraper(Scraper):
                     ) {
                         home_search(
                             query: { 
+                                %s
                                 nearby: {
                                     coordinates: $coordinates
                                     radius: $radius 
@@ -404,6 +412,7 @@ class RealtorScraper(Scraper):
                             limit: 200
                             offset: $offset
                     ) %s""" % (
+                is_foreclosure,        
                 listing_type.value.lower(),
                 date_param,
                 pending_or_contingent_param,
@@ -420,6 +429,7 @@ class RealtorScraper(Scraper):
                             ) {
                                 home_search(
                                     query: {
+                                        %s
                                         city: $city
                                         county: $county
                                         postal_code: $postal_code
@@ -432,6 +442,7 @@ class RealtorScraper(Scraper):
                                     limit: 200
                                     offset: $offset
                                 ) %s""" % (
+                is_foreclosure,
                 listing_type.value.lower(),
                 date_param,
                 pending_or_contingent_param,
@@ -541,7 +552,7 @@ class RealtorScraper(Scraper):
         search_variables = {
             "offset": 0,
         }
-
+     
         search_type = (
             "comps"
             if self.radius and location_type == "address"
@@ -585,6 +596,9 @@ class RealtorScraper(Scraper):
                 "state_code": location_info.get("state_code"),
                 "postal_code": location_info.get("postal_code"),
             }
+
+        if self.foreclosure: 
+            search_variables['foreclosure'] = self.foreclosure
 
         result = self.general_search(search_variables, search_type=search_type)
         total = result["total"]
