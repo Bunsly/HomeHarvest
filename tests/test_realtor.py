@@ -131,6 +131,15 @@ def test_realtor():
     assert all([result is not None for result in results])
 
 
+def test_realtor_city():
+    results = scrape_property(
+        location="Atlanta, GA",
+        listing_type="for_sale",
+    )
+
+    assert results is not None and len(results) > 0
+
+
 def test_realtor_bad_address():
     bad_results = scrape_property(
             location="abceefg ju098ot498hh9",
