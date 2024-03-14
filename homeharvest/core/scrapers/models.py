@@ -23,6 +23,27 @@ class ListingType(Enum):
     SOLD = "SOLD"
 
 
+class PropertyType(Enum):
+    APARTMENT = "APARTMENT"
+    BUILDING = "BUILDING"
+    COMMERCIAL = "COMMERCIAL"
+    CONDO_TOWNHOME = "CONDO_TOWNHOME"
+    CONDO_TOWNHOME_ROWHOME_COOP = "CONDO_TOWNHOME_ROWHOME_COOP"
+    CONDO = "CONDO"
+    CONDOS = "CONDOS"
+    COOP = "COOP"
+    DUPLEX_TRIPLEX = "DUPLEX_TRIPLEX"
+    FARM = "FARM"
+    INVESTMENT = "INVESTMENT"
+    LAND = "LAND"
+    MOBILE = "MOBILE"
+    MULTI_FAMILY = "MULTI_FAMILY"
+    RENTAL = "RENTAL"
+    SINGLE_FAMILY = "SINGLE_FAMILY"
+    TOWNHOMES = "TOWNHOMES"
+    OTHER = "OTHER"
+
+
 @dataclass
 class Address:
     street: str | None = None
@@ -36,7 +57,7 @@ class Address:
 class Description:
     primary_photo: str | None = None
     alt_photos: list[str] | None = None
-    style: str | None = None
+    style: PropertyType | None = None
     beds: int | None = None
     baths_full: int | None = None
     baths_half: int | None = None
@@ -58,6 +79,7 @@ class Property:
 
     list_price: int | None = None
     list_date: str | None = None
+    pending_date: str | None = None
     last_sold_date: str | None = None
     prc_sqft: int | None = None
     hoa_fee: int | None = None

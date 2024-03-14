@@ -9,7 +9,7 @@ from typing import Dict, Union, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .. import Scraper
-from ..models import Property, Address, ListingType, Description
+from ..models import Property, Address, ListingType, Description, PropertyType
 
 
 class RealtorScraper(Scraper):
@@ -84,11 +84,10 @@ class RealtorScraper(Scraper):
                             garage
                             permalink
                         }
-                        primary_photo {
-                            href
-                        }
-                        photos {
-                            href
+                        media {
+                            photos {
+                                href
+                            }
                         }
                     }
                 }"""
@@ -120,9 +119,11 @@ class RealtorScraper(Scraper):
             "list_date") else None
         last_sold_date_str = property_info["basic"]["sold_date"].split("T")[0] if property_info["basic"].get(
             "sold_date") else None
+        pending_date_str = property_info["pending_date"].split("T")[0] if property_info.get("pending_date") else None
 
         list_date = datetime.strptime(list_date_str, "%Y-%m-%d") if list_date_str else None
         last_sold_date = datetime.strptime(last_sold_date_str, "%Y-%m-%d") if last_sold_date_str else None
+        pending_date = datetime.strptime(pending_date_str, "%Y-%m-%d") if pending_date_str else None
         today = datetime.now()
 
         days_on_mls = None
@@ -150,6 +151,7 @@ class RealtorScraper(Scraper):
                and property_info["basic"].get("sqft")
             else None,
             last_sold_date=last_sold_date,
+            pending_date=pending_date,
             latitude=property_info["address"]["location"]["coordinate"].get("lat")
             if able_to_get_lat_long
             else None,
@@ -158,9 +160,7 @@ class RealtorScraper(Scraper):
             else None,
             address=self._parse_address(property_info, search_type="handle_listing"),
             description=Description(
-                primary_photo=property_info["primary_photo"].get("href", "").replace("s.jpg",
-                                                                                     "od-w480_h360_x2.webp?w=1080&q=75"),
-                alt_photos=self.process_alt_photos(property_info.get("photos", [])),
+                alt_photos=self.process_alt_photos(property_info.get("media", {}).get("photos", [])),
                 style=property_info["basic"].get("type", "").upper(),
                 beds=property_info["basic"].get("beds"),
                 baths_full=property_info["basic"].get("baths_full"),
@@ -298,6 +298,7 @@ class RealtorScraper(Scraper):
                             count
                             total
                             results {
+                                pending_date
                                 property_id
                                 list_date
                                 status
@@ -310,6 +311,7 @@ class RealtorScraper(Scraper):
                                     is_pending
                                 }
                                 description {
+                                    type
                                     sqft
                                     beds
                                     baths_full
@@ -663,7 +665,6 @@ class RealtorScraper(Scraper):
 
     @staticmethod
     def _parse_description(result: dict) -> Description:
-
         description_data = result.get("description", {})
 
         if description_data is None or not isinstance(description_data, dict):
@@ -683,7 +684,7 @@ class RealtorScraper(Scraper):
         return Description(
             primary_photo=primary_photo,
             alt_photos=RealtorScraper.process_alt_photos(result.get("photos")),
-            style=style,
+            style=PropertyType(style) if style else None,
             beds=description_data.get("beds"),
             baths_full=description_data.get("baths_full"),
             baths_half=description_data.get("baths_half"),

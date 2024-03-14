@@ -124,6 +124,7 @@ Property
 │ ├── days_on_mls
 │ ├── list_price
 │ ├── list_date
+│ ├── pending_date
 │ ├── sold_price
 │ ├── last_sold_date
 │ ├── price_per_sqft
