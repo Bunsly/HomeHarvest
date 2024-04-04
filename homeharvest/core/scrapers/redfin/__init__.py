@@ -21,7 +21,7 @@ class RedfinScraper(Scraper):
     def _handle_location(self):
         url = "https://www.redfin.com/stingray/do/location-autocomplete?v=2&al=1&location={}".format(self.location)
 
-        response = self.session.get(url, headers={"user-agent": 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36'})
+        response = self.session.get(url)
         response_json = json.loads(response.text.replace("{}&&", ""))
 
         def get_region_type(match_type: str):
