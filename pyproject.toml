@@ -13,7 +13,6 @@ homeharvest = "homeharvest.cli:main"
 python = ">=3.10,<3.13"
 requests = "^2.31.0"
 pandas = "^2.1.1"
-sortedcontainers = "^2.4.0"
 
 
 [tool.poetry.group.dev.dependencies]
