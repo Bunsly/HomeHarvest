@@ -21,7 +21,7 @@
 ```bash
 pip install -U homeharvest
 ```
-  _Python version >= [3.10](https://www.python.org/downloads/release/python-3100/) required_ 
+  _Python version >= [3.10](https://www.python.org/downloads/release/python-3100/) required_
 
 ## Usage
 
@@ -39,11 +39,11 @@ properties = scrape_property(
   location="San Diego, CA",
   listing_type="sold",  # or (for_sale, for_rent, pending)
   past_days=30,  # sold in last 30 days - listed in last 30 days if (for_sale, for_rent)
-  
-  # date_from="2023-05-01", # alternative to past_days 
-  # date_to="2023-05-28", 
+
+  # date_from="2023-05-01", # alternative to past_days
+  # date_to="2023-05-28",
   # foreclosure=True
-  
+
   # mls_only=True,  # only fetch MLS listings
 )
 print(f"Number of properties: {len(properties)}")
@@ -84,7 +84,7 @@ Optional
 │
 ├── date_from, date_to (string): Start and end dates to filter properties listed or sold, both dates are required.
 |    (use this to get properties in chunks as there's a 10k result limit)
-│    Format for both must be "YYYY-MM-DD". 
+│    Format for both must be "YYYY-MM-DD".
 │    Example: "2023-05-01", "2023-05-15" (fetches properties listed/sold between these dates)
 │
 ├── mls_only (True/False): If set, fetches only MLS listings (mainly applicable to 'sold' listings)
@@ -143,4 +143,3 @@ The following exceptions may be raised when using HomeHarvest:
 
 - `InvalidListingType` - valid options: `for_sale`, `for_rent`, `sold`
 - `InvalidDate` - date_from or date_to is not in the format YYYY-MM-DD
-  
