@@ -31,6 +31,9 @@ ordered_properties = [
     "stories",
     "hoa_fee",
     "parking_garage",
+    "agent",
+    "broker",
+    "broker_phone",
     "primary_photo",
     "alt_photos",
 ]
@@ -47,6 +50,14 @@ def process_result(result: Property) -> pd.DataFrame:
         prop_data["city"] = address_data.city
         prop_data["state"] = address_data.state
         prop_data["zip_code"] = address_data.zip
+
+    if "agents" in prop_data:
+        agents = prop_data["agents"]
+        if agents:
+            prop_data["agent"] = agents[0].name
+            if len(agents) > 1:
+                prop_data["broker"] = agents[1].name
+                prop_data["broker_phone"] = agents[1].phone
 
     prop_data["price_per_sqft"] = prop_data["prc_sqft"]
 
@@ -72,9 +83,7 @@ def process_result(result: Property) -> pd.DataFrame:
 
 def validate_input(listing_type: str) -> None:
     if listing_type.upper() not in ListingType.__members__:
-        raise InvalidListingType(
-            f"Provided listing type, '{listing_type}', does not exist."
-        )
+        raise InvalidListingType(f"Provided listing type, '{listing_type}', does not exist.")
 
 
 def validate_dates(date_from: str | None, date_to: str | None) -> None:
