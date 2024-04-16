@@ -141,6 +141,8 @@ class RealtorScraper(Scraper):
             if days_on_mls and days_on_mls < 0:
                 days_on_mls = None
 
+        property_id = property_info["details"]["permalink"]
+        agents = self.get_agents(property_id)
         listing = Property(
             mls=mls,
             mls_id=(
@@ -148,7 +150,7 @@ class RealtorScraper(Scraper):
                 if "source" in property_info and isinstance(property_info["source"], dict)
                 else None
             ),
-            property_url=f"{self.PROPERTY_URL}{property_info['details']['permalink']}",
+            property_url=f"{self.PROPERTY_URL}{property_id}",
             status=property_info["basic"]["status"].upper(),
             list_price=property_info["basic"]["price"],
             list_date=list_date,
@@ -176,6 +178,7 @@ class RealtorScraper(Scraper):
                 stories=property_info["details"].get("stories"),
             ),
             days_on_mls=days_on_mls,
+            agents=agents,
         )
 
         return [listing]
@@ -269,6 +272,7 @@ class RealtorScraper(Scraper):
                 }"""
 
         variables = {"property_id": property_id}
+        agents = self.get_agents(property_id)
 
         payload = {
             "query": query,
@@ -286,6 +290,7 @@ class RealtorScraper(Scraper):
                 property_url=f"{self.PROPERTY_URL}{property_info['details']['permalink']}",
                 address=self._parse_address(property_info, search_type="handle_address"),
                 description=self._parse_description(property_info),
+                agents=agents,
             )
         ]
 
