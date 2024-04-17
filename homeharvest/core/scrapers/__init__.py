@@ -1,3 +1,4 @@
+import uuid
 from dataclasses import dataclass
 import requests
 import uuid

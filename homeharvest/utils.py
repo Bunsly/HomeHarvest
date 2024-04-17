@@ -34,6 +34,7 @@ ordered_properties = [
     "agent",
     "broker",
     "broker_phone",
+    "nearby_schools",
     "primary_photo",
     "alt_photos",
 ]
@@ -60,6 +61,8 @@ def process_result(result: Property) -> pd.DataFrame:
                 prop_data["broker_phone"] = agents[1].phone
 
     prop_data["price_per_sqft"] = prop_data["prc_sqft"]
+    prop_data["nearby_schools"] = filter(None, prop_data["nearby_schools"]) if prop_data["nearby_schools"] else None
+    prop_data["nearby_schools"] = ", ".join(set(prop_data["nearby_schools"])) if prop_data["nearby_schools"] else None
 
     description = result.description
     prop_data["primary_photo"] = description.primary_photo

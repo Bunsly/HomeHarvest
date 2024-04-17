@@ -23,6 +23,12 @@ class ListingType(Enum):
     SOLD = "SOLD"
 
 
+@dataclass
+class Agent:
+    name: str | None = None
+    phone: str | None = None
+
+
 class PropertyType(Enum):
     APARTMENT = "APARTMENT"
     BUILDING = "BUILDING"
@@ -97,3 +103,4 @@ class Property:
     neighborhoods: Optional[str] = None
 
     agents: list[Agent] = None
+    nearby_schools: list[str] = None

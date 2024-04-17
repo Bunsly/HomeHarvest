@@ -134,6 +134,13 @@ Property
 ├── Location Details:
 │ ├── latitude
 │ ├── longitude
+│ ├── nearby_schools
+
+
+├── Agent Info:
+│ ├── agent
+│ ├── broker
+│ └── broker_phone
 
 ├── Agent Info:
 │ ├── agent
