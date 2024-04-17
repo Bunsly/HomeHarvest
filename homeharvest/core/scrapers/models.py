@@ -76,6 +76,12 @@ class Description:
 
 
 @dataclass
+class Agent:
+    name: str | None = None
+    phone: str | None = None
+
+
+@dataclass
 class Property:
     property_url: str
     mls: str | None = None

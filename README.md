@@ -128,6 +128,7 @@ Property
 │ ├── sold_price
 │ ├── last_sold_date
 │ ├── price_per_sqft
+│ ├── parking_garage
 │ └── hoa_fee
 
 ├── Location Details:
@@ -141,8 +142,10 @@ Property
 │ ├── broker
 │ └── broker_phone
 
-└── Parking Details:
-    └── parking_garage
+├── Agent Info:
+│ ├── agent
+│ ├── broker
+│ └── broker_phone
 ```
 
 ### Exceptions
