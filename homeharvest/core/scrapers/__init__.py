@@ -1,6 +1,6 @@
+import uuid
 from dataclasses import dataclass
 import requests
-import uuid
 from .models import Property, ListingType, SiteName
 
 

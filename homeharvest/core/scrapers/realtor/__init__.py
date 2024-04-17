@@ -142,7 +142,7 @@ class RealtorScraper(Scraper):
                 days_on_mls = None
 
         property_id = property_info["details"]["permalink"]
-        agents = self.get_agents(property_id)
+        agents_schools = self.get_agents_schools(property_id)
         listing = Property(
             mls=mls,
             mls_id=(
@@ -178,7 +178,8 @@ class RealtorScraper(Scraper):
                 stories=property_info["details"].get("stories"),
             ),
             days_on_mls=days_on_mls,
-            agents=agents,
+            agents=agents_schools["agents"],
+            nearby_schools=agents_schools["schools"],
         )
 
         return [listing]
@@ -272,7 +273,7 @@ class RealtorScraper(Scraper):
                 }"""
 
         variables = {"property_id": property_id}
-        agents = self.get_agents(property_id)
+        agents_schools = self.get_agents_schools(property_id)
 
         payload = {
             "query": query,
@@ -290,7 +291,8 @@ class RealtorScraper(Scraper):
                 property_url=f"{self.PROPERTY_URL}{property_info['details']['permalink']}",
                 address=self._parse_address(property_info, search_type="handle_address"),
                 description=self._parse_description(property_info),
-                agents=agents,
+                agents=agents_schools["agents"],
+                nearby_schools=agents_schools["schools"],
             )
         ]
 
@@ -510,7 +512,7 @@ class RealtorScraper(Scraper):
                 return
 
             property_id = result["property_id"]
-            agents = self.get_agents(property_id)
+            agents_schools = self.get_agents_schools(property_id)
 
             realty_property = Property(
                 mls=mls,
@@ -535,7 +537,8 @@ class RealtorScraper(Scraper):
                 address=self._parse_address(result, search_type="general_search"),
                 description=self._parse_description(result),
                 days_on_mls=self.calculate_days_on_mls(result),
-                agents=agents,
+                agents=agents_schools["agents"],
+                nearby_schools=agents_schools["schools"],
             )
             return realty_property
 
@@ -630,18 +633,25 @@ class RealtorScraper(Scraper):
 
         return homes
 
-    def get_agents(self, property_id: str) -> list[Agent]:
-        payload = f'{{"query":"query GetHome($property_id: ID!) {{\\n  home(property_id: $property_id) {{\\n    __typename\\n\\n    consumerAdvertisers: consumer_advertisers {{\\n      __typename\\n      type\\n      advertiserId: advertiser_id\\n      name\\n      phone\\n      type\\n      href\\n      slogan\\n      photo {{\\n        __typename\\n        href\\n      }}\\n      showRealtorLogo: show_realtor_logo\\n      hours\\n    }}\\n\\n\\n  }}\\n}}\\n","variables":{{"property_id":"{property_id}"}}}}'
+    def get_agents_schools(self, property_id: str) -> dict:
+        payload = f'{{"query":"query GetHome($property_id: ID!) {{\\n  home(property_id: $property_id) {{\\n    __typename\\n\\n    consumerAdvertisers: consumer_advertisers {{\\n      __typename\\n      type\\n      advertiserId: advertiser_id\\n      name\\n      phone\\n      type\\n      href\\n      slogan\\n      photo {{\\n        __typename\\n        href\\n      }}\\n      showRealtorLogo: show_realtor_logo\\n      hours\\n    }}\\n\\n\\n  nearbySchools: nearby_schools(radius: 5.0, limit_per_level: 3) {{ __typename schools {{ district {{ __typename id name }} }} }}}}\\n}}\\n","variables":{{"property_id":"{property_id}"}}}}'
         response = self.session.post(self.PROPERTY_GQL, data=payload)
 
-        data = response.json()
-        try:
-            ads = data["data"]["home"]["consumerAdvertisers"]
-        except (KeyError, TypeError):
-            return []
+        def get_key(keys: list):
+            try:
+                data = response.json()
+                for key in keys:
+                    data = data[key]
+                return data
+            except (KeyError, TypeError):
+                return []
+
+        ads = get_key(["data", "home", "consumerAdvertisers"])
+        schools = get_key(["data", "home", "nearbySchools", "schools"])
 
         agents = [Agent(name=ad["name"], phone=ad["phone"]) for ad in ads]
-        return agents
+        schools = [school["district"]["name"] for school in schools]
+        return {"agents": agents, "schools": schools}
 
     @staticmethod
     def _parse_neighborhoods(result: dict) -> Optional[str]:
