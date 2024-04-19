@@ -1,22 +1,12 @@
 from homeharvest import scrape_property
-from homeharvest.exceptions import (
-    InvalidListingType,
-)
 
 
 def test_realtor_pending_or_contingent():
-    pending_or_contingent_result = scrape_property(
-        location="Surprise, AZ", listing_type="pending"
-    )
+    pending_or_contingent_result = scrape_property(location="Surprise, AZ", listing_type="pending")
 
     regular_result = scrape_property(location="Surprise, AZ", listing_type="for_sale")
 
-    assert all(
-        [
-            result is not None
-            for result in [pending_or_contingent_result, regular_result]
-        ]
-    )
+    assert all([result is not None for result in [pending_or_contingent_result, regular_result]])
     assert len(pending_or_contingent_result) != len(regular_result)
 
 
@@ -71,17 +61,13 @@ def test_realtor_comps():
 
 
 def test_realtor_last_x_days_sold():
-    days_result_30 = scrape_property(
-        location="Dallas, TX", listing_type="sold", past_days=30
-    )
+    days_result_30 = scrape_property(location="Dallas, TX", listing_type="sold", past_days=30)
 
-    days_result_10 = scrape_property(
-        location="Dallas, TX", listing_type="sold", past_days=10
-    )
+    days_result_10 = scrape_property(location="Dallas, TX", listing_type="sold", past_days=10)
 
-    assert all(
-        [result is not None for result in [days_result_30, days_result_10]]
-    ) and len(days_result_30) != len(days_result_10)
+    assert all([result is not None for result in [days_result_30, days_result_10]]) and len(days_result_30) != len(
+        days_result_10
+    )
 
 
 def test_realtor_date_range_sold():
@@ -93,9 +79,9 @@ def test_realtor_date_range_sold():
         location="Dallas, TX", listing_type="sold", date_from="2023-04-01", date_to="2023-06-10"
     )
 
-    assert all(
-        [result is not None for result in [days_result_30, days_result_60]]
-    ) and len(days_result_30) < len(days_result_60)
+    assert all([result is not None for result in [days_result_30, days_result_60]]) and len(days_result_30) < len(
+        days_result_60
+    )
 
 
 def test_realtor_single_property():
@@ -119,12 +105,8 @@ def test_realtor():
             location="2530 Al Lipscomb Way",
             listing_type="for_sale",
         ),
-        scrape_property(
-            location="Phoenix, AZ", listing_type="for_rent"
-        ),  #: does not support "city, state, USA" format
-        scrape_property(
-            location="Dallas, TX", listing_type="sold"
-        ),  #: does not support "city, state, USA" format
+        scrape_property(location="Phoenix, AZ", listing_type="for_rent"),  #: does not support "city, state, USA" format
+        scrape_property(location="Dallas, TX", listing_type="sold"),  #: does not support "city, state, USA" format
         scrape_property(location="85281"),
     ]
 
@@ -142,21 +124,21 @@ def test_realtor_city():
 
 def test_realtor_bad_address():
     bad_results = scrape_property(
-            location="abceefg ju098ot498hh9",
-            listing_type="for_sale",
-        )
+        location="abceefg ju098ot498hh9",
+        listing_type="for_sale",
+    )
     if len(bad_results) == 0:
         assert True
 
 
 def test_realtor_foreclosed():
-    foreclosed = scrape_property(
-        location="Dallas, TX", listing_type="for_sale", past_days=100, foreclosure=True
-    )
+    foreclosed = scrape_property(location="Dallas, TX", listing_type="for_sale", past_days=100, foreclosure=True)
 
-    not_foreclosed = scrape_property(
-        location="Dallas, TX", listing_type="for_sale", past_days=100, foreclosure=False
-    )
+    not_foreclosed = scrape_property(location="Dallas, TX", listing_type="for_sale", past_days=100, foreclosure=False)
 
     assert len(foreclosed) != len(not_foreclosed)
 
+
+def test_realtor_agent():
+    scraped = scrape_property(location="Detroit, MI", listing_type="for_sale")
+    assert scraped["agent"].nunique() > 1
