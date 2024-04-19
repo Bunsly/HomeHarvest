@@ -67,6 +67,7 @@ class Description:
     year_built: int | None = None
     garage: float | None = None
     stories: int | None = None
+    text: str | None = None
 
 
 @dataclass
@@ -89,3 +90,5 @@ class Property:
     latitude: float | None = None
     longitude: float | None = None
     neighborhoods: Optional[str] = None
+    county: Optional[str] = None
+    fips_code: Optional[str] = None

@@ -171,6 +171,7 @@ class RealtorScraper(Scraper):
                 year_built=property_info["details"].get("year_built"),
                 garage=property_info["details"].get("garage"),
                 stories=property_info["details"].get("stories"),
+                text=property_info["description"].get("text"),
             ),
             days_on_mls=days_on_mls
         )
@@ -324,6 +325,7 @@ class RealtorScraper(Scraper):
                                     type
                                     name
                                     stories
+                                    text
                                 }
                                 source {
                                     id
@@ -347,9 +349,16 @@ class RealtorScraper(Scraper):
                                             lat
                                         }
                                     }
+                                    county {
+                                        name
+                                        fips_code
+                                    }
                                     neighborhoods {
                                         name
                                     }
+                                }
+                                tax_record {
+                                    public_record_id
                                 }
                                 primary_photo {
                                     href
@@ -535,7 +544,10 @@ class RealtorScraper(Scraper):
                 else None,
                 address=self._parse_address(result, search_type="general_search"),
                 description=self._parse_description(result),
-                days_on_mls=self.calculate_days_on_mls(result)
+                neighborhoods=self._parse_neighborhoods(result),
+                days_on_mls=self.calculate_days_on_mls(result),
+                county=result["location"]["county"].get("name"),
+                fips_code=result["location"]["county"].get("fips_code"),
             )
             properties.append(realty_property)
 
@@ -694,6 +706,7 @@ class RealtorScraper(Scraper):
             year_built=description_data.get("year_built"),
             garage=description_data.get("garage"),
             stories=description_data.get("stories"),
+            text=description_data.get("text"),
         )
 
     @staticmethod
