@@ -23,6 +23,12 @@ class ListingType(Enum):
     SOLD = "SOLD"
 
 
+@dataclass
+class Agent:
+    name: str | None = None
+    phone: str | None = None
+
+
 class PropertyType(Enum):
     APARTMENT = "APARTMENT"
     BUILDING = "BUILDING"
@@ -70,6 +76,12 @@ class Description:
 
 
 @dataclass
+class Agent:
+    name: str | None = None
+    phone: str | None = None
+
+
+@dataclass
 class Property:
     property_url: str
     mls: str | None = None
@@ -89,3 +101,6 @@ class Property:
     latitude: float | None = None
     longitude: float | None = None
     neighborhoods: Optional[str] = None
+
+    agents: list[Agent] = None
+    nearby_schools: list[str] = None
