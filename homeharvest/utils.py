@@ -8,6 +8,7 @@ ordered_properties = [
     "mls",
     "mls_id",
     "status",
+    "text",
     "style",
     "street",
     "unit",
@@ -28,6 +29,9 @@ ordered_properties = [
     "price_per_sqft",
     "latitude",
     "longitude",
+    "neighborhoods",
+    "county",
+    "fips_code",
     "stories",
     "hoa_fee",
     "parking_garage",
@@ -77,6 +81,8 @@ def process_result(result: Property) -> pd.DataFrame:
     prop_data["year_built"] = description.year_built
     prop_data["parking_garage"] = description.garage
     prop_data["stories"] = description.stories
+    prop_data["text"] = description.text
+
 
     properties_df = pd.DataFrame([prop_data])
     properties_df = properties_df.reindex(columns=ordered_properties)

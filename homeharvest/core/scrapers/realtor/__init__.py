@@ -176,6 +176,7 @@ class RealtorScraper(Scraper):
                 year_built=property_info["details"].get("year_built"),
                 garage=property_info["details"].get("garage"),
                 stories=property_info["details"].get("stories"),
+                text=property_info["description"].get("text"),
             ),
             days_on_mls=days_on_mls,
             agents=agents_schools["agents"],
@@ -330,6 +331,7 @@ class RealtorScraper(Scraper):
                                     type
                                     name
                                     stories
+                                    text
                                 }
                                 source {
                                     id
@@ -353,9 +355,16 @@ class RealtorScraper(Scraper):
                                             lat
                                         }
                                     }
+                                    county {
+                                        name
+                                        fips_code
+                                    }
                                     neighborhoods {
                                         name
                                     }
+                                }
+                                tax_record {
+                                    public_record_id
                                 }
                                 primary_photo {
                                     href
@@ -536,6 +545,9 @@ class RealtorScraper(Scraper):
                 longitude=result["location"]["address"]["coordinate"].get("lon") if able_to_get_lat_long else None,
                 address=self._parse_address(result, search_type="general_search"),
                 description=self._parse_description(result),
+                neighborhoods=self._parse_neighborhoods(result),
+                county=result["location"]["county"].get("name"),
+                fips_code=result["location"]["county"].get("fips_code"),
                 days_on_mls=self.calculate_days_on_mls(result),
                 agents=agents_schools["agents"],
                 nearby_schools=agents_schools["schools"],
@@ -725,6 +737,7 @@ class RealtorScraper(Scraper):
             year_built=description_data.get("year_built"),
             garage=description_data.get("garage"),
             stories=description_data.get("stories"),
+            text=description_data.get("text"),
         )
 
     @staticmethod
