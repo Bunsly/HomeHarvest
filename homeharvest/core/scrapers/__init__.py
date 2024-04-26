@@ -19,6 +19,8 @@ class ScraperInput:
 
 
 class Scraper:
+    session = None
+
     def __init__(
         self,
         scraper_input: ScraperInput,
@@ -27,7 +29,7 @@ class Scraper:
         self.location = scraper_input.location
         self.listing_type = scraper_input.listing_type
 
-        if not session:
+        if not self.session:
             self.session = requests.Session()
             self.session.headers.update(
                 {
