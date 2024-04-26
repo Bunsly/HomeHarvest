@@ -24,7 +24,6 @@ class Scraper:
     def __init__(
         self,
         scraper_input: ScraperInput,
-        session: requests.Session = None,
     ):
         self.location = scraper_input.location
         self.listing_type = scraper_input.listing_type
@@ -37,8 +36,6 @@ class Scraper:
                     "apollographql-client-name": "com.move.Realtor-apollo-ios",
                 }
             )
-        else:
-            self.session = session
 
         if scraper_input.proxy:
             proxy_url = scraper_input.proxy
