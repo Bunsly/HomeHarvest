@@ -31,7 +31,6 @@ class Scraper:
 
         if not self.session:
             Scraper.session = requests.Session()
-            print("Session created")
             retries = Retry(
                 total=3, backoff_factor=3, status_forcelist=[429, 403], allowed_methods=frozenset(["GET", "POST"])
             )
