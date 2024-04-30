@@ -106,3 +106,5 @@ class Property:
     fips_code: Optional[str] = None
     agents: list[Agent] = None
     nearby_schools: list[str] = None
+    assessed_value: int | None = None
+    estimated_value: int | None = None
