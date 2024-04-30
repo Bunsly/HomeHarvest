@@ -305,8 +305,6 @@ class RealtorScraper(Scraper):
         """
         Handles a location area & returns a list of properties
         """
-        if search_type != "address":
-            return {"total": 0, "properties": []}
         results_query = """{
                             count
                             total
