@@ -1,6 +1,7 @@
-import uuid
 from dataclasses import dataclass
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 import uuid
 from .models import Property, ListingType, SiteName
 
@@ -19,24 +20,30 @@ class ScraperInput:
 
 
 class Scraper:
+    session = None
+
     def __init__(
         self,
         scraper_input: ScraperInput,
-        session: requests.Session = None,
     ):
         self.location = scraper_input.location
         self.listing_type = scraper_input.listing_type
 
-        if not session:
-            self.session = requests.Session()
-            self.session.headers.update(
+        if not self.session:
+            Scraper.session = requests.Session()
+            retries = Retry(
+                total=3, backoff_factor=3, status_forcelist=[429, 403], allowed_methods=frozenset(["GET", "POST"])
+            )
+
+            adapter = HTTPAdapter(max_retries=retries)
+            Scraper.session.mount("http://", adapter)
+            Scraper.session.mount("https://", adapter)
+            Scraper.session.headers.update(
                 {
                     "auth": f"Bearer {self.get_access_token()}",
                     "apollographql-client-name": "com.move.Realtor-apollo-ios",
                 }
             )
-        else:
-            self.session = session
 
         if scraper_input.proxy:
             proxy_url = scraper_input.proxy
@@ -73,4 +80,8 @@ class Scraper:
         response = requests.post(url, headers=headers, data=payload)
 
         data = response.json()
-        return data["access_token"]
+        try:
+            access_token = data["access_token"]
+        except Exception:
+            raise Exception("Could not get access token, use a proxy/vpn or wait")
+        return access_token

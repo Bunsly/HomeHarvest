@@ -25,6 +25,8 @@ ordered_properties = [
     "list_date",
     "sold_price",
     "last_sold_date",
+    "assessed_value",
+    "estimated_value",
     "lot_sqft",
     "price_per_sqft",
     "latitude",
@@ -71,7 +73,7 @@ def process_result(result: Property) -> pd.DataFrame:
     description = result.description
     prop_data["primary_photo"] = description.primary_photo
     prop_data["alt_photos"] = ", ".join(description.alt_photos)
-    prop_data["style"] = description.style.value
+    prop_data["style"] = description.style if type(description.style) == str else description.style.value
     prop_data["beds"] = description.beds
     prop_data["full_baths"] = description.baths_full
     prop_data["half_baths"] = description.baths_half
@@ -82,7 +84,6 @@ def process_result(result: Property) -> pd.DataFrame:
     prop_data["parking_garage"] = description.garage
     prop_data["stories"] = description.stories
     prop_data["text"] = description.text
-
 
     properties_df = pd.DataFrame([prop_data])
     properties_df = properties_df.reindex(columns=ordered_properties)

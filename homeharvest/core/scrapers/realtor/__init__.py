@@ -5,9 +5,9 @@ homeharvest.realtor.__init__
 This module implements the scraper for realtor.com
 """
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from typing import Dict, Union, Optional
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .. import Scraper
 from ..models import Property, Address, ListingType, Description, PropertyType, Agent
@@ -142,7 +142,7 @@ class RealtorScraper(Scraper):
                 days_on_mls = None
 
         property_id = property_info["details"]["permalink"]
-        agents_schools = self.get_agents_schools(property_id)
+        prop_details = self.get_prop_details(property_id)
         listing = Property(
             mls=mls,
             mls_id=(
@@ -176,11 +176,13 @@ class RealtorScraper(Scraper):
                 year_built=property_info["details"].get("year_built"),
                 garage=property_info["details"].get("garage"),
                 stories=property_info["details"].get("stories"),
-                text=property_info["description"].get("text"),
+                text=property_info.get("description", {}).get("text"),
             ),
             days_on_mls=days_on_mls,
-            agents=agents_schools["agents"],
-            nearby_schools=agents_schools["schools"],
+            agents=prop_details.get("agents"),
+            nearby_schools=prop_details.get("schools"),
+            assessed_value=prop_details.get("assessed_value"),
+            estimated_value=prop_details.get("estimated_value"),
         )
 
         return [listing]
@@ -274,7 +276,7 @@ class RealtorScraper(Scraper):
                 }"""
 
         variables = {"property_id": property_id}
-        agents_schools = self.get_agents_schools(property_id)
+        prop_details = self.get_prop_details(property_id)
 
         payload = {
             "query": query,
@@ -292,8 +294,10 @@ class RealtorScraper(Scraper):
                 property_url=f"{self.PROPERTY_URL}{property_info['details']['permalink']}",
                 address=self._parse_address(property_info, search_type="handle_address"),
                 description=self._parse_description(property_info),
-                agents=agents_schools["agents"],
-                nearby_schools=agents_schools["schools"],
+                agents=prop_details.get("agents"),
+                nearby_schools=prop_details.get("schools"),
+                assessed_value=prop_details.get("assessed_value"),
+                estimated_value=prop_details.get("estimated_value"),
             )
         ]
 
@@ -486,7 +490,6 @@ class RealtorScraper(Scraper):
         }
 
         response = self.session.post(self.SEARCH_GQL_URL, json=payload)
-        response.raise_for_status()
         response_json = response.json()
         search_key = "home_search" if "home_search" in query else "property_search"
 
@@ -521,7 +524,7 @@ class RealtorScraper(Scraper):
                 return
 
             property_id = result["property_id"]
-            agents_schools = self.get_agents_schools(property_id)
+            prop_details = self.get_prop_details(property_id)
 
             realty_property = Property(
                 mls=mls,
@@ -546,11 +549,13 @@ class RealtorScraper(Scraper):
                 address=self._parse_address(result, search_type="general_search"),
                 description=self._parse_description(result),
                 neighborhoods=self._parse_neighborhoods(result),
-                county=result["location"]["county"].get("name"),
-                fips_code=result["location"]["county"].get("fips_code"),
+                county=result["location"]["county"].get("name") if result["location"]["county"] else None,
+                fips_code=result["location"]["county"].get("fips_code") if result["location"]["county"] else None,
                 days_on_mls=self.calculate_days_on_mls(result),
-                agents=agents_schools["agents"],
-                nearby_schools=agents_schools["schools"],
+                agents=prop_details.get("agents"),
+                nearby_schools=prop_details.get("schools"),
+                assessed_value=prop_details.get("assessed_value"),
+                estimated_value=prop_details.get("estimated_value"),
             )
             return realty_property
 
@@ -645,8 +650,8 @@ class RealtorScraper(Scraper):
 
         return homes
 
-    def get_agents_schools(self, property_id: str) -> dict:
-        payload = f'{{"query":"query GetHome($property_id: ID!) {{\\n  home(property_id: $property_id) {{\\n    __typename\\n\\n    consumerAdvertisers: consumer_advertisers {{\\n      __typename\\n      type\\n      advertiserId: advertiser_id\\n      name\\n      phone\\n      type\\n      href\\n      slogan\\n      photo {{\\n        __typename\\n        href\\n      }}\\n      showRealtorLogo: show_realtor_logo\\n      hours\\n    }}\\n\\n\\n  nearbySchools: nearby_schools(radius: 5.0, limit_per_level: 3) {{ __typename schools {{ district {{ __typename id name }} }} }}}}\\n}}\\n","variables":{{"property_id":"{property_id}"}}}}'
+    def get_prop_details(self, property_id: str) -> dict:
+        payload = f'{{"query":"query GetHome($property_id: ID!) {{\\n  home(property_id: $property_id) {{\\n    __typename\\n\\n    consumerAdvertisers: consumer_advertisers {{\\n      __typename\\n      type\\n      advertiserId: advertiser_id\\n      name\\n      phone\\n      type\\n      href\\n      slogan\\n      photo {{\\n        __typename\\n        href\\n      }}\\n      showRealtorLogo: show_realtor_logo\\n      hours\\n    }}\\n\\n\\n  nearbySchools: nearby_schools(radius: 5.0, limit_per_level: 3) {{ __typename schools {{ district {{ __typename id name }} }} }} taxHistory: tax_history {{ __typename tax year assessment {{ __typename building land total }} }}estimates {{ __typename currentValues: current_values {{ __typename source {{ __typename type name }} estimate estimateHigh: estimate_high estimateLow: estimate_low date isBestHomeValue: isbest_homevalue }} }}    }}\\n}}\\n","variables":{{"property_id":"{property_id}"}}}}'
         response = self.session.post(self.PROPERTY_GQL, data=payload)
 
         def get_key(keys: list):
@@ -656,14 +661,22 @@ class RealtorScraper(Scraper):
                     data = data[key]
                 return data
             except (KeyError, TypeError):
-                return []
+                return {}
 
         ads = get_key(["data", "home", "consumerAdvertisers"])
         schools = get_key(["data", "home", "nearbySchools", "schools"])
+        assessed_value = get_key(["data", "home", "taxHistory", 0, "assessment", "total"])
+        estimated_value = get_key(["data", "home", "estimates", "currentValues", 0, "estimate"])
 
         agents = [Agent(name=ad["name"], phone=ad["phone"]) for ad in ads]
+
         schools = [school["district"]["name"] for school in schools]
-        return {"agents": agents, "schools": schools}
+        return {
+            "agents": agents if agents else None,
+            "schools": schools if schools else None,
+            "assessed_value": assessed_value if assessed_value else None,
+            "estimated_value": estimated_value if estimated_value else None,
+        }
 
     @staticmethod
     def _parse_neighborhoods(result: dict) -> Optional[str]:
