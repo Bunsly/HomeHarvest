@@ -1,6 +1,6 @@
 import pandas as pd
 from datetime import datetime
-from .core.scrapers.models import Property, ListingType
+from .core.scrapers.models import Property, ListingType, Agent
 from .exceptions import InvalidListingType, InvalidDate
 
 ordered_properties = [
@@ -38,8 +38,8 @@ ordered_properties = [
     "hoa_fee",
     "parking_garage",
     "agent",
-    "broker",
-    "broker_phone",
+    "agent_email",
+    "agent_phones",
     "nearby_schools",
     "primary_photo",
     "alt_photos",
@@ -59,12 +59,11 @@ def process_result(result: Property) -> pd.DataFrame:
         prop_data["zip_code"] = address_data.zip
 
     if "agents" in prop_data:
-        agents = prop_data["agents"]
+        agents: list[Agent] | None = prop_data["agents"]
         if agents:
             prop_data["agent"] = agents[0].name
-            if len(agents) > 1:
-                prop_data["broker"] = agents[1].name
-                prop_data["broker_phone"] = agents[1].phone
+            prop_data["agent_email"] = agents[0].email
+            prop_data["agent_phones"] = agents[0].phones
 
     prop_data["price_per_sqft"] = prop_data["prc_sqft"]
     prop_data["nearby_schools"] = filter(None, prop_data["nearby_schools"]) if prop_data["nearby_schools"] else None
@@ -107,5 +106,5 @@ def validate_dates(date_from: str | None, date_to: str | None) -> None:
 
             if date_to_obj < date_from_obj:
                 raise InvalidDate("date_to must be after date_from.")
-        except ValueError as e:
+        except ValueError:
             raise InvalidDate(f"Invalid date format or range")

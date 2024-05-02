@@ -13,9 +13,10 @@ def scrape_property(
     mls_only: bool = False,
     past_days: int = None,
     proxy: str = None,
-    date_from: str = None,
+    date_from: str = None,  #: TODO: Switch to one parameter, Date, with date_from and date_to, pydantic validation
     date_to: str = None,
     foreclosure: bool = None,
+    extra_property_data: bool = True,
 ) -> pd.DataFrame:
     """
     Scrape properties from Realtor.com based on a given location and listing type.
@@ -23,9 +24,11 @@ def scrape_property(
     :param listing_type: Listing Type (for_sale, for_rent, sold)
     :param radius: Get properties within _ (e.g. 1.0) miles. Only applicable for individual addresses.
     :param mls_only: If set, fetches only listings with MLS IDs.
+    :param proxy: Proxy to use for scraping
     :param past_days: Get properties sold or listed (dependent on your listing_type) in the last _ days.
     :param date_from, date_to: Get properties sold or listed (dependent on your listing_type) between these dates. format: 2021-01-28
-    :param proxy: Proxy to use for scraping
+    :param foreclosure: If set, fetches only foreclosure listings.
+    :param extra_property_data: Increases requests by O(n). If set, this fetches additional property data (e.g. agent, broker, property evaluations etc.)
     """
     validate_input(listing_type)
     validate_dates(date_from, date_to)
@@ -51,4 +54,5 @@ def scrape_property(
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=FutureWarning)
-        return pd.concat(properties_dfs, ignore_index=True, axis=0)[ordered_properties]
+
+        return pd.concat(properties_dfs, ignore_index=True, axis=0)[ordered_properties].replace({"None": "", None: ""})

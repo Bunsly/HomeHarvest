@@ -77,9 +77,26 @@ class Description:
 
 
 @dataclass
+class AgentPhone:  #: For documentation purposes only (at the moment)
+    number: str | None = None
+    type: str | None = None
+    primary: bool | None = None
+    ext: str | None = None
+
+
+@dataclass
 class Agent:
     name: str | None = None
+    phones: list[dict] | AgentPhone | None = None
+    email: str | None = None
+    href: str | None = None
+
+
+@dataclass
+class Broker:
+    name: str | None = None
     phone: str | None = None
+    website: str | None = None
 
 
 @dataclass

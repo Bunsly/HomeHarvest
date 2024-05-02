@@ -651,26 +651,64 @@ class RealtorScraper(Scraper):
         return homes
 
     def get_prop_details(self, property_id: str) -> dict:
-        payload = f'{{"query":"query GetHome($property_id: ID!) {{\\n  home(property_id: $property_id) {{\\n    __typename\\n\\n    consumerAdvertisers: consumer_advertisers {{\\n      __typename\\n      type\\n      advertiserId: advertiser_id\\n      name\\n      phone\\n      type\\n      href\\n      slogan\\n      photo {{\\n        __typename\\n        href\\n      }}\\n      showRealtorLogo: show_realtor_logo\\n      hours\\n    }}\\n\\n\\n  nearbySchools: nearby_schools(radius: 5.0, limit_per_level: 3) {{ __typename schools {{ district {{ __typename id name }} }} }} taxHistory: tax_history {{ __typename tax year assessment {{ __typename building land total }} }}estimates {{ __typename currentValues: current_values {{ __typename source {{ __typename type name }} estimate estimateHigh: estimate_high estimateLow: estimate_low date isBestHomeValue: isbest_homevalue }} }}    }}\\n}}\\n","variables":{{"property_id":"{property_id}"}}}}'
-        response = self.session.post(self.PROPERTY_GQL, data=payload)
+        query = """query GetHome($property_id: ID!) {
+                    home(property_id: $property_id) {
+                        __typename
+                
+                        advertisers {
+                            __typename
+                            type
+                            name
+                            email
+                            phones { number type ext primary }
+                        }
+                
+                
+                        nearbySchools: nearby_schools(radius: 5.0, limit_per_level: 3) { 
+                            __typename schools { district { __typename id name } } 
+                        }  
+                        taxHistory: tax_history { __typename tax year assessment { __typename building land total } }
+                        estimates { 
+                            __typename 
+                            currentValues: current_values { 
+                                __typename
+                                source { __typename type name } 
+                                estimate 
+                                estimateHigh: estimate_high
+                                estimateLow: estimate_low 
+                                date 
+                                isBestHomeValue: isbest_homevalue 
+                            } 
+                        }
+                    }
+                }"""
+
+        variables = {"property_id": property_id}
+        response = self.session.post(self.PROPERTY_GQL, json={"query": query, "variables": variables})
+        data = response.json()
 
         def get_key(keys: list):
             try:
-                data = response.json()
+                value = data
                 for key in keys:
-                    data = data[key]
-                return data
-            except (KeyError, TypeError):
+                    value = value[key]
+
+                return value or {}
+            except (KeyError, TypeError, IndexError):
                 return {}
 
-        ads = get_key(["data", "home", "consumerAdvertisers"])
+        ads = get_key(["data", "home", "advertisers"])
         schools = get_key(["data", "home", "nearbySchools", "schools"])
         assessed_value = get_key(["data", "home", "taxHistory", 0, "assessment", "total"])
         estimated_value = get_key(["data", "home", "estimates", "currentValues", 0, "estimate"])
 
-        agents = [Agent(name=ad["name"], phone=ad["phone"]) for ad in ads]
+        agents = [Agent(
+            name=ad["name"],
+            email=ad["email"],
+            phones=ad["phones"]
+        ) for ad in ads]
 
-        schools = [school["district"]["name"] for school in schools]
+        schools = [school["district"]["name"] for school in schools if school['district'].get('name')]
         return {
             "agents": agents if agents else None,
             "schools": schools if schools else None,
@@ -698,7 +736,8 @@ class RealtorScraper(Scraper):
 
         return address_part
 
-    def _parse_address(self, result: dict, search_type):
+    @staticmethod
+    def _parse_address(result: dict, search_type):
         if search_type == "general_search":
             address = result["location"]["address"]
         else:
@@ -706,12 +745,12 @@ class RealtorScraper(Scraper):
 
         return Address(
             street=" ".join(
-                [
-                    self.handle_none_safely(address.get("street_number")),
-                    self.handle_none_safely(address.get("street_direction")),
-                    self.handle_none_safely(address.get("street_name")),
-                    self.handle_none_safely(address.get("street_suffix")),
-                ]
+                part for part in [
+                    address.get("street_number"),
+                    address.get("street_direction"),
+                    address.get("street_name"),
+                    address.get("street_suffix"),
+                ] if part is not None
             ).strip(),
             unit=address["unit"],
             city=address["city"],
@@ -746,7 +785,7 @@ class RealtorScraper(Scraper):
             baths_half=description_data.get("baths_half"),
             sqft=description_data.get("sqft"),
             lot_sqft=description_data.get("lot_sqft"),
-            sold_price=description_data.get("sold_price"),
+            sold_price=description_data.get("sold_price") if result.get('last_sold_date') or result["list_price"] != description_data.get("sold_price") else None,  #: has a sold date or list and sold price are different
             year_built=description_data.get("year_built"),
             garage=description_data.get("garage"),
             stories=description_data.get("stories"),
