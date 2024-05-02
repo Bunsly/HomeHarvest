@@ -3,6 +3,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 import uuid
+from ...exceptions import AuthenticationError
 from .models import Property, ListingType, SiteName
 
 
@@ -11,12 +12,13 @@ class ScraperInput:
     location: str
     listing_type: ListingType
     radius: float | None = None
-    mls_only: bool | None = None
+    mls_only: bool | None = False
     proxy: str | None = None
     last_x_days: int | None = None
     date_from: str | None = None
     date_to: str | None = None
-    foreclosure: bool | None = None
+    foreclosure: bool | None = False
+    extra_property_data: bool | None = True
 
 
 class Scraper:
@@ -57,6 +59,7 @@ class Scraper:
         self.date_from = scraper_input.date_from
         self.date_to = scraper_input.date_to
         self.foreclosure = scraper_input.foreclosure
+        self.extra_property_data = scraper_input.extra_property_data
 
     def search(self) -> list[Property]: ...
 
@@ -65,7 +68,8 @@ class Scraper:
 
     def handle_location(self): ...
 
-    def get_access_token(self):
+    @staticmethod
+    def get_access_token():
         url = "https://graph.realtor.com/auth/token"
 
         payload = f'{{"client_app_id":"rdc_mobile_native,24.20.4.149916,iphone","device_id":"{str(uuid.uuid4()).upper()}","grant_type":"device_mobile"}}'
@@ -80,8 +84,11 @@ class Scraper:
         response = requests.post(url, headers=headers, data=payload)
 
         data = response.json()
-        try:
-            access_token = data["access_token"]
-        except Exception:
-            raise Exception("Could not get access token, use a proxy/vpn or wait")
+
+        if not (access_token := data.get("access_token")):
+            raise AuthenticationError(
+                "Failed to get access token, use a proxy/vpn or wait a moment and try again.",
+                response=response
+            )
+
         return access_token

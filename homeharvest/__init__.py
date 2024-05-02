@@ -43,6 +43,7 @@ def scrape_property(
         date_from=date_from,
         date_to=date_to,
         foreclosure=foreclosure,
+        extra_property_data=extra_property_data,
     )
 
     site = RealtorScraper(scraper_input)

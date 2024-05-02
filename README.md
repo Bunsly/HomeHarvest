@@ -43,7 +43,6 @@ properties = scrape_property(
   # date_from="2023-05-01", # alternative to past_days
   # date_to="2023-05-28",
   # foreclosure=True
-
   # mls_only=True,  # only fetch MLS listings
 )
 print(f"Number of properties: {len(properties)}")
@@ -92,6 +91,8 @@ Optional
 ├── foreclosure (True/False): If set, fetches only foreclosures
 │
 └── proxy (string): In format 'http://user:pass@host:port'
+│
+└── extra_property_data (bool): Increases requests by O(n). If set, this fetches additional property data (e.g. agent, broker, property evaluations etc.)
 ```
 
 ### Property Schema
@@ -139,17 +140,13 @@ Property
 
 ├── Agent Info:
 │ ├── agent
-│ ├── broker
-│ └── broker_phone
-
-├── Agent Info:
-│ ├── agent
-│ ├── broker
-│ └── broker_phone
+│ ├── agent_email
+│ └── agent_phone
 ```
 
 ### Exceptions
 The following exceptions may be raised when using HomeHarvest:
 
 - `InvalidListingType` - valid options: `for_sale`, `for_rent`, `sold`
-- `InvalidDate` - date_from or date_to is not in the format YYYY-MM-DD
+- `InvalidDate` - date_from or date_to is not in the format YYYY-MM-DD.
+- `AuthenticationError` - Realtor.com token request failed.

@@ -142,3 +142,17 @@ def test_realtor_foreclosed():
 def test_realtor_agent():
     scraped = scrape_property(location="Detroit, MI", listing_type="for_sale")
     assert scraped["agent"].nunique() > 1
+
+
+def test_realtor_without_extra_details():
+    results = [
+        scrape_property(
+            location="15509 N 172nd Dr, Surprise, AZ 85388",
+            extra_property_data=False,
+        ),
+        scrape_property(
+            location="15509 N 172nd Dr, Surprise, AZ 85388",
+        ),
+    ]
+
+    assert results[0] != results[1]

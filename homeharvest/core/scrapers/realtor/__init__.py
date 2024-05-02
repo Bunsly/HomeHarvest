@@ -651,6 +651,9 @@ class RealtorScraper(Scraper):
         return homes
 
     def get_prop_details(self, property_id: str) -> dict:
+        if not self.extra_property_data:
+            return {}
+
         query = """query GetHome($property_id: ID!) {
                     home(property_id: $property_id) {
                         __typename
