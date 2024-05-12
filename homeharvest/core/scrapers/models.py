@@ -121,7 +121,8 @@ class Property:
     neighborhoods: Optional[str] = None
     county: Optional[str] = None
     fips_code: Optional[str] = None
-    agents: list[Agent] = None
+    agents: list[Agent] | None = None
+    brokers: list[Broker] | None = None
     nearby_schools: list[str] = None
     assessed_value: int | None = None
     estimated_value: int | None = None

@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Dict, Union, Optional
 
 from .. import Scraper
-from ..models import Property, Address, ListingType, Description, PropertyType, Agent
+from ..models import Property, Address, ListingType, Description, PropertyType, Agent, Broker
 
 
 class RealtorScraper(Scraper):
@@ -180,6 +180,7 @@ class RealtorScraper(Scraper):
             ),
             days_on_mls=days_on_mls,
             agents=prop_details.get("agents"),
+            brokers=prop_details.get("brokers"),
             nearby_schools=prop_details.get("schools"),
             assessed_value=prop_details.get("assessed_value"),
             estimated_value=prop_details.get("estimated_value"),
@@ -295,6 +296,7 @@ class RealtorScraper(Scraper):
                 address=self._parse_address(property_info, search_type="handle_address"),
                 description=self._parse_description(property_info),
                 agents=prop_details.get("agents"),
+                brokers=prop_details.get("brokers"),
                 nearby_schools=prop_details.get("schools"),
                 assessed_value=prop_details.get("assessed_value"),
                 estimated_value=prop_details.get("estimated_value"),
@@ -553,6 +555,7 @@ class RealtorScraper(Scraper):
                 fips_code=result["location"]["county"].get("fips_code") if result["location"]["county"] else None,
                 days_on_mls=self.calculate_days_on_mls(result),
                 agents=prop_details.get("agents"),
+                brokers=prop_details.get("brokers"),
                 nearby_schools=prop_details.get("schools"),
                 assessed_value=prop_details.get("assessed_value"),
                 estimated_value=prop_details.get("estimated_value"),
@@ -665,7 +668,13 @@ class RealtorScraper(Scraper):
                             email
                             phones { number type ext primary }
                         }
-                
+                        
+                        consumer_advertisers {
+                            name
+                            phone
+                            href
+                            type
+                        }
                 
                         nearbySchools: nearby_schools(radius: 5.0, limit_per_level: 3) { 
                             __typename schools { district { __typename id name } } 
@@ -700,7 +709,9 @@ class RealtorScraper(Scraper):
             except (KeyError, TypeError, IndexError):
                 return {}
 
-        ads = get_key(["data", "home", "advertisers"])
+        agents = get_key(["data", "home", "advertisers"])
+        advertisers = get_key(["data", "home", "consumer_advertisers"])
+
         schools = get_key(["data", "home", "nearbySchools", "schools"])
         assessed_value = get_key(["data", "home", "taxHistory", 0, "assessment", "total"])
         estimated_value = get_key(["data", "home", "estimates", "currentValues", 0, "estimate"])
@@ -709,11 +720,18 @@ class RealtorScraper(Scraper):
             name=ad["name"],
             email=ad["email"],
             phones=ad["phones"]
-        ) for ad in ads]
+        ) for ad in agents]
+
+        brokers = [Broker(
+            name=ad["name"],
+            phone=ad["phone"],
+            website=ad["href"]
+        ) for ad in advertisers if ad.get("type") != "Agent"]
 
         schools = [school["district"]["name"] for school in schools if school['district'].get('name')]
         return {
             "agents": agents if agents else None,
+            "brokers": brokers if brokers else None,
             "schools": schools if schools else None,
             "assessed_value": assessed_value if assessed_value else None,
             "estimated_value": estimated_value if estimated_value else None,
