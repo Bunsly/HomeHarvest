@@ -52,6 +52,7 @@ class RealtorScraper(Scraper):
                             listing_id
                         }
                         address {
+                            line
                             street_direction
                             street_number
                             street_name
@@ -236,6 +237,7 @@ class RealtorScraper(Scraper):
                             stories
                         }
                         address {
+                            line
                             street_direction
                             street_number
                             street_name
@@ -352,6 +354,7 @@ class RealtorScraper(Scraper):
                                         street_number
                                         street_name
                                         street_suffix
+                                        line
                                         unit
                                         city
                                         state_code
@@ -657,6 +660,8 @@ class RealtorScraper(Scraper):
         if not self.extra_property_data:
             return {}
 
+        #: TODO: migrate "advertisers" and "estimates" to general query
+
         query = """query GetHome($property_id: ID!) {
                     home(property_id: $property_id) {
                         __typename
@@ -765,6 +770,7 @@ class RealtorScraper(Scraper):
             address = result["address"]
 
         return Address(
+            full_line=address.get("line"),
             street=" ".join(
                 part for part in [
                     address.get("street_number"),

@@ -10,6 +10,7 @@ ordered_properties = [
     "status",
     "text",
     "style",
+    "full_street_line",
     "street",
     "unit",
     "city",
@@ -55,6 +56,7 @@ def process_result(result: Property) -> pd.DataFrame:
 
     if "address" in prop_data:
         address_data = prop_data["address"]
+        prop_data["full_street_line"] = address_data.full_line
         prop_data["street"] = address_data.street
         prop_data["unit"] = address_data.unit
         prop_data["city"] = address_data.city

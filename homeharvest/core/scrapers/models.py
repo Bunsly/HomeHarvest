@@ -52,6 +52,7 @@ class PropertyType(Enum):
 
 @dataclass
 class Address:
+    full_line: str | None = None
     street: str | None = None
     unit: str | None = None
     city: str | None = None

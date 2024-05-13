@@ -156,3 +156,12 @@ def test_realtor_without_extra_details():
     ]
 
     assert results[0] != results[1]
+
+
+def test_pr_zip_code():
+    results = scrape_property(
+        location="00741",
+        listing_type="for_sale",
+    )
+
+    assert results is not None and len(results) > 0
