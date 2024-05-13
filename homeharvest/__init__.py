@@ -53,7 +53,9 @@ def scrape_property(
     if not properties_dfs:
         return pd.DataFrame()
 
+    properties_dfs = [df for df in properties_dfs if not df.empty]
+
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=FutureWarning)
 
-        return pd.concat(properties_dfs, ignore_index=True, axis=0)[ordered_properties].replace({"None": "", None: ""})
+        return pd.concat(properties_dfs, ignore_index=True, axis=0)[ordered_properties].replace({"None": pd.NA, None: pd.NA, "": pd.NA})
