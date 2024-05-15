@@ -155,7 +155,7 @@ def test_realtor_without_extra_details():
         ),
     ]
 
-    assert results[0] != results[1]
+    assert not results[0].equals(results[1])
 
 
 def test_pr_zip_code():

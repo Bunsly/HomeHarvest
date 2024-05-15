@@ -1,3 +1,4 @@
+from __future__ import annotations
 import pandas as pd
 from datetime import datetime
 from .core.scrapers.models import Property, ListingType, Agent

@@ -4,7 +4,7 @@ homeharvest.realtor.__init__
 
 This module implements the scraper for realtor.com
 """
-
+from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from typing import Dict, Union, Optional

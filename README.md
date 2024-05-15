@@ -21,7 +21,7 @@
 ```bash
 pip install -U homeharvest
 ```
-  _Python version >= [3.10](https://www.python.org/downloads/release/python-3100/) required_
+  _Python version >= [3.9](https://www.python.org/downloads/release/python-3100/) required_
 
 ## Usage
 
