@@ -166,7 +166,7 @@ class RealtorScraper(Scraper):
             longitude=property_info["address"]["location"]["coordinate"].get("lon") if able_to_get_lat_long else None,
             address=self._parse_address(property_info, search_type="handle_listing"),
             description=Description(
-                alt_photos=self.process_alt_photos(property_info.get("media", {}).get("photos", [])),
+                alt_photos=self.process_alt_photos(property_info["media"].get("photos", [])) if property_info.get("media") else None,
                 style=property_info["basic"].get("type", "").upper(),
                 beds=property_info["basic"].get("beds"),
                 baths_full=property_info["basic"].get("baths_full"),
@@ -805,7 +805,7 @@ class RealtorScraper(Scraper):
 
         return Description(
             primary_photo=primary_photo,
-            alt_photos=RealtorScraper.process_alt_photos(result.get("photos")),
+            alt_photos=RealtorScraper.process_alt_photos(result.get("photos", [])),
             style=PropertyType.__getitem__(style) if style and style in PropertyType.__members__ else None,
             beds=description_data.get("beds"),
             baths_full=description_data.get("baths_full"),
