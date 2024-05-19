@@ -84,7 +84,7 @@ def process_result(result: Property) -> pd.DataFrame:
 
     description = result.description
     prop_data["primary_photo"] = description.primary_photo
-    prop_data["alt_photos"] = ", ".join(description.alt_photos)
+    prop_data["alt_photos"] = ", ".join(description.alt_photos) if description.alt_photos else None
     prop_data["style"] = description.style if type(description.style) == str else description.style.value
     prop_data["beds"] = description.beds
     prop_data["full_baths"] = description.baths_full
