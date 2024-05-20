@@ -49,11 +49,9 @@ def scrape_property(
     site = RealtorScraper(scraper_input)
     results = site.search()
 
-    properties_dfs = [process_result(result) for result in results]
+    properties_dfs = [df for result in results if not (df := process_result(result)).empty]
     if not properties_dfs:
         return pd.DataFrame()
-
-    properties_dfs = [df for df in properties_dfs if not df.empty]
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=FutureWarning)

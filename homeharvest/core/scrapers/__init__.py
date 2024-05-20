@@ -6,6 +6,7 @@ from urllib3.util.retry import Retry
 import uuid
 from ...exceptions import AuthenticationError
 from .models import Property, ListingType, SiteName
+import json
 
 
 @dataclass
@@ -71,18 +72,25 @@ class Scraper:
 
     @staticmethod
     def get_access_token():
-        url = "https://graph.realtor.com/auth/token"
+        device_id = str(uuid.uuid4()).upper()
 
-        payload = f'{{"client_app_id":"rdc_mobile_native,24.20.4.149916,iphone","device_id":"{str(uuid.uuid4()).upper()}","grant_type":"device_mobile"}}'
-        headers = {
-            "Host": "graph.realtor.com",
-            "x-client-version": "24.20.4.149916",
-            "accept": "*/*",
-            "content-type": "Application/json",
-            "user-agent": "Realtor.com/24.20.4.149916 CFNetwork/1410.0.3 Darwin/22.6.0",
-            "accept-language": "en-US,en;q=0.9",
-        }
-        response = requests.post(url, headers=headers, data=payload)
+        response = requests.post(
+            "https://graph.realtor.com/auth/token",
+            headers={
+                'Host': 'graph.realtor.com',
+                'Accept': '*/*',
+                'Content-Type': 'Application/json',
+                'X-Client-ID': 'rdc_mobile_native,iphone',
+                'X-Visitor-ID': device_id,
+                'X-Client-Version': '24.21.23.679885',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'User-Agent': 'Realtor.com/24.21.23.679885 CFNetwork/1494.0.7 Darwin/23.4.0',
+            },
+            data=json.dumps({
+                "grant_type": "device_mobile",
+                "device_id": device_id,
+                "client_app_id": "rdc_mobile_native,24.21.23.679885,iphone"
+            }))
 
         data = response.json()
 
