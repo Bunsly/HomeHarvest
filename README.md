@@ -90,9 +90,11 @@ Optional
 │
 ├── foreclosure (True/False): If set, fetches only foreclosures
 │
-└── proxy (string): In format 'http://user:pass@host:port'
+├── proxy (string): In format 'http://user:pass@host:port'
 │
-└── extra_property_data (bool): Increases requests by O(n). If set, this fetches additional property data (e.g. agent, broker, property evaluations etc.)
+├── extra_property_data (True/False): Increases requests by O(n). If set, this fetches additional property data (e.g. agent, broker, property evaluations etc.)
+│
+└── exclude_pending (True/False): If set, excludes pending properties from the results unless listing_type is 'pending'
 ```
 
 ### Property Schema
@@ -142,6 +144,11 @@ Property
 │ ├── agent
 │ ├── agent_email
 │ └── agent_phone
+
+├── Broker Info:
+│ ├── broker
+│ ├── broker_email
+│ └── broker_website
 ```
 
 ### Exceptions

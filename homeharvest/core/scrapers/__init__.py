@@ -21,6 +21,7 @@ class ScraperInput:
     date_to: str | None = None
     foreclosure: bool | None = False
     extra_property_data: bool | None = True
+    exclude_pending: bool | None = False
 
 
 class Scraper:
@@ -62,6 +63,7 @@ class Scraper:
         self.date_to = scraper_input.date_to
         self.foreclosure = scraper_input.foreclosure
         self.extra_property_data = scraper_input.extra_property_data
+        self.exclude_pending = scraper_input.exclude_pending
 
     def search(self) -> list[Property]: ...
 

@@ -525,7 +525,7 @@ class RealtorScraper(Scraper):
 
             is_pending = result["flags"].get("is_pending") or result["flags"].get("is_contingent")
 
-            if is_pending and self.listing_type != ListingType.PENDING:
+            if is_pending and (self.exclude_pending and self.listing_type != ListingType.PENDING):
                 return
 
             property_id = result["property_id"]

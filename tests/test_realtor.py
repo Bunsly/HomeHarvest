@@ -4,7 +4,7 @@ from homeharvest import scrape_property
 def test_realtor_pending_or_contingent():
     pending_or_contingent_result = scrape_property(location="Surprise, AZ", listing_type="pending")
 
-    regular_result = scrape_property(location="Surprise, AZ", listing_type="for_sale")
+    regular_result = scrape_property(location="Surprise, AZ", listing_type="for_sale", exclude_pending=True)
 
     assert all([result is not None for result in [pending_or_contingent_result, regular_result]])
     assert len(pending_or_contingent_result) != len(regular_result)
@@ -162,6 +162,16 @@ def test_pr_zip_code():
     results = scrape_property(
         location="00741",
         listing_type="for_sale",
+    )
+
+    assert results is not None and len(results) > 0
+
+
+def test_exclude_pending():
+    results = scrape_property(
+        location="33567",
+        listing_type="pending",
+        exclude_pending=True,
     )
 
     assert results is not None and len(results) > 0
