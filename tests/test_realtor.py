@@ -175,3 +175,13 @@ def test_exclude_pending():
     )
 
     assert results is not None and len(results) > 0
+
+
+def test_style_value_error():
+    results = scrape_property(
+        location="Alaska, AK",
+        listing_type="sold",
+        extra_property_data=False,
+    )
+
+    assert results is not None and len(results) > 0

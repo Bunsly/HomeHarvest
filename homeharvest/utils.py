@@ -83,19 +83,20 @@ def process_result(result: Property) -> pd.DataFrame:
     prop_data["nearby_schools"] = ", ".join(set(prop_data["nearby_schools"])) if prop_data["nearby_schools"] else None
 
     description = result.description
-    prop_data["primary_photo"] = description.primary_photo
-    prop_data["alt_photos"] = ", ".join(description.alt_photos) if description.alt_photos else None
-    prop_data["style"] = description.style if type(description.style) == str else description.style.value
-    prop_data["beds"] = description.beds
-    prop_data["full_baths"] = description.baths_full
-    prop_data["half_baths"] = description.baths_half
-    prop_data["sqft"] = description.sqft
-    prop_data["lot_sqft"] = description.lot_sqft
-    prop_data["sold_price"] = description.sold_price
-    prop_data["year_built"] = description.year_built
-    prop_data["parking_garage"] = description.garage
-    prop_data["stories"] = description.stories
-    prop_data["text"] = description.text
+    if description:
+        prop_data["primary_photo"] = description.primary_photo
+        prop_data["alt_photos"] = ", ".join(description.alt_photos) if description.alt_photos else None
+        prop_data["style"] = description.style if isinstance(description.style, str) else description.style.value if description.style else None
+        prop_data["beds"] = description.beds
+        prop_data["full_baths"] = description.baths_full
+        prop_data["half_baths"] = description.baths_half
+        prop_data["sqft"] = description.sqft
+        prop_data["lot_sqft"] = description.lot_sqft
+        prop_data["sold_price"] = description.sold_price
+        prop_data["year_built"] = description.year_built
+        prop_data["parking_garage"] = description.garage
+        prop_data["stories"] = description.stories
+        prop_data["text"] = description.text
 
     properties_df = pd.DataFrame([prop_data])
     properties_df = properties_df.reindex(columns=ordered_properties)
