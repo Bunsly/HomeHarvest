@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "homeharvest"
-version = "0.3.30"
+version = "0.3.31"
 description = "Real estate scraping library"
 authors = ["Zachary Hampton <zachary@bunsly.com>", "Cullen Watson <cullen@bunsly.com>"]
 homepage = "https://github.com/Bunsly/HomeHarvest"
@@ -13,6 +13,7 @@ homeharvest = "homeharvest.cli:main"
 python = ">=3.9,<3.13"
 requests = "^2.31.0"
 pandas = "^2.1.1"
+pydantic = "^2.7.4"
 
 
 [tool.poetry.group.dev.dependencies]
