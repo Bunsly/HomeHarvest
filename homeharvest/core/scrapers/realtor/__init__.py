@@ -4,6 +4,7 @@ homeharvest.realtor.__init__
 
 This module implements the scraper for realtor.com
 """
+
 from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
@@ -144,6 +145,7 @@ class RealtorScraper(Scraper):
 
         property_id = property_info["details"]["permalink"]
         prop_details = self.get_prop_details(property_id)
+        style = property_info["basic"].get("type", "").upper()
         listing = Property(
             mls=mls,
             mls_id=(
@@ -166,8 +168,12 @@ class RealtorScraper(Scraper):
             longitude=property_info["address"]["location"]["coordinate"].get("lon") if able_to_get_lat_long else None,
             address=self._parse_address(property_info, search_type="handle_listing"),
             description=Description(
-                alt_photos=self.process_alt_photos(property_info["media"].get("photos", [])) if property_info.get("media") else None,
-                style=property_info["basic"].get("type", "").upper(),
+                alt_photos=(
+                    self.process_alt_photos(property_info["media"].get("photos", []))
+                    if property_info.get("media")
+                    else None
+                ),
+                style=PropertyType.__getitem__(style) if style and style in PropertyType.__members__ else None,
                 beds=property_info["basic"].get("beds"),
                 baths_full=property_info["basic"].get("baths_full"),
                 baths_half=property_info["basic"].get("baths_half"),
@@ -665,7 +671,7 @@ class RealtorScraper(Scraper):
         query = """query GetHome($property_id: ID!) {
                     home(property_id: $property_id) {
                         __typename
-                
+
                         advertisers {
                             __typename
                             type
@@ -673,29 +679,29 @@ class RealtorScraper(Scraper):
                             email
                             phones { number type ext primary }
                         }
-                        
+
                         consumer_advertisers {
                             name
                             phone
                             href
                             type
                         }
-                
-                        nearbySchools: nearby_schools(radius: 5.0, limit_per_level: 3) { 
-                            __typename schools { district { __typename id name } } 
-                        }  
+
+                        nearbySchools: nearby_schools(radius: 5.0, limit_per_level: 3) {
+                            __typename schools { district { __typename id name } }
+                        }
                         taxHistory: tax_history { __typename tax year assessment { __typename building land total } }
-                        estimates { 
-                            __typename 
-                            currentValues: current_values { 
+                        estimates {
+                            __typename
+                            currentValues: current_values {
                                 __typename
-                                source { __typename type name } 
-                                estimate 
+                                source { __typename type name }
+                                estimate
                                 estimateHigh: estimate_high
-                                estimateLow: estimate_low 
-                                date 
-                                isBestHomeValue: isbest_homevalue 
-                            } 
+                                estimateLow: estimate_low
+                                date
+                                isBestHomeValue: isbest_homevalue
+                            }
                         }
                     }
                 }"""
@@ -721,19 +727,15 @@ class RealtorScraper(Scraper):
         assessed_value = get_key(["data", "home", "taxHistory", 0, "assessment", "total"])
         estimated_value = get_key(["data", "home", "estimates", "currentValues", 0, "estimate"])
 
-        agents = [Agent(
-            name=ad["name"],
-            email=ad["email"],
-            phones=ad["phones"]
-        ) for ad in agents]
+        agents = [Agent(name=ad["name"], email=ad["email"], phones=ad["phones"]) for ad in agents]
 
-        brokers = [Broker(
-            name=ad["name"],
-            phone=ad["phone"],
-            website=ad["href"]
-        ) for ad in advertisers if ad.get("type") != "Agent"]
+        brokers = [
+            Broker(name=ad["name"], phone=ad["phone"], website=ad["href"])
+            for ad in advertisers
+            if ad.get("type") != "Agent"
+        ]
 
-        schools = [school["district"]["name"] for school in schools if school['district'].get('name')]
+        schools = [school["district"]["name"] for school in schools if school["district"].get("name")]
         return {
             "agents": agents if agents else None,
             "brokers": brokers if brokers else None,
@@ -772,12 +774,14 @@ class RealtorScraper(Scraper):
         return Address(
             full_line=address.get("line"),
             street=" ".join(
-                part for part in [
+                part
+                for part in [
                     address.get("street_number"),
                     address.get("street_direction"),
                     address.get("street_name"),
                     address.get("street_suffix"),
-                ] if part is not None
+                ]
+                if part is not None
             ).strip(),
             unit=address["unit"],
             city=address["city"],
@@ -812,7 +816,11 @@ class RealtorScraper(Scraper):
             baths_half=description_data.get("baths_half"),
             sqft=description_data.get("sqft"),
             lot_sqft=description_data.get("lot_sqft"),
-            sold_price=description_data.get("sold_price") if result.get('last_sold_date') or result["list_price"] != description_data.get("sold_price") else None,  #: has a sold date or list and sold price are different
+            sold_price=(
+                description_data.get("sold_price")
+                if result.get("last_sold_date") or result["list_price"] != description_data.get("sold_price")
+                else None
+            ),  #: has a sold date or list and sold price are different
             year_built=description_data.get("year_built"),
             garage=description_data.get("garage"),
             stories=description_data.get("stories"),
