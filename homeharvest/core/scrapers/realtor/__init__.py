@@ -535,7 +535,7 @@ class RealtorScraper(Scraper):
                 return
 
             property_id = result["property_id"]
-            prop_details = self.get_prop_details(property_id)
+            prop_details = self.get_prop_details(property_id) if self.extra_property_data else {}
 
             realty_property = Property(
                 mls=mls,
@@ -647,7 +647,7 @@ class RealtorScraper(Scraper):
         total = result["total"]
         homes = result["properties"]
 
-        with ThreadPoolExecutor(max_workers=10) as executor:
+        with ThreadPoolExecutor() as executor:
             futures = [
                 executor.submit(
                     self.general_search,
