@@ -1,7 +1,7 @@
 import warnings
 import pandas as pd
 from .core.scrapers import ScraperInput
-from .utils import process_result, ordered_properties, validate_input, validate_dates
+from .utils import process_result, ordered_properties, validate_input, validate_dates, validate_limit
 from .core.scrapers.realtor import RealtorScraper
 from .core.scrapers.models import ListingType
 
@@ -18,6 +18,7 @@ def scrape_property(
     foreclosure: bool = None,
     extra_property_data: bool = True,
     exclude_pending: bool = False,
+    limit: int = 10000,
 ) -> pd.DataFrame:
     """
     Scrape properties from Realtor.com based on a given location and listing type.
@@ -31,9 +32,11 @@ def scrape_property(
     :param foreclosure: If set, fetches only foreclosure listings.
     :param extra_property_data: Increases requests by O(n). If set, this fetches additional property data (e.g. agent, broker, property evaluations etc.)
     :param exclude_pending: If true, this excludes pending or contingent properties from the results, unless listing type is pending.
+    :param limit: Limit the number of results returned. Maximum is 10,000.
     """
     validate_input(listing_type)
     validate_dates(date_from, date_to)
+    validate_limit(limit)
 
     scraper_input = ScraperInput(
         location=location,
@@ -47,6 +50,7 @@ def scrape_property(
         foreclosure=foreclosure,
         extra_property_data=extra_property_data,
         exclude_pending=exclude_pending,
+        limit=limit,
     )
 
     site = RealtorScraper(scraper_input)

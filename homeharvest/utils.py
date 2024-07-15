@@ -86,7 +86,8 @@ def process_result(result: Property) -> pd.DataFrame:
     if description:
         prop_data["primary_photo"] = description.primary_photo
         prop_data["alt_photos"] = ", ".join(description.alt_photos) if description.alt_photos else None
-        prop_data["style"] = description.style if isinstance(description.style, str) else description.style.value if description.style else None
+        prop_data["style"] = description.style if isinstance(description.style,
+                                                             str) else description.style.value if description.style else None
         prop_data["beds"] = description.beds
         prop_data["full_baths"] = description.baths_full
         prop_data["half_baths"] = description.baths_half
@@ -110,7 +111,7 @@ def validate_input(listing_type: str) -> None:
 
 
 def validate_dates(date_from: str | None, date_to: str | None) -> None:
-    if (date_from is not None and date_to is None) or (date_from is None and date_to is not None):
+    if isinstance(date_from, str) != isinstance(date_to, str):
         raise InvalidDate("Both date_from and date_to must be provided.")
 
     if date_from and date_to:
@@ -122,3 +123,10 @@ def validate_dates(date_from: str | None, date_to: str | None) -> None:
                 raise InvalidDate("date_to must be after date_from.")
         except ValueError:
             raise InvalidDate(f"Invalid date format or range")
+
+
+def validate_limit(limit: int) -> None:
+    #: 1 -> 10000 limit
+
+    if limit is not None and (limit < 1 or limit > 10000):
+        raise ValueError("Property limit must be between 1 and 10,000.")

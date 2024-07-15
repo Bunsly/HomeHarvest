@@ -94,7 +94,9 @@ Optional
 │
 ├── extra_property_data (True/False): Increases requests by O(n). If set, this fetches additional property data (e.g. agent, broker, property evaluations etc.)
 │
-└── exclude_pending (True/False): If set, excludes pending properties from the results unless listing_type is 'pending'
+├── exclude_pending (True/False): If set, excludes pending properties from the results unless listing_type is 'pending'
+│
+└── limit (integer): Limit the number of properties to fetch. Max & default is 10000.
 ```
 
 ### Property Schema

@@ -22,6 +22,7 @@ class ScraperInput:
     foreclosure: bool | None = False
     extra_property_data: bool | None = True
     exclude_pending: bool | None = False
+    limit: int = 10000
 
 
 class Scraper:
@@ -64,6 +65,7 @@ class Scraper:
         self.foreclosure = scraper_input.foreclosure
         self.extra_property_data = scraper_input.extra_property_data
         self.exclude_pending = scraper_input.exclude_pending
+        self.limit = scraper_input.limit
 
     def search(self) -> list[Property]: ...
 

@@ -115,10 +115,10 @@ class RealtorScraper(Scraper):
         )
 
         able_to_get_lat_long = (
-            property_info
-            and property_info.get("address")
-            and property_info["address"].get("location")
-            and property_info["address"]["location"].get("coordinate")
+                property_info
+                and property_info.get("address")
+                and property_info["address"].get("location")
+                and property_info["address"]["location"].get("coordinate")
         )
         list_date_str = (
             property_info["basic"]["list_date"].split("T")[0] if property_info["basic"].get("list_date") else None
@@ -481,7 +481,7 @@ class RealtorScraper(Scraper):
             )
         else:  #: general search, came from an address
             query = (
-                """query Property_search(
+                    """query Property_search(
                         $property_id: [ID]!
                         $offset: Int!,
                     ) {
@@ -492,7 +492,7 @@ class RealtorScraper(Scraper):
                             limit: 1
                             offset: $offset
                         ) %s"""
-                % results_query
+                    % results_query
             )
 
         payload = {
@@ -507,12 +507,12 @@ class RealtorScraper(Scraper):
         properties: list[Property] = []
 
         if (
-            response_json is None
-            or "data" not in response_json
-            or response_json["data"] is None
-            or search_key not in response_json["data"]
-            or response_json["data"][search_key] is None
-            or "results" not in response_json["data"][search_key]
+                response_json is None
+                or "data" not in response_json
+                or response_json["data"] is None
+                or search_key not in response_json["data"]
+                or response_json["data"][search_key] is None
+                or "results" not in response_json["data"][search_key]
         ):
             return {"total": 0, "properties": []}
 
@@ -523,10 +523,10 @@ class RealtorScraper(Scraper):
                 return
 
             able_to_get_lat_long = (
-                result
-                and result.get("location")
-                and result["location"].get("address")
-                and result["location"]["address"].get("coordinate")
+                    result
+                    and result.get("location")
+                    and result["location"].get("address")
+                    and result["location"]["address"].get("coordinate")
             )
 
             is_pending = result["flags"].get("is_pending") or result["flags"].get("is_contingent")
@@ -654,7 +654,7 @@ class RealtorScraper(Scraper):
                     variables=search_variables | {"offset": i},
                     search_type=search_type,
                 )
-                for i in range(200, min(total, 10000), 200)
+                for i in range(200, min(total, self.limit), 200)
             ]
 
             for future in as_completed(futures):
@@ -790,7 +790,10 @@ class RealtorScraper(Scraper):
         )
 
     @staticmethod
-    def _parse_description(result: dict) -> Description:
+    def _parse_description(result: dict) -> Description | None:
+        if not result:
+            return None
+
         description_data = result.get("description", {})
 
         if description_data is None or not isinstance(description_data, dict):
@@ -801,11 +804,8 @@ class RealtorScraper(Scraper):
             style = style.upper()
 
         primary_photo = ""
-        if result and "primary_photo" in result:
-            primary_photo_info = result["primary_photo"]
-            if primary_photo_info and "href" in primary_photo_info:
-                primary_photo_href = primary_photo_info["href"]
-                primary_photo = primary_photo_href.replace("s.jpg", "od-w480_h360_x2.webp?w=1080&q=75")
+        if (primary_photo_info := result.get('primary_photo')) and (primary_photo_href := primary_photo_info.get("href")):
+            primary_photo = primary_photo_href.replace("s.jpg", "od-w480_h360_x2.webp?w=1080&q=75")
 
         return Description(
             primary_photo=primary_photo,
