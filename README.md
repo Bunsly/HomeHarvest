@@ -128,6 +128,8 @@ Property
 ├── Property Listing Details:
 │ ├── days_on_mls
 │ ├── list_price
+│ ├── list_price_min
+│ ├── list_price_max
 │ ├── list_date
 │ ├── pending_date
 │ ├── sold_price

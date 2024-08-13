@@ -24,6 +24,8 @@ ordered_properties = [
     "year_built",
     "days_on_mls",
     "list_price",
+    "list_price_min",
+    "list_price_max",
     "list_date",
     "sold_price",
     "last_sold_date",

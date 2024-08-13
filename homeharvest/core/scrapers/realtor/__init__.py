@@ -20,6 +20,7 @@ class RealtorScraper(Scraper):
     PROPERTY_GQL = "https://graph.realtor.com/graphql"
     ADDRESS_AUTOCOMPLETE_URL = "https://parser-external.geo.moveaws.com/suggest"
     NUM_PROPERTY_WORKERS = 20
+    DEFAULT_PAGE_SIZE = 200
 
     def __init__(self, scraper_input):
         super().__init__(scraper_input)
@@ -75,7 +76,6 @@ class RealtorScraper(Scraper):
                             baths_full
                             baths_half
                             lot_sqft
-                            sold_price
                             sold_price
                             type
                             price
@@ -326,6 +326,8 @@ class RealtorScraper(Scraper):
                                 last_sold_price
                                 last_sold_date
                                 list_price
+                                list_price_max
+                                list_price_min
                                 price_per_sqft
                                 flags {
                                     is_contingent
@@ -551,6 +553,8 @@ class RealtorScraper(Scraper):
                 ),
                 status="PENDING" if is_pending else result["status"].upper(),
                 list_price=result["list_price"],
+                list_price_min=result["list_price_min"],
+                list_price_max=result["list_price_max"],
                 list_date=result["list_date"].split("T")[0] if result.get("list_date") else None,
                 prc_sqft=result.get("price_per_sqft"),
                 last_sold_date=result.get("last_sold_date"),
@@ -571,9 +575,17 @@ class RealtorScraper(Scraper):
             )
             return realty_property
 
+        properties_list = response_json["data"][search_key]["results"]
+        total_properties = response_json["data"][search_key]["total"]
+        offset = variables.get("offset", 0)
+
+        #: limit the number of properties to be processed
+        #: example, if your offset is 200, and your limit is 250, return 50
+        properties_list = properties_list[:self.limit - offset]
+
         with ThreadPoolExecutor(max_workers=self.NUM_PROPERTY_WORKERS) as executor:
             futures = [
-                executor.submit(process_property, result) for result in response_json["data"][search_key]["results"]
+                executor.submit(process_property, result) for result in properties_list
             ]
 
             for future in as_completed(futures):
@@ -582,7 +594,7 @@ class RealtorScraper(Scraper):
                     properties.append(result)
 
         return {
-            "total": response_json["data"][search_key]["total"],
+            "total": total_properties,
             "properties": properties,
         }
 
@@ -654,7 +666,7 @@ class RealtorScraper(Scraper):
                     variables=search_variables | {"offset": i},
                     search_type=search_type,
                 )
-                for i in range(200, min(total, self.limit), 200)
+                for i in range(self.DEFAULT_PAGE_SIZE, min(total, self.limit), self.DEFAULT_PAGE_SIZE)
             ]
 
             for future in as_completed(futures):

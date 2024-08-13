@@ -113,6 +113,9 @@ class Property:
     address: Address | None = None
 
     list_price: int | None = None
+    list_price_min: int | None = None
+    list_price_max: int | None = None
+
     list_date: str | None = None
     pending_date: str | None = None
     last_sold_date: str | None = None

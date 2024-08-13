@@ -105,8 +105,8 @@ def test_realtor():
             location="2530 Al Lipscomb Way",
             listing_type="for_sale",
         ),
-        scrape_property(location="Phoenix, AZ", listing_type="for_rent"),  #: does not support "city, state, USA" format
-        scrape_property(location="Dallas, TX", listing_type="sold"),  #: does not support "city, state, USA" format
+        scrape_property(location="Phoenix, AZ", listing_type="for_rent", limit=1000),  #: does not support "city, state, USA" format
+        scrape_property(location="Dallas, TX", listing_type="sold", limit=1000),  #: does not support "city, state, USA" format
         scrape_property(location="85281"),
     ]
 
@@ -117,6 +117,7 @@ def test_realtor_city():
     results = scrape_property(
         location="Atlanta, GA",
         listing_type="for_sale",
+        limit=1000
     )
 
     assert results is not None and len(results) > 0
@@ -140,7 +141,7 @@ def test_realtor_foreclosed():
 
 
 def test_realtor_agent():
-    scraped = scrape_property(location="Detroit, MI", listing_type="for_sale")
+    scraped = scrape_property(location="Detroit, MI", listing_type="for_sale", limit=1000)
     assert scraped["agent"].nunique() > 1
 
 
@@ -182,6 +183,58 @@ def test_style_value_error():
         location="Alaska, AK",
         listing_type="sold",
         extra_property_data=False,
+        limit=1000,
     )
 
     assert results is not None and len(results) > 0
+
+
+def test_primary_image_error():
+    results = scrape_property(
+        location="Spokane, PA",
+        listing_type="for_rent",  # or (for_sale, for_rent, pending)
+        past_days=360,
+        radius=3,
+        extra_property_data=False,
+    )
+
+    assert results is not None and len(results) > 0
+
+
+def test_limit():
+    over_limit = 876
+    extra_params = {"limit": over_limit}
+
+    over_results = scrape_property(
+        location="Waddell, AZ",
+        listing_type="for_sale",
+        **extra_params,
+    )
+
+    assert over_results is not None and len(over_results) <= over_limit
+
+    under_limit = 1
+    under_results = scrape_property(
+        location="Waddell, AZ",
+        listing_type="for_sale",
+        limit=under_limit,
+    )
+
+    assert under_results is not None and len(under_results) == under_limit
+
+
+def test_apartment_list_price():
+    results = scrape_property(
+        location="Spokane, WA",
+        listing_type="for_rent",  # or (for_sale, for_rent, pending)
+        extra_property_data=False,
+    )
+
+    assert results is not None
+
+    results = results[results["style"] == "APARTMENT"]
+
+    #: get percentage of results with atleast 1 of any column not none, list_price, list_price_min, list_price_max
+    assert len(results[results[["list_price", "list_price_min", "list_price_max"]].notnull().any(axis=1)]) / len(
+        results
+    ) > 0.5
