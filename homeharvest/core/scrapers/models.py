@@ -90,18 +90,41 @@ class AgentPhone:  #: For documentation purposes only (at the moment)
 
 
 @dataclass
-class Agent:
-    name: str | None = None
+class Entity:
+    name: str
+    uuid: str | None = None
+
+
+@dataclass
+class Agent(Entity):
     phones: list[dict] | AgentPhone | None = None
     email: str | None = None
     href: str | None = None
 
 
 @dataclass
-class Broker:
-    name: str | None = None
-    phone: str | None = None
-    website: str | None = None
+class Office(Entity):
+    email: str | None = None
+    href: str | None = None
+    phones: list[dict] | AgentPhone | None = None
+
+
+@dataclass
+class Broker(Entity):
+    pass
+
+
+@dataclass
+class Builder(Entity):
+    pass
+
+
+@dataclass
+class Advertisers:
+    agent: Agent | None = None
+    broker: Broker | None = None
+    builder: Builder | None = None
+    office: Office | None = None
 
 
 @dataclass
@@ -120,6 +143,7 @@ class Property:
     pending_date: str | None = None
     last_sold_date: str | None = None
     prc_sqft: int | None = None
+    new_construction: bool | None = None
     hoa_fee: int | None = None
     days_on_mls: int | None = None
     description: Description | None = None
@@ -129,8 +153,8 @@ class Property:
     neighborhoods: Optional[str] = None
     county: Optional[str] = None
     fips_code: Optional[str] = None
-    agents: list[Agent] | None = None
-    brokers: list[Broker] | None = None
     nearby_schools: list[str] = None
     assessed_value: int | None = None
     estimated_value: int | None = None
+
+    advertisers: Advertisers | None = None

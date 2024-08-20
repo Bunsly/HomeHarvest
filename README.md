@@ -92,7 +92,7 @@ Optional
 │
 ├── proxy (string): In format 'http://user:pass@host:port'
 │
-├── extra_property_data (True/False): Increases requests by O(n). If set, this fetches additional property data (e.g. agent, broker, property evaluations etc.)
+├── extra_property_data (True/False): Increases requests by O(n). If set, this fetches additional property data for general searches (e.g. schools, tax appraisals etc.)
 │
 ├── exclude_pending (True/False): If set, excludes pending properties from the results unless listing_type is 'pending'
 │
@@ -123,6 +123,7 @@ Property
 │ ├── sqft
 │ ├── year_built
 │ ├── stories
+│ ├── garage
 │ └── lot_sqft
 
 ├── Property Listing Details:
@@ -135,7 +136,7 @@ Property
 │ ├── sold_price
 │ ├── last_sold_date
 │ ├── price_per_sqft
-│ ├── parking_garage
+│ ├── new_construction
 │ └── hoa_fee
 
 ├── Location Details:
@@ -143,21 +144,31 @@ Property
 │ ├── longitude
 │ ├── nearby_schools
 
-
 ├── Agent Info:
-│ ├── agent
+│ ├── agent_id
+│ ├── agent_name
 │ ├── agent_email
 │ └── agent_phone
 
 ├── Broker Info:
-│ ├── broker
-│ ├── broker_email
-│ └── broker_website
+│ ├── broker_id
+│ └── broker_name
+
+├── Builder Info:
+│ ├── builder_id
+│ └── builder_name
+
+├── Office Info:
+│ ├── office_id
+│ ├── office_name
+│ ├── office_phones
+│ └── office_email
+
 ```
 
 ### Exceptions
 The following exceptions may be raised when using HomeHarvest:
 
-- `InvalidListingType` - valid options: `for_sale`, `for_rent`, `sold`
+- `InvalidListingType` - valid options: `for_sale`, `for_rent`, `sold`, `pending`.
 - `InvalidDate` - date_from or date_to is not in the format YYYY-MM-DD.
 - `AuthenticationError` - Realtor.com token request failed.

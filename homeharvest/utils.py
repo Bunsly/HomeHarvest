@@ -1,7 +1,7 @@
 from __future__ import annotations
 import pandas as pd
 from datetime import datetime
-from .core.scrapers.models import Property, ListingType, Agent
+from .core.scrapers.models import Property, ListingType, Advertisers
 from .exceptions import InvalidListingType, InvalidDate
 
 ordered_properties = [
@@ -31,6 +31,7 @@ ordered_properties = [
     "last_sold_date",
     "assessed_value",
     "estimated_value",
+    "new_construction",
     "lot_sqft",
     "price_per_sqft",
     "latitude",
@@ -41,12 +42,18 @@ ordered_properties = [
     "stories",
     "hoa_fee",
     "parking_garage",
-    "agent",
+    "agent_id",
+    "agent_name",
     "agent_email",
     "agent_phones",
-    "broker",
-    "broker_phone",
-    "broker_website",
+    "broker_id",
+    "broker_name",
+    "builder_id",
+    "builder_name",
+    "office_id",
+    "office_name",
+    "office_email",
+    "office_phones",
     "nearby_schools",
     "primary_photo",
     "alt_photos",
@@ -66,19 +73,31 @@ def process_result(result: Property) -> pd.DataFrame:
         prop_data["state"] = address_data.state
         prop_data["zip_code"] = address_data.zip
 
-    if "agents" in prop_data:
-        agents: list[Agent] | None = prop_data["agents"]
-        if agents:
-            prop_data["agent"] = agents[0].name
-            prop_data["agent_email"] = agents[0].email
-            prop_data["agent_phones"] = agents[0].phones
+    if "advertisers" in prop_data and prop_data.get("advertisers"):
+        advertiser_data: Advertisers | None = prop_data["advertisers"]
+        if advertiser_data.agent:
+            agent_data = advertiser_data.agent
+            prop_data["agent_id"] = agent_data.uuid
+            prop_data["agent_name"] = agent_data.name
+            prop_data["agent_email"] = agent_data.email
+            prop_data["agent_phones"] = agent_data.phones
 
-    if "brokers" in prop_data:
-        brokers = prop_data["brokers"]
-        if brokers:
-            prop_data["broker"] = brokers[0].name
-            prop_data["broker_phone"] = brokers[0].phone
-            prop_data["broker_website"] = brokers[0].website
+        if advertiser_data.broker:
+            broker_data = advertiser_data.broker
+            prop_data["broker_id"] = broker_data.uuid
+            prop_data["broker_name"] = broker_data.name
+
+        if advertiser_data.builder:
+            builder_data = advertiser_data.builder
+            prop_data["builder_id"] = builder_data.uuid
+            prop_data["builder_name"] = builder_data.name
+
+        if advertiser_data.office:
+            office_data = advertiser_data.office
+            prop_data["office_id"] = office_data.uuid
+            prop_data["office_name"] = office_data.name
+            prop_data["office_email"] = office_data.email
+            prop_data["office_phones"] = office_data.phones
 
     prop_data["price_per_sqft"] = prop_data["prc_sqft"]
     prop_data["nearby_schools"] = filter(None, prop_data["nearby_schools"]) if prop_data["nearby_schools"] else None
