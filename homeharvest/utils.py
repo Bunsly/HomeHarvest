@@ -46,6 +46,8 @@ ordered_properties = [
     "agent_name",
     "agent_email",
     "agent_phones",
+    "agent_mls_set",
+    "agent_nrds_id",
     "broker_id",
     "broker_name",
     "builder_id",
@@ -81,6 +83,8 @@ def process_result(result: Property) -> pd.DataFrame:
             prop_data["agent_name"] = agent_data.name
             prop_data["agent_email"] = agent_data.email
             prop_data["agent_phones"] = agent_data.phones
+            prop_data["agent_mls_set"] = agent_data.mls_set
+            prop_data["agent_nrds_id"] = agent_data.nrds_id
 
         if advertiser_data.broker:
             broker_data = advertiser_data.broker

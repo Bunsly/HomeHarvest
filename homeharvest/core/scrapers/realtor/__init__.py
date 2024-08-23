@@ -114,7 +114,9 @@ class RealtorScraper(Scraper):
             advertiser_type = advertiser.get("type")
             if advertiser_type == "seller":  #: agent
                 processed_advertisers.agent = Agent(
-                    uuid=advertiser.get("mls_set"),
+                    uuid=_parse_fulfillment_id(advertiser.get("fulfillment_id")),
+                    nrds_id=advertiser.get("nrds_id"),
+                    mls_set=advertiser.get("mls_set"),
                     name=advertiser.get("name"),
                     email=advertiser.get("email"),
                     phones=advertiser.get("phones"),

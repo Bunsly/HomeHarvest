@@ -109,6 +109,7 @@ _SEARCH_HOMES_DATA_BASE = """{
             fulfillment_id
         }
         mls_set
+        nrds_id
         rental_corporation {
             fulfillment_id
         }
