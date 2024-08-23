@@ -53,6 +53,7 @@ ordered_properties = [
     "builder_id",
     "builder_name",
     "office_id",
+    "office_mls_set",
     "office_name",
     "office_email",
     "office_phones",
@@ -102,6 +103,7 @@ def process_result(result: Property) -> pd.DataFrame:
             prop_data["office_name"] = office_data.name
             prop_data["office_email"] = office_data.email
             prop_data["office_phones"] = office_data.phones
+            prop_data["office_mls_set"] = office_data.mls_set
 
     prop_data["price_per_sqft"] = prop_data["prc_sqft"]
     prop_data["nearby_schools"] = filter(None, prop_data["nearby_schools"]) if prop_data["nearby_schools"] else None

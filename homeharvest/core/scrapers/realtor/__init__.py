@@ -130,7 +130,8 @@ class RealtorScraper(Scraper):
 
                 if advertiser.get("office"):  #: has an office
                     processed_advertisers.office = Office(
-                        uuid=_parse_fulfillment_id(advertiser["office"].get("fulfillment_id")) or advertiser["office"].get("mls_set"),
+                        uuid=_parse_fulfillment_id(advertiser["office"].get("fulfillment_id")),
+                        mls_set=advertiser["office"].get("mls_set"),
                         name=advertiser["office"].get("name"),
                         email=advertiser["office"].get("email"),
                         phones=advertiser["office"].get("phones"),

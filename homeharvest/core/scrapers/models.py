@@ -106,6 +106,7 @@ class Agent(Entity):
 
 @dataclass
 class Office(Entity):
+    mls_set: str | None = None
     email: str | None = None
     href: str | None = None
     phones: list[dict] | AgentPhone | None = None
