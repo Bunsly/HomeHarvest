@@ -6,6 +6,8 @@ from .exceptions import InvalidListingType, InvalidDate
 
 ordered_properties = [
     "property_url",
+    "property_id",
+    "listing_id",
     "mls",
     "mls_id",
     "status",

@@ -181,11 +181,9 @@ class RealtorScraper(Scraper):
                 if "source" in result and isinstance(result["source"], dict)
                 else None
             ),
-            property_url=(
-                f"{self.PROPERTY_URL}{property_id}"
-                if self.listing_type != ListingType.FOR_RENT
-                else f"{self.PROPERTY_URL}M{property_id}?listing_status=rental"
-            ),
+            property_url=result["href"],
+            property_id=property_id,
+            listing_id=result.get("listing_id"),
             status="PENDING" if is_pending else result["status"].upper(),
             list_price=result["list_price"],
             list_price_min=result["list_price_min"],
@@ -469,7 +467,7 @@ class RealtorScraper(Scraper):
                 }"""
 
         variables = {"property_id": property_id}
-        response = self.session.post(self.PROPERTY_GQL, json={"query": query, "variables": variables})
+        response = self.session.post(self.SEARCH_GQL_URL, json={"query": query, "variables": variables})
 
         data = response.json()
         property_details = data["data"]["home"]

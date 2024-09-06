@@ -2,6 +2,7 @@ _SEARCH_HOMES_DATA_BASE = """{
     pending_date
     listing_id
     property_id
+    href
     list_date
     status
     last_sold_price

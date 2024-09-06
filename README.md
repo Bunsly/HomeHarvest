@@ -104,6 +104,8 @@ Optional
 Property
 ├── Basic Information:
 │ ├── property_url
+│ ├── property_id
+│ ├── listing_id
 │ ├── mls
 │ ├── mls_id
 │ └── status

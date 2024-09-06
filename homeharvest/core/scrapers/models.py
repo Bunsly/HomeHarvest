@@ -133,6 +133,10 @@ class Advertisers:
 @dataclass
 class Property:
     property_url: str
+
+    property_id: str
+    listing_id: str | None = None
+
     mls: str | None = None
     mls_id: str | None = None
     status: str | None = None

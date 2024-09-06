@@ -128,6 +128,7 @@ def test_realtor_bad_address():
         location="abceefg ju098ot498hh9",
         listing_type="for_sale",
     )
+
     if len(bad_results) == 0:
         assert True
 
@@ -253,3 +254,29 @@ def test_builder_exists():
 
     assert listing is not None
     assert listing["builder_name"].nunique() > 0
+
+
+def test_phone_number_matching():
+    searches = [
+        scrape_property(
+            location="Phoenix, AZ",
+            listing_type="for_sale",
+            limit=100,
+        ),
+        scrape_property(
+            location="Phoenix, AZ",
+            listing_type="for_sale",
+            limit=100,
+        ),
+    ]
+
+    assert all([search is not None for search in searches])
+
+    #: random row
+    row = searches[0][searches[0]["agent_phones"].notnull()].sample()
+
+    #: find matching row
+    matching_row = searches[1].loc[searches[1]["property_url"] == row["property_url"].values[0]]
+
+    #: assert phone numbers are the same
+    assert row["agent_phones"].values[0] == matching_row["agent_phones"].values[0]
