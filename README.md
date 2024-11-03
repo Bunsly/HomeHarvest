@@ -38,6 +38,7 @@ filename = f"HomeHarvest_{current_timestamp}.csv"
 properties = scrape_property(
   location="San Diego, CA",
   listing_type="sold",  # or (for_sale, for_rent, pending)
+  property_type='single_family',
   past_days=30,  # sold in last 30 days - listed in last 30 days if (for_sale, for_rent)
 
   # date_from="2023-05-01", # alternative to past_days
@@ -86,6 +87,7 @@ Optional
     - 'farm'
     - 'land'
     - 'mobile'
+
 ├── radius (decimal): Radius in miles to find comparable properties based on individual addresses.
 │    Example: 5.5 (fetches properties within a 5.5-mile radius if location is set to a specific address; otherwise, ignored)
 │
