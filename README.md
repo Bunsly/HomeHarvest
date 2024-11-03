@@ -68,13 +68,24 @@ print(properties.head())
 ```
 Required
 ├── location (str): The address in various formats - this could be just a zip code, a full address, or city/state, etc.
-└── listing_type (option): Choose the type of listing.
+├── listing_type (option): Choose the type of listing.
     - 'for_rent'
     - 'for_sale'
     - 'sold'
-    - 'pending'
+    - 'pending' (for pending/contingent sales)
 
 Optional
+├── property_type (list): Choose the type of properties.
+    - 'single_family'
+    - 'multi_family'
+    - 'condos'
+    - 'condo_townhome_rowhome_coop'
+    - 'condo_townhome'
+    - 'townhomes'
+    - 'duplex_triplex'
+    - 'farm'
+    - 'land'
+    - 'mobile'
 ├── radius (decimal): Radius in miles to find comparable properties based on individual addresses.
 │    Example: 5.5 (fetches properties within a 5.5-mile radius if location is set to a specific address; otherwise, ignored)
 │
@@ -94,7 +105,7 @@ Optional
 │
 ├── extra_property_data (True/False): Increases requests by O(n). If set, this fetches additional property data for general searches (e.g. schools, tax appraisals etc.)
 │
-├── exclude_pending (True/False): If set, excludes pending properties from the results unless listing_type is 'pending'
+├── exclude_pending (True/False): If set, excludes 'pending' properties from the 'for_sale' results unless listing_type is 'pending'
 │
 └── limit (integer): Limit the number of properties to fetch. Max & default is 10000.
 ```

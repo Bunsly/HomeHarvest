@@ -6,12 +6,28 @@ This module implements the scraper for realtor.com
 """
 
 from __future__ import annotations
+
+import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
+from json import JSONDecodeError
 from typing import Dict, Union, Optional
 
+from tenacity import retry, retry_if_exception_type, wait_exponential, stop_after_attempt
+
 from .. import Scraper
-from ..models import Property, Address, ListingType, Description, PropertyType, Agent, Broker, Builder, Advertisers, Office
+from ..models import (
+    Property,
+    Address,
+    ListingType,
+    Description,
+    PropertyType,
+    Agent,
+    Broker,
+    Builder,
+    Advertisers,
+    Office,
+)
 from .queries import GENERAL_RESULTS_QUERY, SEARCH_HOMES_DATA, HOMES_DATA
 
 
@@ -81,9 +97,12 @@ class RealtorScraper(Scraper):
             return property_info["listings"][0]["listing_id"]
 
     def handle_home(self, property_id: str) -> list[Property]:
-        query = """query Home($property_id: ID!) {
+        query = (
+            """query Home($property_id: ID!) {
                     home(property_id: $property_id) %s
-                }""" % HOMES_DATA
+                }"""
+            % HOMES_DATA
+        )
 
         variables = {"property_id": property_id}
         payload = {
@@ -96,9 +115,7 @@ class RealtorScraper(Scraper):
 
         property_info = response_json["data"]["home"]
 
-        return [
-            self.process_property(property_info, "home")
-        ]
+        return [self.process_property(property_info, "home")]
 
     @staticmethod
     def process_advertisers(advertisers: list[dict] | None) -> Advertisers | None:
@@ -122,7 +139,7 @@ class RealtorScraper(Scraper):
                     phones=advertiser.get("phones"),
                 )
 
-                if advertiser.get('broker') and advertiser["broker"].get('name'):  #: has a broker
+                if advertiser.get("broker") and advertiser["broker"].get("name"):  #: has a broker
                     processed_advertisers.broker = Broker(
                         uuid=_parse_fulfillment_id(advertiser["broker"].get("fulfillment_id")),
                         name=advertiser["broker"].get("name"),
@@ -153,15 +170,16 @@ class RealtorScraper(Scraper):
             return
 
         able_to_get_lat_long = (
-                result
-                and result.get("location")
-                and result["location"].get("address")
-                and result["location"]["address"].get("coordinate")
+            result
+            and result.get("location")
+            and result["location"].get("address")
+            and result["location"]["address"].get("coordinate")
         )
 
-        is_pending = result["flags"].get("is_pending") or result["flags"].get("is_contingent")
+        is_pending = result["flags"].get("is_pending")
+        is_contingent = result["flags"].get("is_contingent")
 
-        if is_pending and (self.exclude_pending and self.listing_type != ListingType.PENDING):
+        if (is_pending or is_contingent) and (self.exclude_pending and self.listing_type != ListingType.PENDING):
             return
 
         property_id = result["property_id"]
@@ -184,7 +202,7 @@ class RealtorScraper(Scraper):
             property_url=result["href"],
             property_id=property_id,
             listing_id=result.get("listing_id"),
-            status="PENDING" if is_pending else result["status"].upper(),
+            status="PENDING" if is_pending else "CONTINGENT" if is_contingent else result["status"].upper(),
             list_price=result["list_price"],
             list_price_min=result["list_price_min"],
             list_price_max=result["list_price_max"],
@@ -225,6 +243,11 @@ class RealtorScraper(Scraper):
             elif self.last_x_days:
                 date_param = f'list_date: {{ min: "$today-{self.last_x_days}D" }}'
 
+        property_type_param = ""
+        if self.property_type:
+            property_types = [pt.value for pt in self.property_type]
+            property_type_param = f"type: {json.dumps(property_types)}"
+
         sort_param = (
             "sort: [{ field: sold_date, direction: desc }]"
             if self.listing_type == ListingType.SOLD
@@ -259,6 +282,7 @@ class RealtorScraper(Scraper):
                                 status: %s
                                 %s
                                 %s
+                                %s
                             }
                             %s
                             limit: 200
@@ -268,6 +292,7 @@ class RealtorScraper(Scraper):
                 is_foreclosure,
                 listing_type.value.lower(),
                 date_param,
+                property_type_param,
                 pending_or_contingent_param,
                 sort_param,
                 GENERAL_RESULTS_QUERY,
@@ -290,6 +315,7 @@ class RealtorScraper(Scraper):
                                         status: %s
                                         %s
                                         %s
+                                        %s
                                     }
                                     %s
                                     limit: 200
@@ -299,13 +325,14 @@ class RealtorScraper(Scraper):
                 is_foreclosure,
                 listing_type.value.lower(),
                 date_param,
+                property_type_param,
                 pending_or_contingent_param,
                 sort_param,
                 GENERAL_RESULTS_QUERY,
             )
         else:  #: general search, came from an address
             query = (
-                    """query Property_search(
+                """query Property_search(
                         $property_id: [ID]!
                         $offset: Int!,
                     ) {
@@ -315,9 +342,9 @@ class RealtorScraper(Scraper):
                             }
                             limit: 1
                             offset: $offset
-                        ) %s 
+                        ) %s
                     }"""
-                    % GENERAL_RESULTS_QUERY
+                % GENERAL_RESULTS_QUERY
             )
 
         payload = {
@@ -332,12 +359,12 @@ class RealtorScraper(Scraper):
         properties: list[Property] = []
 
         if (
-                response_json is None
-                or "data" not in response_json
-                or response_json["data"] is None
-                or search_key not in response_json["data"]
-                or response_json["data"][search_key] is None
-                or "results" not in response_json["data"][search_key]
+            response_json is None
+            or "data" not in response_json
+            or response_json["data"] is None
+            or search_key not in response_json["data"]
+            or response_json["data"][search_key] is None
+            or "results" not in response_json["data"][search_key]
         ):
             return {"total": 0, "properties": []}
 
@@ -347,12 +374,10 @@ class RealtorScraper(Scraper):
 
         #: limit the number of properties to be processed
         #: example, if your offset is 200, and your limit is 250, return 50
-        properties_list = properties_list[:self.limit - offset]
+        properties_list = properties_list[: self.limit - offset]
 
         with ThreadPoolExecutor(max_workers=self.NUM_PROPERTY_WORKERS) as executor:
-            futures = [
-                executor.submit(self.process_property, result, search_key) for result in properties_list
-            ]
+            futures = [executor.submit(self.process_property, result, search_key) for result in properties_list]
 
             for future in as_completed(futures):
                 result = future.result()
@@ -451,6 +476,9 @@ class RealtorScraper(Scraper):
             "assessed_value": assessed_value if assessed_value else None,
         }
 
+    @retry(
+        retry=retry_if_exception_type(JSONDecodeError), wait=wait_exponential(min=4, max=10), stop=stop_after_attempt(3)
+    )
     def get_prop_details(self, property_id: str) -> dict:
         if not self.extra_property_data:
             return {}
@@ -534,7 +562,9 @@ class RealtorScraper(Scraper):
             style = style.upper()
 
         primary_photo = ""
-        if (primary_photo_info := result.get('primary_photo')) and (primary_photo_href := primary_photo_info.get("href")):
+        if (primary_photo_info := result.get("primary_photo")) and (
+            primary_photo_href := primary_photo_info.get("href")
+        ):
             primary_photo = primary_photo_href.replace("s.jpg", "od-w480_h360_x2.webp?w=1080&q=75")
 
         return Description(
@@ -547,7 +577,7 @@ class RealtorScraper(Scraper):
             sqft=description_data.get("sqft"),
             lot_sqft=description_data.get("lot_sqft"),
             sold_price=(
-                result.get('last_sold_price') or description_data.get("sold_price")
+                result.get("last_sold_price") or description_data.get("sold_price")
                 if result.get("last_sold_date") or result["list_price"] != description_data.get("sold_price")
                 else None
             ),  #: has a sold date or list and sold price are different
@@ -581,4 +611,8 @@ class RealtorScraper(Scraper):
         if not photos_info:
             return None
 
-        return [photo_info["href"].replace("s.jpg", "od-w480_h360_x2.webp?w=1080&q=75") for photo_info in photos_info if photo_info.get("href")]
+        return [
+            photo_info["href"].replace("s.jpg", "od-w480_h360_x2.webp?w=1080&q=75")
+            for photo_info in photos_info
+            if photo_info.get("href")
+        ]
