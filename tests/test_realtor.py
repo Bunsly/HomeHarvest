@@ -105,8 +105,12 @@ def test_realtor():
             location="2530 Al Lipscomb Way",
             listing_type="for_sale",
         ),
-        scrape_property(location="Phoenix, AZ", listing_type="for_rent", limit=1000),  #: does not support "city, state, USA" format
-        scrape_property(location="Dallas, TX", listing_type="sold", limit=1000),  #: does not support "city, state, USA" format
+        scrape_property(
+            location="Phoenix, AZ", listing_type="for_rent", limit=1000
+        ),  #: does not support "city, state, USA" format
+        scrape_property(
+            location="Dallas, TX", listing_type="sold", limit=1000
+        ),  #: does not support "city, state, USA" format
         scrape_property(location="85281"),
     ]
 
@@ -114,11 +118,13 @@ def test_realtor():
 
 
 def test_realtor_city():
-    results = scrape_property(
-        location="Atlanta, GA",
-        listing_type="for_sale",
-        limit=1000
-    )
+    results = scrape_property(location="Atlanta, GA", listing_type="for_sale", limit=1000)
+
+    assert results is not None and len(results) > 0
+
+
+def test_realtor_land():
+    results = scrape_property(location="Atlanta, GA", listing_type="for_sale", property_type=["land"], limit=1000)
 
     assert results is not None and len(results) > 0
 
@@ -241,9 +247,10 @@ def test_apartment_list_price():
     results = results[results["style"] == "APARTMENT"]
 
     #: get percentage of results with atleast 1 of any column not none, list_price, list_price_min, list_price_max
-    assert len(results[results[["list_price", "list_price_min", "list_price_max"]].notnull().any(axis=1)]) / len(
-        results
-    ) > 0.5
+    assert (
+        len(results[results[["list_price", "list_price_min", "list_price_max"]].notnull().any(axis=1)]) / len(results)
+        > 0.5
+    )
 
 
 def test_builder_exists():

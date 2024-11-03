@@ -17,6 +17,19 @@ class SiteName(Enum):
         raise ValueError(f"{value} not found in {cls}")
 
 
+class SearchPropertyType(Enum):
+    SINGLE_FAMILY = "single_family"
+    CONDOS = "condos"
+    CONDO_TOWNHOME_ROWHOME_COOP = "condo_townhome_rowhome_coop"
+    CONDO_TOWNHOME = "condo_townhome"
+    TOWNHOMES = "townhomes"
+    DUPLEX_TRIPLEX = "duplex_triplex"
+    FARM = "farm"
+    LAND = "land"
+    MULTI_FAMILY = "multi_family"
+    MOBILE = "mobile"
+
+
 class ListingType(Enum):
     FOR_SALE = "FOR_SALE"
     FOR_RENT = "FOR_RENT"
