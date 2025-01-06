@@ -176,5 +176,7 @@ class Property:
     nearby_schools: list[str] = None
     assessed_value: int | None = None
     estimated_value: int | None = None
+    tax: int | None = None
+    tax_history: list[dict] | None = None
 
     advertisers: Advertisers | None = None

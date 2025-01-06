@@ -13,7 +13,12 @@ from datetime import datetime
 from json import JSONDecodeError
 from typing import Dict, Union, Optional
 
-from tenacity import retry, retry_if_exception_type, wait_exponential, stop_after_attempt
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    wait_exponential,
+    stop_after_attempt,
+)
 
 from .. import Scraper
 from ..models import (
@@ -202,27 +207,29 @@ class RealtorScraper(Scraper):
             property_url=result["href"],
             property_id=property_id,
             listing_id=result.get("listing_id"),
-            status="PENDING" if is_pending else "CONTINGENT" if is_contingent else result["status"].upper(),
+            status=("PENDING" if is_pending else "CONTINGENT" if is_contingent else result["status"].upper()),
             list_price=result["list_price"],
             list_price_min=result["list_price_min"],
             list_price_max=result["list_price_max"],
-            list_date=result["list_date"].split("T")[0] if result.get("list_date") else None,
+            list_date=(result["list_date"].split("T")[0] if result.get("list_date") else None),
             prc_sqft=result.get("price_per_sqft"),
             last_sold_date=result.get("last_sold_date"),
             new_construction=result["flags"].get("is_new_construction") is True,
-            hoa_fee=result["hoa"]["fee"] if result.get("hoa") and isinstance(result["hoa"], dict) else None,
-            latitude=result["location"]["address"]["coordinate"].get("lat") if able_to_get_lat_long else None,
-            longitude=result["location"]["address"]["coordinate"].get("lon") if able_to_get_lat_long else None,
+            hoa_fee=(result["hoa"]["fee"] if result.get("hoa") and isinstance(result["hoa"], dict) else None),
+            latitude=(result["location"]["address"]["coordinate"].get("lat") if able_to_get_lat_long else None),
+            longitude=(result["location"]["address"]["coordinate"].get("lon") if able_to_get_lat_long else None),
             address=self._parse_address(result, search_type="general_search"),
             description=self._parse_description(result),
             neighborhoods=self._parse_neighborhoods(result),
-            county=result["location"]["county"].get("name") if result["location"]["county"] else None,
-            fips_code=result["location"]["county"].get("fips_code") if result["location"]["county"] else None,
+            county=(result["location"]["county"].get("name") if result["location"]["county"] else None),
+            fips_code=(result["location"]["county"].get("fips_code") if result["location"]["county"] else None),
             days_on_mls=self.calculate_days_on_mls(result),
             nearby_schools=prop_details.get("schools"),
             assessed_value=prop_details.get("assessed_value"),
             estimated_value=estimated_value if estimated_value else None,
             advertisers=advertisers,
+            tax=prop_details.get("tax"),
+            tax_history=prop_details.get("tax_history"),
         )
         return realty_property
 
@@ -447,7 +454,11 @@ class RealtorScraper(Scraper):
                     variables=search_variables | {"offset": i},
                     search_type=search_type,
                 )
-                for i in range(self.DEFAULT_PAGE_SIZE, min(total, self.limit), self.DEFAULT_PAGE_SIZE)
+                for i in range(
+                    self.DEFAULT_PAGE_SIZE,
+                    min(total, self.limit),
+                    self.DEFAULT_PAGE_SIZE,
+                )
             ]
 
             for future in as_completed(futures):
@@ -469,15 +480,45 @@ class RealtorScraper(Scraper):
     def process_extra_property_details(self, result: dict) -> dict:
         schools = self.get_key(result, ["nearbySchools", "schools"])
         assessed_value = self.get_key(result, ["taxHistory", 0, "assessment", "total"])
+        tax_history = self.get_key(result, ["taxHistory"])
 
         schools = [school["district"]["name"] for school in schools if school["district"].get("name")]
+
+        # Process tax history
+        latest_tax = None
+        processed_tax_history = None
+        if tax_history and isinstance(tax_history, list):
+            tax_history = sorted(tax_history, key=lambda x: x.get("year", 0), reverse=True)
+
+            if tax_history and "tax" in tax_history[0]:
+                latest_tax = tax_history[0]["tax"]
+
+            processed_tax_history = []
+            for entry in tax_history:
+                if "year" in entry and "tax" in entry:
+                    processed_entry = {
+                        "year": entry["year"],
+                        "tax": entry["tax"],
+                    }
+                    if "assessment" in entry and isinstance(entry["assessment"], dict):
+                        processed_entry["assessment"] = {
+                            "building": entry["assessment"].get("building"),
+                            "land": entry["assessment"].get("land"),
+                            "total": entry["assessment"].get("total"),
+                        }
+                    processed_tax_history.append(processed_entry)
+
         return {
             "schools": schools if schools else None,
             "assessed_value": assessed_value if assessed_value else None,
+            "tax": latest_tax,
+            "tax_history": processed_tax_history,
         }
 
     @retry(
-        retry=retry_if_exception_type(JSONDecodeError), wait=wait_exponential(min=4, max=10), stop=stop_after_attempt(3)
+        retry=retry_if_exception_type(JSONDecodeError),
+        wait=wait_exponential(min=4, max=10),
+        stop=stop_after_attempt(3),
     )
     def get_prop_details(self, property_id: str) -> dict:
         if not self.extra_property_data:
@@ -570,7 +611,7 @@ class RealtorScraper(Scraper):
         return Description(
             primary_photo=primary_photo,
             alt_photos=RealtorScraper.process_alt_photos(result.get("photos", [])),
-            style=PropertyType.__getitem__(style) if style and style in PropertyType.__members__ else None,
+            style=(PropertyType.__getitem__(style) if style and style in PropertyType.__members__ else None),
             beds=description_data.get("beds"),
             baths_full=description_data.get("baths_full"),
             baths_half=description_data.get("baths_half"),

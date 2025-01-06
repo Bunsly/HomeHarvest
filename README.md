@@ -38,9 +38,9 @@ filename = f"HomeHarvest_{current_timestamp}.csv"
 properties = scrape_property(
   location="San Diego, CA",
   listing_type="sold",  # or (for_sale, for_rent, pending)
-  property_type=['single_family','multi_family'],
   past_days=30,  # sold in last 30 days - listed in last 30 days if (for_sale, for_rent)
 
+  # property_type=['single_family','multi_family'],
   # date_from="2023-05-01", # alternative to past_days
   # date_to="2023-05-28",
   # foreclosure=True
@@ -153,6 +153,14 @@ Property
 │ ├── price_per_sqft
 │ ├── new_construction
 │ └── hoa_fee
+
+├── Tax Information:
+│  ├── year
+│  ├── tax
+│  ├── assessment
+│  │   ├── building
+│  │   ├── land
+│  │   └── total
 
 ├── Location Details:
 │ ├── latitude
