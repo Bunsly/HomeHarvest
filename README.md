@@ -2,10 +2,6 @@
 
 **HomeHarvest** is a real estate scraping library that extracts and formats data in the style of MLS listings.
 
-**Not technical?** Try out the web scraping tool on our site at [tryhomeharvest.com](https://tryhomeharvest.com).
-
-*Looking to build a data-focused software product?* **[Book a call](https://bunsly.com)** *to work with us.*
-
 ## HomeHarvest Features
 
 - **Source**: Fetches properties directly from **Realtor.com**.
